@@ -1,0 +1,63 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.BASIC-BIT/vbmatrix-mcp",
+  "title": "VBMatrix MCP",
+  "description": "MCP server for VB-Audio Matrix over VBAN-TEXT.",
+  "repository": {
+    "url": "https://github.com/BASIC-BIT/vbmatrix-mcp",
+    "source": "github"
+  },
+  "version": "0.0.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@basicbit/vbmatrix-mcp",
+      "version": "0.0.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "VBMATRIX_HOST",
+          "description": "VBMatrix host or IP address.",
+          "format": "string",
+          "default": "127.0.0.1",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VBMATRIX_MCP_ALLOW_WRITES",
+          "description": "Allow routing point write operations. Defaults to true; set false for read-only mode.",
+          "format": "boolean",
+          "default": "true",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VBMATRIX_MCP_ALLOW_ALL_SUIDS",
+          "description": "Allow writes to all SUIDs when writes are enabled. Defaults to true; set false to require VBMATRIX_MCP_ALLOWED_SUIDS.",
+          "format": "boolean",
+          "default": "true",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VBMATRIX_MCP_ALLOWED_SUIDS",
+          "description": "Comma-separated SUID allowlist for write operations when VBMATRIX_MCP_ALLOW_ALL_SUIDS=false, for example VASIO8,VAIO1.",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VBMATRIX_MCP_ALLOW_DESTRUCTIVE",
+          "description": "Allow destructive/system operations such as engine restart. Defaults to true; set false to block them.",
+          "format": "boolean",
+          "default": "true",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ],
+  "websiteUrl": "https://github.com/BASIC-BIT/vbmatrix-mcp#readme"
+}

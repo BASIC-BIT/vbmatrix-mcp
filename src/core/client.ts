@@ -1,0 +1,56 @@
+import { getConfig, type VbMatrixConfig } from '../config/index.js';
+import {
+  commandPropertyQuery,
+  parseResponseValue,
+  pointPropertyQuery,
+  type PointState,
+  type PointTarget,
+} from './commands.js';
+import { sendVbanTextCommand } from './vbanText.js';
+
+export class VbMatrixClient {
+  readonly config: VbMatrixConfig;
+
+  constructor(config: VbMatrixConfig = getConfig()) {
+    this.config = config;
+  }
+
+  async send(command: string): Promise<void> {
+    await sendVbanTextCommand(command, {
+      host: this.config.host,
+      port: this.config.port,
+      streamName: this.config.streamName,
+      timeoutMs: this.config.timeoutMs,
+      waitForResponse: false,
+    });
+  }
+
+  async query(command: string): Promise<string> {
+    const response = await sendVbanTextCommand(command, {
+      host: this.config.host,
+      port: this.config.port,
+      streamName: this.config.streamName,
+      timeoutMs: this.config.timeoutMs,
+      waitForResponse: true,
+    });
+    if (response === null) throw new Error(`No response for query: ${command}`);
+    return response.trim();
+  }
+
+  async queryValue(command: string): Promise<string> {
+    return parseResponseValue(await this.query(command));
+  }
+
+  async queryVersion(): Promise<string> {
+    return this.queryValue(commandPropertyQuery('Version'));
+  }
+
+  async queryPointState(target: PointTarget): Promise<PointState> {
+    const [dBGain, mute, phase] = await Promise.all([
+      this.queryValue(pointPropertyQuery(target, 'dBGain')),
+      this.queryValue(pointPropertyQuery(target, 'Mute')),
+      this.queryValue(pointPropertyQuery(target, 'Phase')),
+    ]);
+    return { dBGain, mute, phase };
+  }
+}

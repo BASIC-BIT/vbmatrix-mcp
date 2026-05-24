@@ -1,0 +1,79 @@
+{
+  "name": "@basicbit/vbmatrix-mcp",
+  "version": "0.0.0",
+  "mcpName": "io.github.BASIC-BIT/vbmatrix-mcp",
+  "description": "MCP server for VB-Audio Matrix over VBAN-TEXT.",
+  "type": "module",
+  "main": "dist/src/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "vbmatrix-mcp": "dist/bin/cli.js"
+  },
+  "files": [
+    "dist",
+    "docs/architecture.md",
+    "docs/design.md",
+    "docs/research.md",
+    "docs/safety.md",
+    "README.md",
+    "CHANGELOG.md",
+    "server.json",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx src/index.ts",
+    "lint": "eslint . --ext .ts,.tsx,.mts --max-warnings=0",
+    "lint:fix": "npm run lint -- --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run lint && npm run typecheck && npm test",
+    "start": "node dist/bin/cli.js"
+  },
+  "engines": {
+    "node": ">=24.15.0"
+  },
+  "keywords": [
+    "vbmatrix",
+    "vb-audio",
+    "vban",
+    "vban-text",
+    "mcp",
+    "modelcontextprotocol",
+    "model-context-protocol",
+    "audio-routing",
+    "opencode"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BASIC-BIT/vbmatrix-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/BASIC-BIT/vbmatrix-mcp/issues"
+  },
+  "homepage": "https://github.com/BASIC-BIT/vbmatrix-mcp#readme",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.50.0",
+    "@typescript-eslint/parser": "^8.50.0",
+    "eslint": "^10.3.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-sonarjs": "^4.0.3",
+    "globals": "^17.6.0",
+    "prettier": "^3.7.4",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.0.16"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.2.1"
+  }
+}
