@@ -79,6 +79,11 @@ Write tools are explicit and available by default. They can be narrowed with env
 - `vbmatrix_set_point_gain` validates gain range and target policy.
 - `vbmatrix_set_point_mute` validates target policy.
 - `vbmatrix_set_point_phase` validates target policy.
+- `vbmatrix_set_slot_online` validates slot policy and toggles one slot online/offline.
+- `vbmatrix_set_slot_master` validates slot policy and toggles one slot master flag.
+- `vbmatrix_reset_slot` validates slot policy, requires explicit confirmation, and respects the destructive-action opt-out gate.
+- `vbmatrix_set_slot_device` validates slot policy, safely quotes ASIO/MME/KS/WDM device names, requires explicit confirmation, and respects the destructive-action opt-out gate.
+- `vbmatrix_remove_slot_device` validates slot policy, requires explicit confirmation, and respects the destructive-action opt-out gate.
 - `vbmatrix_restart_engine` respects the destructive-action opt-out gate.
 
 ### Layer 2: grouped operations
@@ -129,5 +134,5 @@ Write responses should include:
 - Raw free-form command execution.
 - Full-matrix scans by default.
 - Preset patch editing.
-- `Remove`, `Reset`, `ResetGrid`, or `Shutdown` tools.
+- Broad `Remove`, `ResetGrid`, or `Shutdown` tools.
 - VBAN SERVICE subscriptions or meter streaming.

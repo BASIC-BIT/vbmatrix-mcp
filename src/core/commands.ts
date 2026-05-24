@@ -19,6 +19,18 @@ export interface PointState {
   phase: string;
 }
 
+export interface SlotState {
+  info: string;
+  online: string;
+  runningStatus: string;
+  master: string;
+  device: string;
+}
+
+export type SlotDeviceKind = 'ASIO' | 'MME' | 'KS' | 'WDM';
+
+const SLOT_DEVICE_KINDS = ['ASIO', 'MME', 'KS', 'WDM'] as const;
+
 export function validateSuidSyntax(suid: string): void {
   if (!SUID_PATTERN.test(suid)) {
     throw new Error(`Invalid SUID: ${suid}`);
@@ -68,9 +80,52 @@ export function setPointPhaseCommand(target: PointTarget, phaseReversed: boolean
   return `${pointExpression(target)}.Phase=${phaseReversed ? 1 : 0};`;
 }
 
-export function slotPropertyQuery(suid: string, property: 'Info' | 'Online' | 'RunningStatus' | 'Device' | 'Master'): string {
+export function slotPropertyQuery(
+  suid: string,
+  property: 'Info' | 'Online' | 'RunningStatus' | 'Device' | 'Master'
+): string {
   validateSuidSyntax(suid);
   return `Slot(${suid}).${property}=?;`;
+}
+
+export function setSlotOnlineCommand(suid: string, online: boolean): string {
+  validateSuidSyntax(suid);
+  return `Slot(${suid}).Online=${online ? 1 : 0};`;
+}
+
+export function setSlotMasterCommand(suid: string, master: boolean): string {
+  validateSuidSyntax(suid);
+  return `Slot(${suid}).Master=${master ? 1 : 0};`;
+}
+
+export function resetSlotCommand(suid: string): string {
+  validateSuidSyntax(suid);
+  return `Slot(${suid}).Reset;`;
+}
+
+export function quoteDeviceName(deviceName: string): string {
+  if (deviceName.length === 0) throw new Error('Device name must not be empty');
+  if (/[;\r\n"]/.test(deviceName)) {
+    throw new Error('Device name must not contain semicolons, newlines, or double quotes');
+  }
+  return `"${deviceName}"`;
+}
+
+export function validateSlotDeviceKind(kind: string): asserts kind is SlotDeviceKind {
+  if (!SLOT_DEVICE_KINDS.includes(kind as SlotDeviceKind)) {
+    throw new Error(`Device kind must be one of: ${SLOT_DEVICE_KINDS.join(', ')}`);
+  }
+}
+
+export function setSlotDeviceCommand(suid: string, kind: SlotDeviceKind, deviceName: string): string {
+  validateSuidSyntax(suid);
+  validateSlotDeviceKind(kind);
+  return `Slot(${suid}).Device.${kind}=${quoteDeviceName(deviceName)};`;
+}
+
+export function removeSlotDeviceCommand(suid: string): string {
+  validateSuidSyntax(suid);
+  return `Slot(${suid}).Device="";`;
 }
 
 export function commandPropertyQuery(property: 'Version' | 'Engine' | 'Master'): string {
@@ -101,7 +156,9 @@ export function parseQueryResponseValue(queryCommand: string, response: string):
   const expectedKey = normalizeResponseKey(expectedMatch[1]);
   const actualKey = normalizeResponseKey(responseMatch[1]);
   if (actualKey !== expectedKey) {
-    throw new Error(`Response key mismatch: expected ${expectedMatch[1].trim()}, got ${responseMatch[1].trim()}`);
+    throw new Error(
+      `Response key mismatch: expected ${expectedMatch[1].trim()}, got ${responseMatch[1].trim()}`
+    );
   }
 
   return responseMatch[2].trim();

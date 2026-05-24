@@ -125,9 +125,14 @@ Current primitive write/destructive tools:
 - `vbmatrix_set_point_gain` (`gainDb: "-inf"` removes the point.)
 - `vbmatrix_set_point_mute`
 - `vbmatrix_set_point_phase`
+- `vbmatrix_set_slot_online`
+- `vbmatrix_set_slot_master`
+- `vbmatrix_reset_slot` (`confirm: true` required; destructive gate)
+- `vbmatrix_set_slot_device` (`kind: "ASIO" | "MME" | "KS" | "WDM"`, exact `deviceName`, `confirm: true` required; destructive gate)
+- `vbmatrix_remove_slot_device` (`confirm: true` required; destructive gate)
 - `vbmatrix_restart_engine`
 
-Write tools are available by default so the user's MCP harness can decide what should be called. Set `VBMATRIX_MCP_ALLOW_WRITES=false`, `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` for narrower deployments.
+Write tools are available by default so the user's MCP harness can decide what should be called. Set `VBMATRIX_MCP_ALLOW_WRITES=false`, `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` for narrower deployments. Slot reset and device changes should be operator-in-the-loop actions; use `vbmatrix_get_slot_info` first to copy current device strings and verify before/after state.
 
 Future tools should keep natural-language interpretation in the agent layer. MCP schemas should use explicit SUIDs, channels, enum-like values, booleans, and bounded numbers instead of free-form routing goals.
 

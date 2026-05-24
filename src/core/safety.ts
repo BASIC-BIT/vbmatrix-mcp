@@ -1,5 +1,5 @@
 import type { VbMatrixConfig } from '../config/index.js';
-import { validatePointTargetSyntax, type PointTarget } from './commands.js';
+import { validatePointTargetSyntax, validateSuidSyntax, type PointTarget } from './commands.js';
 
 export class SafetyError extends Error {
   readonly code: string;
@@ -46,6 +46,22 @@ export function assertPointWriteAllowed(config: VbMatrixConfig, target: PointTar
   assertWritesAllowed(config);
   assertSuidAllowed(config, target.inputSuid);
   assertSuidAllowed(config, target.outputSuid);
+}
+
+export function assertSlotWriteAllowed(config: VbMatrixConfig, suid: string): void {
+  validateSuidSyntax(suid);
+  assertWritesAllowed(config);
+  assertSuidAllowed(config, suid);
+}
+
+export function assertSlotDestructiveAllowed(config: VbMatrixConfig, suid: string, confirmed: boolean): void {
+  assertSlotWriteAllowed(config, suid);
+  assertDestructiveAllowed(config);
+  if (!confirmed) {
+    throw new SafetyError('confirmation_required', 'Slot reset and device changes require confirm=true', {
+      confirmed,
+    });
+  }
 }
 
 export function safetyDetails(config: VbMatrixConfig): Record<string, unknown> {

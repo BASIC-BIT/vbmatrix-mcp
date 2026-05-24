@@ -6,14 +6,16 @@ VBMatrix can route live audio. The server exposes useful write tools by default 
 
 Write gates:
 
-- `VBMATRIX_MCP_ALLOW_WRITES=false` disables point writes.
+- `VBMATRIX_MCP_ALLOW_WRITES=false` disables point and slot writes.
 - `VBMATRIX_MCP_ALLOW_ALL_SUIDS=true` allows all SUIDs by default.
 - Set `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false` and list SUIDs in `VBMATRIX_MCP_ALLOWED_SUIDS` for a server-side allowlist.
 - Channels must be integers in the supported 1-based Matrix/Coconut channel range.
 
 Destructive gate:
 
-- `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` disables `vbmatrix_restart_engine` and any future destructive/system tools.
+- `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` disables `vbmatrix_restart_engine`, slot reset, slot device assignment/removal, and any future destructive/system tools.
+
+Slot device assignment/removal and slot reset also require `confirm=true` in the tool input. These tools are operator-in-the-loop actions because they can interrupt live audio devices even though they target one slot.
 
 ## Commands intentionally not exposed
 
@@ -26,9 +28,11 @@ Do not expose these as normal tools:
 - broad `Input(...).Reset` or `Output(...).Reset`
 - raw free-form VBAN-TEXT command execution
 
+Slot-level `Slot(SUID).Reset` is exposed only as `vbmatrix_reset_slot`, with a SUID allowlist check, the destructive gate, explicit confirmation, and before/after slot-state queries.
+
 ## Query-before-write
 
-Point write tools should query the affected point before and after sending a command. If a query times out, the write should still report that fact explicitly rather than hiding it.
+Point and slot write tools should query the affected target before and after sending a command. If a query times out, the write should still report that fact explicitly rather than hiding it.
 
 Grouped operation and workflow tools should preserve query-before-write for each affected target. If a future batch tool supports partial application, that behavior must be explicit in the input schema and response; fail-closed all-or-nothing behavior is the default.
 
