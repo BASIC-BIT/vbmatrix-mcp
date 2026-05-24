@@ -18,7 +18,7 @@ export function registerStatusTools(server: McpServer): void {
   server.registerTool(
     'vbmatrix_ping',
     {
-      description: 'Query VBMatrix version to verify VBAN-TEXT communication.',
+      description: 'Read-only query for VBMatrix version and VBAN-TEXT communication details.',
       inputSchema: EmptySchema,
       annotations: readOnlyToolAnnotations,
     },
@@ -36,7 +36,7 @@ export function registerStatusTools(server: McpServer): void {
   server.registerTool(
     'vbmatrix_get_engine',
     {
-      description: 'Query VBMatrix audio engine state.',
+      description: 'Read-only query for VBMatrix audio engine state.',
       inputSchema: EmptySchema,
       annotations: readOnlyToolAnnotations,
     },
@@ -54,7 +54,7 @@ export function registerStatusTools(server: McpServer): void {
   server.registerTool(
     'vbmatrix_get_master',
     {
-      description: 'Query VBMatrix master clock state.',
+      description: 'Read-only query for VBMatrix master clock state.',
       inputSchema: EmptySchema,
       annotations: readOnlyToolAnnotations,
     },
@@ -72,7 +72,7 @@ export function registerStatusTools(server: McpServer): void {
   server.registerTool(
     'vbmatrix_get_slot_info',
     {
-      description: 'Query VBMatrix slot info, online state, running status, master flag, and device string.',
+      description: 'Read-only query for VBMatrix slot info, online state, running status, master flag, and device string.',
       inputSchema: SlotInputSchema,
       annotations: readOnlyToolAnnotations,
     },

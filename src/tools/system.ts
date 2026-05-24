@@ -10,7 +10,8 @@ export function registerSystemTools(server: McpServer): void {
   server.registerTool(
     'vbmatrix_restart_engine',
     {
-      description: 'Restart the VBMatrix audio engine. Enabled by default; set VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false to block it.',
+      description:
+        'Fixed destructive action to restart the VBMatrix audio engine. Block with VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false; accepts no raw VBAN-TEXT commands.',
       inputSchema: EmptySchema,
       annotations: destructiveToolAnnotations,
     },

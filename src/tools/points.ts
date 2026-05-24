@@ -32,7 +32,7 @@ export function registerPointTools(server: McpServer): void {
   server.registerTool(
     'vbmatrix_get_point',
     {
-      description: 'Query gain, mute, and phase state for one VBMatrix routing point.',
+      description: 'Read-only query for gain, mute, and phase state for one VBMatrix routing point.',
       inputSchema: PointTargetSchema,
       annotations: readOnlyToolAnnotations,
     },
@@ -51,7 +51,8 @@ export function registerPointTools(server: McpServer): void {
   server.registerTool(
     'vbmatrix_set_point_gain',
     {
-      description: 'Set gain for one VBMatrix routing point. Respects write opt-out and optional SUID allowlist.',
+      description:
+        'Typed single-point write for gain. Queries before and after; respects write opt-out and optional SUID allowlist; accepts no raw VBAN-TEXT commands.',
       inputSchema: SetPointGainSchema,
       annotations: writeToolAnnotations,
     },
@@ -70,7 +71,8 @@ export function registerPointTools(server: McpServer): void {
   server.registerTool(
     'vbmatrix_set_point_mute',
     {
-      description: 'Set mute state for one VBMatrix routing point. Respects write opt-out and optional SUID allowlist.',
+      description:
+        'Typed single-point write for mute. Queries before and after; respects write opt-out and optional SUID allowlist; accepts no raw VBAN-TEXT commands.',
       inputSchema: SetPointMuteSchema,
       annotations: writeToolAnnotations,
     },
@@ -89,7 +91,8 @@ export function registerPointTools(server: McpServer): void {
   server.registerTool(
     'vbmatrix_set_point_phase',
     {
-      description: 'Set phase reversal for one VBMatrix routing point. Respects write opt-out and optional SUID allowlist.',
+      description:
+        'Typed single-point write for phase reversal. Queries before and after; respects write opt-out and optional SUID allowlist; accepts no raw VBAN-TEXT commands.',
       inputSchema: SetPointPhaseSchema,
       annotations: writeToolAnnotations,
     },
