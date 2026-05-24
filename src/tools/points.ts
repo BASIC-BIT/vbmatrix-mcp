@@ -4,7 +4,6 @@ import {
   setPointMuteCommand,
   setPointPhaseCommand,
   validatePointTargetSyntax,
-  type PointState,
   type PointTarget,
 } from '../core/commands.js';
 import { VbMatrixClient } from '../core/client.js';
@@ -17,23 +16,15 @@ function targetFromArgs(args: unknown): PointTarget {
   return PointTargetSchema.parse(args);
 }
 
-async function safeQueryPointState(client: VbMatrixClient, target: PointTarget): Promise<PointState | { error: string }> {
-  try {
-    return await client.queryPointState(target);
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Unknown point query error' };
-  }
-}
-
 async function writePoint(
   target: PointTarget,
   command: string,
   client: VbMatrixClient
 ): Promise<Record<string, unknown>> {
   assertPointWriteAllowed(client.config, target);
-  const before = await safeQueryPointState(client, target);
+  const before = await client.queryPointState(target);
   await client.send(command);
-  const after = await safeQueryPointState(client, target);
+  const after = await client.queryPointState(target);
   return { ok: true, target, command, before, after, safety: safetyDetails(client.config) };
 }
 

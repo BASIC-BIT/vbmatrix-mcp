@@ -4,7 +4,7 @@ export const MIN_MATRIX_CHANNEL = 1;
 export const MAX_MATRIX_CHANNEL = 3112;
 export type MatrixGain = number | '-inf';
 
-const SUID_PATTERN = /^[A-Za-z0-9_-]+$/;
+const SUID_PATTERN = /^[A-Za-z0-9_.-]+$/;
 
 export interface PointTarget {
   inputSuid: string;
@@ -56,6 +56,7 @@ export function pointPropertyQuery(target: PointTarget, property: 'dBGain' | 'Mu
 
 export function setPointGainCommand(target: PointTarget, gainDb: MatrixGain): string {
   validateGain(gainDb);
+  if (gainDb === '-inf') return `${pointExpression(target)}.Remove;`;
   return `${pointExpression(target)}.dBGain=${gainDb};`;
 }
 

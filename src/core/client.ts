@@ -51,6 +51,9 @@ export class VbMatrixClient {
       this.queryValue(pointPropertyQuery(target, 'Mute')),
       this.queryValue(pointPropertyQuery(target, 'Phase')),
     ]);
+    if ([dBGain, mute, phase].includes('Err')) {
+      throw new Error(`Matrix returned Err for point query: ${pointPropertyQuery(target, 'dBGain')}`);
+    }
     return { dBGain, mute, phase };
   }
 }

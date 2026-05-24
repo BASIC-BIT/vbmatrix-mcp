@@ -29,13 +29,14 @@ describe('VBMatrix command builders', () => {
   test('builds point queries and writes', () => {
     expect(pointPropertyQuery(target, 'dBGain')).toBe('Point(VASIO8.IN[1],ASIO128.OUT[126]).dBGain=?;');
     expect(setPointGainCommand(target, -6)).toBe('Point(VASIO8.IN[1],ASIO128.OUT[126]).dBGain=-6;');
-    expect(setPointGainCommand(target, '-inf')).toBe('Point(VASIO8.IN[1],ASIO128.OUT[126]).dBGain=-inf;');
+    expect(setPointGainCommand(target, '-inf')).toBe('Point(VASIO8.IN[1],ASIO128.OUT[126]).Remove;');
     expect(setPointMuteCommand(target, true)).toBe('Point(VASIO8.IN[1],ASIO128.OUT[126]).Mute=1;');
     expect(setPointPhaseCommand(target, false)).toBe('Point(VASIO8.IN[1],ASIO128.OUT[126]).Phase=0;');
   });
 
   test('builds slot and command queries', () => {
     expect(slotPropertyQuery('VASIO8', 'Info')).toBe('Slot(VASIO8).Info=?;');
+    expect(slotPropertyQuery('WIN1.IN', 'Info')).toBe('Slot(WIN1.IN).Info=?;');
     expect(commandPropertyQuery('Version')).toBe('Command.Version=?;');
     expect(restartEngineCommand()).toBe('Command.Restart;');
   });

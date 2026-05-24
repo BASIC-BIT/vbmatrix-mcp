@@ -14,6 +14,8 @@
 - VBMatrix has a LOG / CLI command surface, and the manual states most instructions can also be used as VBAN-TEXT requests.
 - VBMatrix supports point gain, mute, phase, slot status/device queries, preset patch commands, and system commands.
 - Public helper code indicates `Point(...)` commands should avoid spaces after commas when sent over VBAN-TEXT.
+- Live Matrix 1.0.2.6 testing showed `Command1` receives `Command.Version=?;` as normal VBAN-TEXT, but query answers come back as a `Request Reply` service packet with protocol byte `0x60` and a UTF-8 payload.
+- Live Matrix 1.0.2.6 testing showed `Point(...).dBGain=-inf;` is not the correct way to disconnect a point; it resets to `0.0`. Use `Point(...).Remove;` to restore query state to `dBGain = -inf`.
 
 ## Useful command examples
 
