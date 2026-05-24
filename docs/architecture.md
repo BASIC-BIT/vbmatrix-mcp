@@ -25,6 +25,7 @@ VBMatrix MCP is organized around explicit, testable layers. The MCP layer should
 - `registerAllTools.ts` is the single wiring point.
 - `status.ts` contains read-only status and slot tools.
 - `points.ts` contains routing point read/write tools.
+- `zones.ts` contains dry-run-first typed Matrix zone operations.
 - `snapshots.ts` contains targeted snapshot capture, diff, and guarded restore tools.
 - `system.ts` contains destructive/system operations, currently only engine restart.
 - New primitive tools should live beside the VBMatrix concept they expose and should register from `registerAllTools.ts` without changing existing tool names.

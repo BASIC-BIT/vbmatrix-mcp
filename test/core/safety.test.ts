@@ -7,6 +7,8 @@ import {
   assertPointWriteAllowed,
   assertSlotDestructiveAllowed,
   assertSlotWriteAllowed,
+  assertZoneResetAllowed,
+  assertZoneWriteAllowed,
 } from '../../src/core/safety.js';
 
 const target = {
@@ -20,6 +22,17 @@ const channelTarget = {
   kind: 'input' as const,
   suid: 'VASIO8',
   channel: 1,
+};
+
+const zoneTarget = {
+  startInputSuid: 'VASIO8',
+  startInputChannel: 1,
+  startOutputSuid: 'ASIO128',
+  startOutputChannel: 1,
+  endInputSuid: 'VASIO8',
+  endInputChannel: 2,
+  endOutputSuid: 'ASIO128',
+  endOutputChannel: 2,
 };
 
 describe('safety gates', () => {
@@ -91,5 +104,25 @@ describe('safety gates', () => {
     expect(() =>
       assertChannelResetAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_DESTRUCTIVE: 'false' }), channelTarget)
     ).toThrow(/ALLOW_DESTRUCTIVE/);
+  });
+
+  test('applies write, SUID, and destructive gates to zone operations', () => {
+    expect(() => assertZoneWriteAllowed(loadConfig({}), zoneTarget)).not.toThrow();
+    expect(() => assertZoneResetAllowed(loadConfig({}), zoneTarget)).not.toThrow();
+    expect(() => assertZoneWriteAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_WRITES: 'false' }), zoneTarget)).toThrow(
+      /ALLOW_WRITES/
+    );
+    expect(() =>
+      assertZoneWriteAllowed(
+        loadConfig({
+          VBMATRIX_MCP_ALLOW_ALL_SUIDS: 'false',
+          VBMATRIX_MCP_ALLOWED_SUIDS: 'VASIO8',
+        }),
+        zoneTarget
+      )
+    ).toThrow(/not in VBMATRIX_MCP_ALLOWED_SUIDS/);
+    expect(() => assertZoneResetAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_DESTRUCTIVE: 'false' }), zoneTarget)).toThrow(
+      /ALLOW_DESTRUCTIVE/
+    );
   });
 });

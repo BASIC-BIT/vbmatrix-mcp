@@ -6,18 +6,18 @@ VBMatrix can route live audio. The server exposes useful write tools by default 
 
 Write gates:
 
-- `VBMATRIX_MCP_ALLOW_WRITES=false` disables point, channel label/reset, snapshot restore execution, and slot writes.
+- `VBMATRIX_MCP_ALLOW_WRITES=false` disables point, zone, channel label/reset, snapshot restore execution, and slot writes.
 - `VBMATRIX_MCP_ALLOW_ALL_SUIDS=true` allows all SUIDs by default.
 - Set `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false` and list SUIDs in `VBMATRIX_MCP_ALLOWED_SUIDS` for a server-side allowlist.
 - Channels must be integers in the supported 1-based Matrix/Coconut channel range.
 
 Destructive gate:
 
-- `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` disables `vbmatrix_restart_engine`, `vbmatrix_reset_channel_routes`, slot reset, slot device assignment/removal, and any future destructive/system tools.
+- `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` disables `vbmatrix_restart_engine`, `vbmatrix_reset_channel_routes`, zone reset, slot reset, slot device assignment/removal, and any future destructive/system tools.
 
 Slot device assignment/removal and slot reset also require `confirm=true` in the tool input. These tools are operator-in-the-loop actions because they can interrupt live audio devices even though they target one slot.
 
-Broad point range tools also require command-level confirmation when executing. `vbmatrix_apply_point_range` dry-runs by default and requires `confirmApply=true` with `dryRun=false` before it sends a range command. `vbmatrix_remove_point` requires `confirmRemove=true` for single-point removal.
+Broad point range and zone tools also require command-level confirmation when executing. `vbmatrix_apply_point_range` and `vbmatrix_apply_zone` dry-run by default and require `confirmApply=true` with `dryRun=false` before sending a command. `vbmatrix_remove_point` requires `confirmRemove=true` for single-point removal. Zone reset and `gainDb: "-inf"` also require the destructive gate because they build `Zone(...).Reset;`.
 
 ## Commands intentionally not exposed
 
@@ -26,8 +26,8 @@ Do not expose these as normal tools:
 - `Command.Shutdown`
 - `Command.Reset`
 - `Command.ResetGrid`
-- broad `Zone(...).Reset`
-- unverified `Zone(...)` gain/mute/phase/copy/preset commands
+- broad `Zone(...).Reset` without dry-run, confirmation, write gate, and destructive gate
+- unverified `Zone(...)` paste or aggregate state query commands
 - broad slot-wide `Input(...).Reset` or `Output(...).Reset` beyond explicit channel/range targets
 - raw free-form VBAN-TEXT command execution
 
@@ -35,7 +35,7 @@ Slot-level `Slot(SUID).Reset` is exposed only as `vbmatrix_reset_slot`, with a S
 
 ## Query-before-write
 
-Point, channel label, and slot write tools should query the affected target before and after sending a command. If a query times out, the write should still report that fact explicitly rather than hiding it.
+Point, channel label, and slot write tools should query the affected target before and after sending a command. If a query times out, the write should still report that fact explicitly rather than hiding it. Zone tools report a query caveat instead because aggregate zone status query syntax is not documented.
 
 Grouped operation and workflow tools should preserve query-before-write for each affected target. If a future batch tool supports partial application, that behavior must be explicit in the input schema and response; fail-closed all-or-nothing behavior is the default.
 
