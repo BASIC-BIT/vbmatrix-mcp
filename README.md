@@ -92,21 +92,27 @@ These clients differ in approval policy. If your harness does not prompt before 
 
 ## Configuration
 
-| Variable | Default | Use |
-| --- | --- | --- |
-| `VBMATRIX_HOST` | `127.0.0.1` | VBMatrix host/IP. |
-| `VBMATRIX_PORT` | `6980` | VBAN UDP port. |
-| `VBMATRIX_STREAM` | `Command1` | VBAN-TEXT stream name. |
-| `VBMATRIX_TIMEOUT_MS` | `2000` | Query response timeout. |
-| `VBMATRIX_MCP_ALLOW_WRITES` | `true` | Enable point write tools. Set to `false` for read-only mode. |
-| `VBMATRIX_MCP_ALLOWED_SUIDS` | empty | Comma-separated SUID allowlist for writes when `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, e.g. `VASIO8,VAIO1`. |
-| `VBMATRIX_MCP_ALLOW_ALL_SUIDS` | `true` | Allow writes to all SUIDs when writes are enabled. |
-| `VBMATRIX_MCP_ALLOW_DESTRUCTIVE` | `true` | Allow destructive/system actions such as engine restart. Set to `false` to block them. |
-| `VBMATRIX_MCP_LOG_LEVEL` | `info` | `debug`, `info`, `warn`, or `error`. |
+| Variable                         | Default     | Use                                                                                                       |
+| -------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------- |
+| `VBMATRIX_HOST`                  | `127.0.0.1` | VBMatrix host/IP.                                                                                         |
+| `VBMATRIX_PORT`                  | `6980`      | VBAN UDP port.                                                                                            |
+| `VBMATRIX_STREAM`                | `Command1`  | VBAN-TEXT stream name.                                                                                    |
+| `VBMATRIX_TIMEOUT_MS`            | `2000`      | Query response timeout.                                                                                   |
+| `VBMATRIX_MCP_ALLOW_WRITES`      | `true`      | Enable point write tools. Set to `false` for read-only mode.                                              |
+| `VBMATRIX_MCP_ALLOWED_SUIDS`     | empty       | Comma-separated SUID allowlist for writes when `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, e.g. `VASIO8,VAIO1`. |
+| `VBMATRIX_MCP_ALLOW_ALL_SUIDS`   | `true`      | Allow writes to all SUIDs when writes are enabled.                                                        |
+| `VBMATRIX_MCP_ALLOW_DESTRUCTIVE` | `true`      | Allow destructive/system actions such as engine restart. Set to `false` to block them.                    |
+| `VBMATRIX_MCP_LOG_LEVEL`         | `info`      | `debug`, `info`, `warn`, or `error`.                                                                      |
 
 ## Tools
 
-Read tools:
+The tool surface is intentionally layered:
+
+- Primitive tools expose one explicit VBMatrix fact or one explicit command family.
+- Grouped operation tools should coordinate several primitives for one explicit, typed task and include preview/dry-run support before broad writes.
+- Workflow tools should be rare; prefer skills or playbooks when the task needs human judgment or fuzzy intent interpretation.
+
+Current primitive read tools:
 
 - `vbmatrix_ping`
 - `vbmatrix_get_engine`
@@ -114,7 +120,7 @@ Read tools:
 - `vbmatrix_get_slot_info`
 - `vbmatrix_get_point`
 
-Write tools:
+Current primitive write/destructive tools:
 
 - `vbmatrix_set_point_gain` (`gainDb: "-inf"` removes the point.)
 - `vbmatrix_set_point_mute`
@@ -122,6 +128,8 @@ Write tools:
 - `vbmatrix_restart_engine`
 
 Write tools are available by default so the user's MCP harness can decide what should be called. Set `VBMATRIX_MCP_ALLOW_WRITES=false`, `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` for narrower deployments.
+
+Future tools should keep natural-language interpretation in the agent layer. MCP schemas should use explicit SUIDs, channels, enum-like values, booleans, and bounded numbers instead of free-form routing goals.
 
 ## Development
 
@@ -133,8 +141,9 @@ npm run check
 npm run pack:check
 ```
 
-See `docs/architecture.md`, `docs/design.md`, `docs/safety.md`, and `docs/live-audio-verification.md` for the initial design and manual verification workflow.
+See `docs/architecture.md`, `docs/design.md`, `docs/safety.md`, `docs/live-audio-verification.md`, `docs/skills.md`, and `docs/workflows.md` for the initial design, verification workflow, and applied workflows.
 
-Repo-local OpenCode setup skill:
+Repo-local OpenCode skills:
 
-- `.opencode/skills/vbmatrix-setup/SKILL.md`
+- Catalog: `docs/skills.md`
+- Skills: `.opencode/skills/*/SKILL.md`
