@@ -13,6 +13,7 @@ MVP goals:
 - Query VBMatrix version, engine, master, and slot status.
 - Query a routing point's gain, mute, and phase state.
 - Mutate a routing point's gain, mute, or phase by default, with server-side opt-out available.
+- Capture, diff, and plan/restore targeted Matrix snapshots for explicit slots and points.
 - Expose engine restart by default, with server-side opt-out available.
 
 ## Install From Source
@@ -119,17 +120,22 @@ Current primitive read tools:
 - `vbmatrix_get_master`
 - `vbmatrix_get_slot_info`
 - `vbmatrix_get_point`
+- `vbmatrix_capture_snapshot`
+- `vbmatrix_diff_snapshots`
 
 Current primitive write/destructive tools:
 
 - `vbmatrix_set_point_gain` (`gainDb: "-inf"` removes the point.)
 - `vbmatrix_set_point_mute`
 - `vbmatrix_set_point_phase`
+- `vbmatrix_restore_snapshot` (dry-run by default; execution requires `confirmRestore: "RESTORE_SNAPSHOT"`, and broad plans require `confirmBroadRestore: true`.)
 - `vbmatrix_restart_engine`
 
 Write tools are available by default so the user's MCP harness can decide what should be called. Set `VBMATRIX_MCP_ALLOW_WRITES=false`, `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` for narrower deployments.
 
 Future tools should keep natural-language interpretation in the agent layer. MCP schemas should use explicit SUIDs, channels, enum-like values, booleans, and bounded numbers instead of free-form routing goals.
+
+Snapshot tools are targeted, not full-matrix scans. A snapshot contains selected slot metadata and selected point gain/mute/phase state; labels and preset metadata are listed as omissions until supported by typed VBAN-TEXT queries. Large snapshots are written to `.vbmatrix-snapshots/` and omitted from inline MCP responses by default.
 
 ## Development
 
