@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import {
+  buildTimeoutDiagnostic,
   buildVbanTextPacket,
   classifyVbanTextPacket,
   extractVbanTextPayload,
@@ -8,6 +9,7 @@ import {
   VBAN_SERVICE_PROTOCOL,
   VBAN_TEXT_SR_INDEX,
   VBAN_TEXT_UTF8_FORMAT,
+  type VbanTextExchangeDiagnostics,
 } from '../../src/core/vbanText.js';
 
 function buildServicePacket(streamName: string, payload: string): Buffer {
@@ -105,6 +107,73 @@ describe('VBAN-TEXT packet builder', () => {
     expect(classifyVbanTextPacket(packet, 'Command1')).toMatchObject({
       accepted: false,
       reason: 'text_non_utf8',
+    });
+  });
+
+  test('shapes zero-packet timeouts as indeterminate no-packet diagnostics', () => {
+    const diagnostics: VbanTextExchangeDiagnostics = {
+      command: 'Command.Version=?;',
+      connection: {
+        host: '127.0.0.1',
+        port: 6980,
+        streamName: 'Command1',
+        timeoutMs: 10,
+        responseStreamName: VBAN_REQUEST_REPLY_STREAM,
+      },
+      sent: true,
+      receivedPackets: 0,
+      ignoredPackets: [],
+      likelySetupStages: [],
+    };
+
+    const timeoutDiagnostic = buildTimeoutDiagnostic(diagnostics);
+
+    expect(timeoutDiagnostic).toMatchObject({
+      classification: 'no_packets_observed',
+      indeterminate: true,
+      observedPacketReasons: [],
+    });
+    expect(timeoutDiagnostic.likelyCauses).toContain('wrong host or UDP port');
+    expect(timeoutDiagnostic.likelyCauses).toContain('Matrix received the command but did not emit an observable reply');
+  });
+
+  test('shapes observed timeout packets without collapsing wrong stream and unsupported protocol cases', () => {
+    const wrongStreamPacket = buildVbanTextPacket('Command.Version = "VB-Audio Matrix";', {
+      streamName: 'Command2',
+      frameCounter: 4,
+    });
+    const unsupportedPacket = Buffer.from(wrongStreamPacket);
+    unsupportedPacket[4] = 0x20;
+    const baseDiagnostics: VbanTextExchangeDiagnostics = {
+      command: 'Command.Version=?;',
+      connection: {
+        host: '127.0.0.1',
+        port: 6980,
+        streamName: 'Command1',
+        timeoutMs: 10,
+        responseStreamName: VBAN_REQUEST_REPLY_STREAM,
+      },
+      sent: true,
+      receivedPackets: 1,
+      ignoredPackets: [classifyVbanTextPacket(wrongStreamPacket, 'Command1')],
+      likelySetupStages: [],
+    };
+
+    expect(buildTimeoutDiagnostic(baseDiagnostics)).toMatchObject({
+      classification: 'wrong_stream_observed',
+      indeterminate: false,
+      observedPacketReasons: ['text_stream_mismatch'],
+    });
+
+    expect(
+      buildTimeoutDiagnostic({
+        ...baseDiagnostics,
+        ignoredPackets: [classifyVbanTextPacket(unsupportedPacket, 'Command1')],
+      })
+    ).toMatchObject({
+      classification: 'unsupported_protocol_observed',
+      indeterminate: false,
+      observedPacketReasons: ['unsupported_protocol'],
     });
   });
 });

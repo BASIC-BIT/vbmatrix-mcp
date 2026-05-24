@@ -38,7 +38,7 @@ export function registerStatusTools(server: McpServer): void {
     'vbmatrix_vban_diagnostics',
     {
       description:
-        'Read-only VBAN-TEXT diagnostics using a Matrix version query; reports host, port, command stream, Request Reply packet classification, and timeout hints.',
+        'Read-only VBAN-TEXT diagnostics using a Matrix version query; reports host, port, command stream, Request Reply packet classification, observed timeout classification, and indeterminate no-packet timeout hints.',
       inputSchema: EmptySchema,
       annotations: readOnlyToolAnnotations,
     },

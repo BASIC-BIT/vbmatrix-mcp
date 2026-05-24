@@ -43,6 +43,8 @@ npm run smoke:vban
 
 Matrix query replies are expected as VBAN SERVICE packets on stream `Request Reply`. The configured `VBMATRIX_STREAM` names the incoming TEXT command stream, normally `Command1`; do not change it to `Request Reply`.
 
+`vbmatrix_vban_diagnostics` reports observed packet reasons such as wrong stream, unsupported protocol, or malformed packet data. If no UDP packets arrive before timeout, it reports `no_packets_observed` as indeterminate because UDP cannot reliably prove whether the cause is no listener, no command-stream reply, disabled stream, firewall/network block, wrong host/port, or Matrix not running.
+
 Manual live audio verification harness:
 
 ```bash

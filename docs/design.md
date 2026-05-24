@@ -76,7 +76,7 @@ Current primitives:
 Read tools are small and direct:
 
 - `vbmatrix_ping` returns version and connection metadata.
-- `vbmatrix_vban_diagnostics` sends the same version query and returns packet classification, ignored stream/protocol details, and timeout setup hints.
+- `vbmatrix_vban_diagnostics` sends the same version query and returns packet classification, ignored stream/protocol details, timeout classification, and setup hints. Zero-packet timeouts are reported as `no_packets_observed` and indeterminate; observed wrong-stream, unsupported-protocol, and malformed-packet cases remain distinct.
 - `vbmatrix_get_engine` queries engine state.
 - `vbmatrix_get_master` queries master clock state.
 - `vbmatrix_get_slot_info` returns slot properties.

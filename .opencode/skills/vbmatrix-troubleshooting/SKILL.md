@@ -39,9 +39,9 @@ Find the smallest likely cause of an MCP or VBMatrix control failure without dis
 
 Diagnostic interpretation:
 
-- No received packets before timeout: likely wrong host/port, VBAN service off, incoming TEXT stream disabled, firewall/network block, or Matrix not running.
+- `no_packets_observed`: no UDP packets arrived before timeout. Treat this as indeterminate; likely causes include wrong host/port, VBAN service off, incoming TEXT stream disabled, firewall/network block, Matrix not running, or Matrix receiving the query without sending an observable reply.
 - `text_stream_mismatch` or `service_stream_mismatch`: VBAN traffic arrived, but not on the expected command stream or Matrix `Request Reply` stream.
-- `text_non_utf8` or `unsupported_protocol`: UDP/VBAN traffic arrived, but it was not a Matrix query reply packet this server can parse.
+- `unsupported_protocol`, `too_short`, `bad_magic`, or `text_non_utf8`: UDP/VBAN traffic arrived, but it was not a Matrix query reply packet this server can parse.
 
 4. For target errors:
 

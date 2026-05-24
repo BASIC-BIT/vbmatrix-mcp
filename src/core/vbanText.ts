@@ -35,6 +35,13 @@ export type VbanPacketClassificationReason =
   | 'service_stream_mismatch'
   | 'unsupported_protocol';
 
+export type VbanTextTimeoutClassification =
+  | 'no_packets_observed'
+  | 'wrong_stream_observed'
+  | 'unsupported_protocol_observed'
+  | 'malformed_packet_observed'
+  | 'packets_observed_no_matrix_reply';
+
 export interface VbanPacketSummary {
   length: number;
   magic?: string;
@@ -52,6 +59,13 @@ export interface VbanPacketClassification {
   payload?: string;
 }
 
+export interface VbanTextTimeoutDiagnostic {
+  classification: VbanTextTimeoutClassification;
+  indeterminate: boolean;
+  observedPacketReasons: VbanPacketClassificationReason[];
+  likelyCauses: string[];
+}
+
 export interface VbanTextExchangeDiagnostics {
   command: string;
   connection: {
@@ -65,6 +79,7 @@ export interface VbanTextExchangeDiagnostics {
   receivedPackets: number;
   ignoredPackets: VbanPacketClassification[];
   acceptedPacket?: VbanPacketClassification;
+  timeoutDiagnostic?: VbanTextTimeoutDiagnostic;
   likelySetupStages: string[];
 }
 
@@ -115,7 +130,7 @@ function setupStageHints(diagnostics: VbanTextExchangeDiagnostics): string[] {
   const hints = ['No accepted Matrix query reply was received.'];
   if (diagnostics.receivedPackets === 0) {
     hints.push(
-      'No UDP packets arrived before timeout; likely causes are wrong host/port, VBAN service off, incoming TEXT stream disabled, firewall/network block, or Matrix not running.'
+      'No UDP packets arrived before timeout. UDP cannot prove whether this is no listener, no command-stream reply, a disabled stream, firewall/network block, wrong host/port, or Matrix not running.'
     );
   }
   const mismatch = diagnostics.ignoredPackets.find(
@@ -133,6 +148,58 @@ function setupStageHints(diagnostics: VbanTextExchangeDiagnostics): string[] {
     hints.push('Observed VBAN packets that were not TEXT or SERVICE protocol packets.');
   }
   return hints;
+}
+
+export function buildTimeoutDiagnostic(diagnostics: VbanTextExchangeDiagnostics): VbanTextTimeoutDiagnostic {
+  const observedPacketReasons = [...new Set(diagnostics.ignoredPackets.map((packet) => packet.reason))];
+
+  if (diagnostics.receivedPackets === 0) {
+    return {
+      classification: 'no_packets_observed',
+      indeterminate: true,
+      observedPacketReasons,
+      likelyCauses: [
+        'wrong host or UDP port',
+        'VBAN service off or blocked by firewall/network policy',
+        'incoming TEXT stream disabled or Matrix not running',
+        'Matrix received the command but did not emit an observable reply',
+      ],
+    };
+  }
+
+  if (observedPacketReasons.some((reason) => reason === 'text_stream_mismatch' || reason === 'service_stream_mismatch')) {
+    return {
+      classification: 'wrong_stream_observed',
+      indeterminate: false,
+      observedPacketReasons,
+      likelyCauses: ['VBAN traffic arrived on a stream other than the configured command stream or Matrix Request Reply stream'],
+    };
+  }
+
+  if (observedPacketReasons.includes('unsupported_protocol')) {
+    return {
+      classification: 'unsupported_protocol_observed',
+      indeterminate: false,
+      observedPacketReasons,
+      likelyCauses: ['VBAN packets arrived, but they were not TEXT or SERVICE protocol packets this diagnostic accepts'],
+    };
+  }
+
+  if (observedPacketReasons.some((reason) => reason === 'too_short' || reason === 'bad_magic' || reason === 'text_non_utf8')) {
+    return {
+      classification: 'malformed_packet_observed',
+      indeterminate: false,
+      observedPacketReasons,
+      likelyCauses: ['UDP/VBAN-like packets arrived, but no parseable Matrix query reply was observed'],
+    };
+  }
+
+  return {
+    classification: 'packets_observed_no_matrix_reply',
+    indeterminate: true,
+    observedPacketReasons,
+    likelyCauses: ['UDP packets arrived, but none matched the Matrix query reply protocol and stream'],
+  };
 }
 
 export function classifyVbanTextPacket(message: Buffer, streamName: string): VbanPacketClassification {
@@ -223,6 +290,7 @@ export async function sendVbanTextCommandWithDiagnostics(
 
     if (waitForResponse) {
       timer = setTimeout(() => {
+        diagnostics.timeoutDiagnostic = buildTimeoutDiagnostic(diagnostics);
         diagnostics.likelySetupStages = setupStageHints(diagnostics);
         settle(() => reject(new VbanTextTimeoutError(command, diagnostics)));
       }, options.timeoutMs);
