@@ -19,6 +19,7 @@ MVP goals:
 - Mutate documented Matrix zones with dry-run/confirmation safeguards.
 - Expose channel route resets and engine restart by default, with server-side opt-out available.
 - Capture, diff, and plan/restore targeted Matrix snapshots for explicit slots and points.
+- Run a minimal safe routing workflow for explicit point audition, cleanup, and emergency mute with dry-run and rollback data.
 
 ## Install From Source
 
@@ -123,6 +124,10 @@ Current primitive write/destructive tools:
 - `vbmatrix_preset_patch` (dry-runs by default; supports documented preset patch apply, recall, copy, paste, delete, gain, mute, phase, resetZone, update, name, and comment operations.)
 - `vbmatrix_restore_snapshot` (dry-run by default; execution requires `confirmRestore: "RESTORE_SNAPSHOT"`, and broad plans require `confirmBroadRestore: true`.)
 - `vbmatrix_restart_engine`
+
+Current grouped workflow tools:
+
+- `vbmatrix_safe_route_workflow` supports only explicit point targets and three deterministic operations: `auditionRoute`, `cleanupRoutes`, and `emergencyMute`. It snapshots selected points, dry-runs by default, returns exact planned commands plus rollback commands, and executes only with `confirmApply: "SAFE_ROUTE_APPLY"`.
 
 Write tools are available by default so the user's MCP harness can decide what should be called. Set `VBMATRIX_MCP_ALLOW_WRITES=false`, `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` for narrower deployments. Slot reset and device changes should be operator-in-the-loop actions; use `vbmatrix_get_slot_info` first to copy current device strings and verify before/after state.
 
@@ -230,6 +235,40 @@ Dry-run a zone mute across a documented Matrix rectangle:
 Review the returned `command` before execution. Zone `reset` and `gainDb: "-inf"` build `Zone(...).Reset;` and require the destructive gate when executed.
 
 Snapshot tools are targeted, not full-matrix scans. A snapshot contains selected slot metadata and selected point gain/mute/phase state; labels are listed as omissions until supported by typed snapshot capture. Preset patch metadata is available through `vbmatrix_get_preset_patch` but is not yet embedded in snapshots. Large snapshots are written to `.vbmatrix-snapshots/` and omitted from inline MCP responses by default.
+
+Safe routing workflow preview for one explicit emergency mute:
+
+```json
+{
+  "operation": "emergencyMute",
+  "points": [
+    {
+      "inputSuid": "VASIO8",
+      "inputChannel": 1,
+      "outputSuid": "ASIO128",
+      "outputChannel": 126
+    }
+  ]
+}
+```
+
+Execute only after reviewing the returned snapshot and rollback commands:
+
+```json
+{
+  "operation": "emergencyMute",
+  "points": [
+    {
+      "inputSuid": "VASIO8",
+      "inputChannel": 1,
+      "outputSuid": "ASIO128",
+      "outputChannel": 126
+    }
+  ],
+  "dryRun": false,
+  "confirmApply": "SAFE_ROUTE_APPLY"
+}
+```
 
 ## Development
 

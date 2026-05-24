@@ -240,3 +240,48 @@ export const SnapshotRestoreSchema = SnapshotReferenceSchema.extend({
     .default(false)
     .describe('When true, selectedPoints absent from the desired snapshot are reported and skipped.'),
 });
+
+export const SafeRouteWorkflowSchema = z
+  .object({
+    operation: z
+      .enum(['auditionRoute', 'cleanupRoutes', 'emergencyMute'])
+      .describe('Deterministic safe routing workflow for explicit point targets only.'),
+    target: PointTargetSchema.optional().describe('Required for auditionRoute.'),
+    points: z.array(PointTargetSchema).optional().describe('Required for cleanupRoutes and emergencyMute.'),
+    gainDb: z
+      .union([z.number().min(MIN_GAIN_DB).max(MAX_GAIN_DB), z.literal('-inf')])
+      .optional()
+      .describe('Required finite gain for auditionRoute.'),
+    muted: z.boolean().optional().describe('Required mute state for auditionRoute.'),
+    phaseReversed: z.boolean().optional().describe('Required phase state for auditionRoute.'),
+    dryRun: z
+      .boolean()
+      .default(true)
+      .describe('When true, snapshot and return the plan without sending writes.'),
+    confirmApply: z
+      .literal('SAFE_ROUTE_APPLY')
+      .optional()
+      .describe('Required when dryRun is false after reviewing the dry-run plan and rollback data.'),
+  })
+  .superRefine((input, ctx) => {
+    if (input.operation === 'auditionRoute') {
+      if (input.target === undefined)
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'target is required for auditionRoute' });
+      if (input.gainDb === undefined)
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'gainDb is required for auditionRoute' });
+      if (input.gainDb === '-inf')
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'auditionRoute gainDb must be finite' });
+      if (input.muted === undefined)
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'muted is required for auditionRoute' });
+      if (input.phaseReversed === undefined) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'phaseReversed is required for auditionRoute' });
+      }
+      return;
+    }
+    if (input.points === undefined || input.points.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'points must include at least one explicit point target',
+      });
+    }
+  });
