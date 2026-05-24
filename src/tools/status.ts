@@ -2,6 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { commandPropertyQuery, parseQueryResponseValue, slotPropertyQuery, validateSuidSyntax } from '../core/commands.js';
 import { VbMatrixClient } from '../core/client.js';
 import { VbanTextTimeoutError } from '../core/vbanText.js';
+import { matrixCapabilitiesPayload } from '../providers/matrixMetadata.js';
 import { readOnlyToolAnnotations } from '../utils/toolAnnotations.js';
 import { jsonResponse, toolError } from '../utils/toolResponses.js';
 import { EmptySchema, SlotInputSchema } from './schemas.js';
@@ -16,6 +17,17 @@ function connectionSummary(client: VbMatrixClient): Record<string, unknown> {
 }
 
 export function registerStatusTools(server: McpServer): void {
+  server.registerTool(
+    'vbmatrix_get_capabilities',
+    {
+      description:
+        'Read-only provider capability summary for the registered VB-Audio Matrix provider and current tool prefix.',
+      inputSchema: EmptySchema,
+      annotations: readOnlyToolAnnotations,
+    },
+    () => jsonResponse(matrixCapabilitiesPayload())
+  );
+
   server.registerTool(
     'vbmatrix_ping',
     {
