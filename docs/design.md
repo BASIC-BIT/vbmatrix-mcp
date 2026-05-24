@@ -81,13 +81,33 @@ Read tools are small and direct:
 - `vbmatrix_get_master` queries master clock state.
 - `vbmatrix_get_slot_info` returns slot properties.
 - `vbmatrix_get_point` returns gain, mute, and phase for one point.
+- `vbmatrix_capture_snapshot` captures explicit selected slot metadata and point state.
+- `vbmatrix_diff_snapshots` compares two explicit Matrix snapshots.
 
 Write tools are explicit and available by default. They can be narrowed with environment settings when server-side policy is useful:
 
 - `vbmatrix_set_point_gain` validates gain range and target policy.
 - `vbmatrix_set_point_mute` validates target policy.
 - `vbmatrix_set_point_phase` validates target policy.
+- `vbmatrix_restore_snapshot` restores selected point properties from a snapshot; it dry-runs by default and requires explicit confirmation before writes.
 - `vbmatrix_restart_engine` respects the destructive-action opt-out gate.
+
+## Snapshot format
+
+Snapshots are deterministic JSON objects with `schemaVersion: 1` and explicit scope. They do not infer endpoints from names or labels.
+
+Included data:
+
+- `metadata`: optional Matrix version, engine, and master values when those queries succeed.
+- `scope.slots`: selected slot SUIDs.
+- `scope.points`: selected point targets.
+- `slots`: selected slot `Info`, `Online`, `RunningStatus`, `Master`, and `Device` values.
+- `points`: selected point `dBGain`, `mute`, and `phase` values.
+- `omissions`: currently records labels and preset metadata as unsupported by typed queries.
+
+Snapshot tools intentionally avoid full-matrix dumps by default. Large captures are written to `.vbmatrix-snapshots/` and responses return a summary plus artifact path instead of dumping the full object into chat.
+
+Restore planning uses only selected point state. Slot metadata, labels, and preset metadata are non-restorable until typed write/query commands exist for them.
 
 ### Layer 2: grouped operations
 
