@@ -81,6 +81,7 @@ Current primitives:
 
 Read tools are small and direct:
 
+- `vbmatrix_get_capabilities` reports the registered Matrix provider, stable `vbmatrix` tool prefix, transport, and current capability groups.
 - `vbmatrix_ping` returns version and connection metadata.
 - `vbmatrix_vban_diagnostics` sends the same version query and returns packet classification, ignored stream/protocol details, timeout classification, and setup hints. Zero-packet timeouts are reported as `no_packets_observed` and indeterminate; observed wrong-stream, unsupported-protocol, and malformed-packet cases remain distinct.
 - `vbmatrix_get_engine` queries engine state.
@@ -183,3 +184,7 @@ Write responses should include:
 - Broad `Remove`, `Reset`, `ResetGrid`, or `Shutdown` tools.
 - VBAN SERVICE subscriptions or meter streaming.
 - VBAN service/stream configuration writes. No source-linked Matrix command surface is currently documented for this; use the Matrix UI with an operator in the loop.
+
+## Provider Migration Note
+
+Existing `vbmatrix_*` tool names are stable. The current provider boundary registers Matrix as the only product provider and reports Matrix capability groups through `vbmatrix_get_capabilities`. Future Voicemeeter work should add explicit `voicemeeter_*` tools behind a product-specific provider first. Product-neutral `vbaudio_*` tools should remain deferred until both providers have shipped and a compatibility layer can be documented without changing existing Matrix behavior.

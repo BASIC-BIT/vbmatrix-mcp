@@ -102,6 +102,7 @@ The tool surface is intentionally layered:
 
 Current primitive read tools:
 
+- `vbmatrix_get_capabilities`
 - `vbmatrix_ping`
 - `vbmatrix_vban_diagnostics`
 - `vbmatrix_get_engine`
