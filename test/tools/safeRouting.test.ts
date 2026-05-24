@@ -110,4 +110,43 @@ describe('safe routing workflow tool runner', () => {
     ).rejects.toThrow(/ALLOW_WRITES=true/);
     expect(send).not.toHaveBeenCalled();
   });
+
+  test('partial execution failure preserves rollback context', async () => {
+    const { client, send } = fakeClient([{ dBGain: '-12', mute: '0', phase: '1' }]);
+    send.mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('VBAN send timeout'));
+
+    await expect(
+      runSafeRouteWorkflow(
+        {
+          operation: 'auditionRoute',
+          target,
+          gainDb: -6,
+          muted: false,
+          phaseReversed: false,
+          dryRun: false,
+          confirmApply: 'SAFE_ROUTE_APPLY',
+        },
+        client
+      )
+    ).resolves.toMatchObject({
+      ok: false,
+      dryRun: false,
+      partial: true,
+      commandSent: true,
+      commandsSent: 1,
+      completedCommands: ['Point(VASIO8.IN[1],ASIO128.OUT[126]).dBGain=-6;'],
+      failedCommand: 'Point(VASIO8.IN[1],ASIO128.OUT[126]).Mute=0;',
+      beforeSnapshot: { points: [{ target, state: { dBGain: '-12', mute: '0', phase: '1' } }] },
+      rollback: {
+        commands: [
+          'Point(VASIO8.IN[1],ASIO128.OUT[126]).dBGain=-12;',
+          'Point(VASIO8.IN[1],ASIO128.OUT[126]).Mute=0;',
+          'Point(VASIO8.IN[1],ASIO128.OUT[126]).Phase=1;',
+        ],
+      },
+      safety: { allowWrites: true, allowAllSuids: true, allowDestructive: true, allowedSuids: [] },
+      error: 'VBAN send timeout',
+    });
+    expect(send).toHaveBeenCalledTimes(2);
+  });
 });

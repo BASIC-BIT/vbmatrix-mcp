@@ -33,7 +33,28 @@ export async function runSafeRouteWorkflow(
 
   for (const target of plan.targets) assertPointWriteAllowed(client.config, target);
 
-  for (const command of plan.commands) await client.send(command);
+  const completedCommands: string[] = [];
+  for (const command of plan.commands) {
+    try {
+      await client.send(command);
+      completedCommands.push(command);
+    } catch (err) {
+      return {
+        ok: false,
+        dryRun: false,
+        partial: completedCommands.length > 0,
+        plan,
+        commandSent: completedCommands.length > 0,
+        commandsSent: completedCommands.length,
+        completedCommands,
+        failedCommand: command,
+        beforeSnapshot,
+        rollback,
+        safety: safetyDetails(client.config),
+        error: err instanceof Error ? err.message : 'Unknown safe routing workflow send error',
+      };
+    }
+  }
 
   const afterSnapshot = await capturePointSnapshot({
     targets: plan.targets,
