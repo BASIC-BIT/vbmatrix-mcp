@@ -144,6 +144,7 @@ Grouped operations should be added only after the underlying primitive tools and
 Current grouped operations:
 
 - `vbmatrix_apply_point_range` applies gain, mute, phase, or remove to an explicit `IN[start..end]` and `OUT[start..end]` point range. It dry-runs by default, requires `confirmApply=true` to execute, and reports a state-query caveat unless the range is exactly one point.
+- `vbmatrix_preset_patch` applies documented `PresetPatch[n]` operations. It dry-runs by default, requires `confirmOperation="PRESET_PATCH_WRITE"` to execute, and queries the patch summary before and after execution when Matrix replies to status requests.
 
 ### Layer 3: workflows
 
@@ -176,7 +177,7 @@ Write responses should include:
 
 - Raw free-form command execution.
 - Full-matrix scans by default.
-- Preset patch editing.
+- Preset patch load/save/save-as until file path safety is designed.
 - Zone operations until the exact documented `Zone(...)` grammar is captured or live-verified.
 - Broad `Remove`, `Reset`, `ResetGrid`, or `Shutdown` tools.
 - VBAN SERVICE subscriptions or meter streaming.

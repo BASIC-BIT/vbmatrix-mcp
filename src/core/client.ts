@@ -2,8 +2,10 @@ import { getConfig, type VbMatrixConfig } from '../config/index.js';
 import {
   commandPropertyQuery,
   parseQueryResponseValue,
+  presetPatchPropertyQuery,
   pointPropertyQuery,
   slotPropertyQuery,
+  type PresetPatchState,
   type PointState,
   type PointTarget,
   type SlotState,
@@ -79,5 +81,19 @@ export class VbMatrixClient {
       this.queryValue(slotPropertyQuery(suid, 'Device')),
     ]);
     return { info, online, runningStatus, master, device };
+  }
+
+  async queryPresetPatchState(index: number): Promise<PresetPatchState> {
+    const [name, comment, apply, mute, phase, gain, zone, point] = await Promise.all([
+      this.queryValue(presetPatchPropertyQuery(index, 'Name')),
+      this.queryValue(presetPatchPropertyQuery(index, 'Comment')),
+      this.queryValue(presetPatchPropertyQuery(index, 'Apply')),
+      this.queryValue(presetPatchPropertyQuery(index, 'Mute')),
+      this.queryValue(presetPatchPropertyQuery(index, 'Phase')),
+      this.queryValue(presetPatchPropertyQuery(index, 'Gain')),
+      this.queryValue(presetPatchPropertyQuery(index, 'Zone')),
+      this.queryValue(presetPatchPropertyQuery(index, 'Point')),
+    ]);
+    return { name, comment, apply, mute, phase, gain, zone, point };
   }
 }

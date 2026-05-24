@@ -4,6 +4,7 @@ import {
   validateChannelTargetSyntax,
   validatePointRangeTargetSyntax,
   validatePointTargetSyntax,
+  validatePresetPatchIndex,
   validateSuidSyntax,
   type ChannelRangeTarget,
   type ChannelTarget,
@@ -90,6 +91,16 @@ export function assertChannelWriteAllowed(config: VbMatrixConfig, target: Channe
 
 export function assertChannelResetAllowed(config: VbMatrixConfig, target: ChannelTarget | ChannelRangeTarget): void {
   assertChannelWriteAllowed(config, target);
+  assertDestructiveAllowed(config);
+}
+
+export function assertPresetPatchWriteAllowed(config: VbMatrixConfig, index: number): void {
+  validatePresetPatchIndex(index);
+  assertWritesAllowed(config);
+}
+
+export function assertPresetPatchDestructiveAllowed(config: VbMatrixConfig, index: number): void {
+  assertPresetPatchWriteAllowed(config, index);
   assertDestructiveAllowed(config);
 }
 

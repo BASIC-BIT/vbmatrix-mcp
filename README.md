@@ -129,6 +129,7 @@ Current primitive read tools:
 - `vbmatrix_get_slot_info`
 - `vbmatrix_get_point`
 - `vbmatrix_get_channel_label`
+- `vbmatrix_get_preset_patch`
 - `vbmatrix_capture_snapshot`
 - `vbmatrix_diff_snapshots`
 
@@ -147,6 +148,7 @@ Current primitive write/destructive tools:
 - `vbmatrix_set_channel_label`
 - `vbmatrix_remove_channel_label`
 - `vbmatrix_reset_channel_routes` (requires `confirm: "RESET_CHANNEL_ROUTES"`)
+- `vbmatrix_preset_patch` (dry-runs by default; supports documented preset patch apply, recall, copy, paste, delete, gain, mute, phase, resetZone, update, name, and comment operations.)
 - `vbmatrix_restore_snapshot` (dry-run by default; execution requires `confirmRestore: "RESTORE_SNAPSHOT"`, and broad plans require `confirmBroadRestore: true`.)
 - `vbmatrix_restart_engine`
 
@@ -154,7 +156,39 @@ Write tools are available by default so the user's MCP harness can decide what s
 
 Future tools should keep natural-language interpretation in the agent layer. MCP schemas should use explicit SUIDs, channels, enum-like values, booleans, and bounded numbers instead of free-form routing goals.
 
-Zone routing tools are intentionally deferred until the exact documented `Zone(...)` VBAN-TEXT grammar is captured or live-verified. The server does not expose guessed zone commands.
+Direct zone routing tools are intentionally deferred until the exact documented `Zone(...)` VBAN-TEXT grammar is captured or live-verified in this codebase. Preset patch `resetZone` is exposed through the documented `PresetPatch[n].ResetZone` command. The server does not expose guessed zone commands.
+
+## Preset Patch Scene Recipes
+
+Read one preset patch before acting on it:
+
+```json
+{
+  "index": 1
+}
+```
+
+Preview applying a preset patch without changing live audio:
+
+```json
+{
+  "index": 1,
+  "operation": "apply"
+}
+```
+
+Execute only after reviewing the dry-run command and confirming the target patch is disposable or intended for the live scene:
+
+```json
+{
+  "index": 1,
+  "operation": "apply",
+  "dryRun": false,
+  "confirmOperation": "PRESET_PATCH_WRITE"
+}
+```
+
+Preset patch writes query patch state before and after when Matrix replies to the documented status requests. Use `vbmatrix_capture_snapshot` before broad scene changes when you need a point-level rollback artifact. Preset patch load/save/save-as are deferred until file path safety is designed.
 
 ## Label And Reset Recipes
 
@@ -203,7 +237,7 @@ Reset all routes for one output channel:
 
 Range label setting is intentionally not exposed yet. The current Matrix manual documents range label queries and range label removal with an empty `Name`, but not assigning one non-empty label across a range.
 
-Snapshot tools are targeted, not full-matrix scans. A snapshot contains selected slot metadata and selected point gain/mute/phase state; labels and preset metadata are listed as omissions until supported by typed VBAN-TEXT queries. Large snapshots are written to `.vbmatrix-snapshots/` and omitted from inline MCP responses by default.
+Snapshot tools are targeted, not full-matrix scans. A snapshot contains selected slot metadata and selected point gain/mute/phase state; labels are listed as omissions until supported by typed snapshot capture. Preset patch metadata is available through `vbmatrix_get_preset_patch` but is not yet embedded in snapshots. Large snapshots are written to `.vbmatrix-snapshots/` and omitted from inline MCP responses by default.
 
 ## Development
 

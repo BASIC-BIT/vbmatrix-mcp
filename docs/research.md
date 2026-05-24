@@ -19,6 +19,7 @@
 - Point range syntax is represented with inclusive channel ranges inside the existing point expression, for example `Point(SUID.IN[i1..i2],SUID.OUT[j1..j2]).Mute=1;`.
 - Zone command syntax was not present in repo-local sources during issue #4 implementation. Zone tools are deferred until the documented grammar is captured or live-verified; this avoids exposing guessed `Zone(...)` writes.
 - Matrix manual version 1.0.1.8 documents input/output label query ranges, label removal ranges with `Name = ""`, and input/output reset ranges with `[i1..i2]` / `[j1..j2]` syntax. It does not show assigning one non-empty label across a range.
+- Official VB-Audio forum topic `Matrix VBAN-TEXT requests list` documents `PresetPatch[n]` apply, recall, copy, paste, delete, gain, mute, phase, reset zone, update, name, and comment commands, plus status queries for name, comment, apply count, mute count, phase count, gain, zone count, and point count.
 
 ## Useful command examples
 
@@ -57,6 +58,26 @@ Slot(SUID).Device.WDM="Device Name";
 Slot(SUID).Device="";
 Slot(SUID).RunningStatus=?;
 Slot(SUID).Info=?;
+PresetPatch[n].Name=?;
+PresetPatch[n].Comment=?;
+PresetPatch[n].Apply=?;
+PresetPatch[n].Mute=?;
+PresetPatch[n].Phase=?;
+PresetPatch[n].Gain=?;
+PresetPatch[n].Zone=?;
+PresetPatch[n].Point=?;
+PresetPatch[n].Apply;
+PresetPatch[n].Recall;
+PresetPatch[n].Copy;
+PresetPatch[n].Paste;
+PresetPatch[n].Delete;
+PresetPatch[n].Gain=0.0;
+PresetPatch[n].Mute=1;
+PresetPatch[n].Phase=1;
+PresetPatch[n].ResetZone;
+PresetPatch[n].Update;
+PresetPatch[n].Name="Name";
+PresetPatch[n].Comment="comment";
 Command.Version=?;
 Command.Engine=?;
 Command.Master=?;
