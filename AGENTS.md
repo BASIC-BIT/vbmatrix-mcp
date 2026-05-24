@@ -7,6 +7,8 @@ Guidance for coding agents:
 - After significant code changes, run `npm run check`.
 - If you need just one step, use `npm run lint`, `npm run typecheck`, or `npm test`.
 - After making a change, run at least one relevant targeted test and confirm it passes before reporting back.
+- For issue kickoff, PR readiness, and review-recycle guidance, read `docs/agentic-workflow.md`.
+- For meaningful user-facing or maintainer-facing changes, follow `docs/improvement-log.md`.
 - Keep stdout reserved for MCP protocol; log diagnostics to stderr only.
 - Do not add raw VBAN command execution unless it is disabled by default and separately approved.
 - Read tools may query any configured host, but write tools must pass the write gate and SUID allowlist.

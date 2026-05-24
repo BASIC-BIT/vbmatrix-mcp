@@ -44,6 +44,14 @@ Direct VBAN-TEXT smoke test after VBMatrix is configured:
 npm run smoke:vban
 ```
 
+Safe local packaging and configuration diagnostics:
+
+```bash
+npm run doctor
+```
+
+`npm run doctor` checks Node, build output, package discovery metadata, and environment parsing without contacting Matrix. Add `-- --vban` only when you want it to send a read-only `Command.Version` query.
+
 Matrix query replies are expected as VBAN SERVICE packets on stream `Request Reply`. The configured `VBMATRIX_STREAM` names the incoming TEXT command stream, normally `Command1`; do not change it to `Request Reply`.
 
 `vbmatrix_vban_diagnostics` reports observed packet reasons such as wrong stream, unsupported protocol, or malformed packet data. If no UDP packets arrive before timeout, it reports `no_packets_observed` as indeterminate because UDP cannot reliably prove whether the cause is no listener, no command-stream reply, disabled stream, firewall/network block, wrong host/port, or Matrix not running.
@@ -58,45 +66,7 @@ The live harness dry-runs by default. It only changes Matrix routes when `--run`
 
 ## MCP Client Config
 
-### OpenCode
-
-```json
-{
-  "mcp": {
-    "vbmatrix": {
-      "type": "local",
-      "command": ["node", "D:/bench/vbmatrix-mcp/dist/bin/cli.js"],
-      "enabled": true,
-      "environment": {
-        "VBMATRIX_HOST": "127.0.0.1",
-        "VBMATRIX_MCP_ALLOW_WRITES": "true"
-      }
-    }
-  },
-  "permission": {
-    "vbmatrix_*": "ask"
-  }
-}
-```
-
-### Claude Desktop, Cursor, Kiro, Roo, Windsurf
-
-These clients differ in approval policy. If your harness does not prompt before tool calls, set `VBMATRIX_MCP_ALLOW_WRITES=false` or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` until you configure its approval controls.
-
-```json
-{
-  "mcpServers": {
-    "vbmatrix": {
-      "command": "node",
-      "args": ["D:/bench/vbmatrix-mcp/dist/bin/cli.js"],
-      "env": {
-        "VBMATRIX_HOST": "127.0.0.1",
-        "VBMATRIX_MCP_ALLOW_WRITES": "true"
-      }
-    }
-  }
-}
-```
+See `docs/client-config.md` for OpenCode, Claude Desktop, Cursor, VS Code, Codex CLI, and Copilot coding agent examples. Clients differ in approval policy; if your harness does not prompt before tool calls, set `VBMATRIX_MCP_ALLOW_WRITES=false` or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` until approval controls are configured.
 
 ## Configuration
 
@@ -249,7 +219,7 @@ npm run check
 npm run pack:check
 ```
 
-See `docs/architecture.md`, `docs/design.md`, `docs/safety.md`, `docs/live-audio-verification.md`, `docs/skills.md`, and `docs/workflows.md` for the initial design, verification workflow, and applied workflows.
+See `docs/architecture.md`, `docs/client-config.md`, `docs/design.md`, `docs/safety.md`, `docs/live-audio-verification.md`, `docs/release.md`, `docs/skills.md`, `docs/workflows.md`, `docs/agentic-workflow.md`, and `docs/improvement-log.md` for design, client onboarding, verification, release, applied workflows, and lightweight maintainer loops.
 
 Repo-local OpenCode skills:
 
