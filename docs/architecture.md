@@ -35,9 +35,10 @@ VBMatrix MCP is organized around explicit, testable layers. The MCP layer should
 ## Tests
 
 - `test/core` focuses on deterministic command strings, packet generation, parsing, and safety behavior.
-- Live VBMatrix tests are intentionally not included yet. Add opt-in live tests later with a gitignored fixture describing safe SUID/channel ranges.
+- Live VBMatrix/audio tests are intentionally not part of CI. `scripts/live-audio-verify.ts` is a manual, gated harness backed by deterministic WAV measurement helpers in `src/core/audioMeasurement.ts` and planning/evaluation helpers in `src/core/liveAudioVerification.ts`.
 
 ## Setup automation
 
 - `.opencode/skills/vbmatrix-setup/SKILL.md` is the repo-local setup playbook for agents.
 - `scripts/vban-smoke.ts` provides a direct VBAN-TEXT smoke test outside MCP harnesses.
+- `scripts/live-audio-verify.ts` can prove route changes affected captured WAV audio when an operator explicitly opts in.

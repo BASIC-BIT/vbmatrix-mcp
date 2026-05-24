@@ -15,6 +15,7 @@
     "dist",
     "docs/architecture.md",
     "docs/design.md",
+    "docs/live-audio-verification.md",
     "docs/research.md",
     "docs/safety.md",
     "README.md",
@@ -36,6 +37,7 @@
     "prepack": "npm run build",
     "pack:check": "npm pack --dry-run",
     "smoke:vban": "tsx scripts/vban-smoke.ts",
+    "verify:live-audio": "tsx scripts/live-audio-verify.ts",
     "start": "node dist/bin/cli.js"
   },
   "engines": {

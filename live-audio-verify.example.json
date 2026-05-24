@@ -1,0 +1,19 @@
+{
+  "target": {
+    "inputSuid": "REPLACE_INPUT_SUID",
+    "inputChannel": 1,
+    "outputSuid": "REPLACE_OUTPUT_SUID",
+    "outputChannel": 1
+  },
+  "baselineWav": "live-audio-artifacts/baseline.wav",
+  "mutedWav": "live-audio-artifacts/muted.wav",
+  "gainWav": "live-audio-artifacts/gain-minus-12db.wav",
+  "phaseNormalWav": "live-audio-artifacts/phase-normal.wav",
+  "phaseInvertedWav": "live-audio-artifacts/phase-inverted.wav",
+  "gainDb": -12,
+  "channel": 1,
+  "muteDropDb": 35,
+  "gainToleranceDb": 1.5,
+  "phaseCorrelationMax": -0.8,
+  "settleMs": 250
+}

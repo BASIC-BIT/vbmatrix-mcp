@@ -18,6 +18,7 @@ Good coding-agent tasks:
 - Clone/build this repo.
 - Add local MCP config for OpenCode or another harness.
 - Run `npm run smoke:vban` to verify VBAN-TEXT reachability.
+- Run `npm run verify:live-audio` in dry-run/measurement mode after an operator provides a local fixture.
 - Run MCP tool discovery and call `vbmatrix_ping` once the harness is configured.
 - Edit environment variables for host, port, stream name, or opt-out safety gates.
 
@@ -125,3 +126,4 @@ Do not silently run installers or change live routing on behalf of the user. Ask
 - Restarting the VBMatrix audio engine during live use.
 - Applying broad routing changes.
 - Modifying devices or slots outside the user's stated target.
+- Running `npm run verify:live-audio -- --run`; it changes a target route and requires `VBMATRIX_LIVE_VERIFY=I_UNDERSTAND_THIS_CHANGES_AUDIO`.
