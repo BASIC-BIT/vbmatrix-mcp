@@ -77,3 +77,51 @@ export const SetPointMuteSchema = PointTargetSchema.extend({
 export const SetPointPhaseSchema = PointTargetSchema.extend({
   phaseReversed: z.boolean().describe('Whether the point should be phase reversed.'),
 });
+
+export const SnapshotReferenceSchema = z
+  .object({
+    snapshot: z.record(z.string(), z.unknown()).optional().describe('Inline Matrix snapshot JSON.'),
+    snapshotFile: z.string().min(1).optional().describe('Snapshot artifact path returned by vbmatrix_capture_snapshot.'),
+  })
+  .refine((value) => value.snapshot !== undefined || value.snapshotFile !== undefined, {
+    message: 'Provide either snapshot or snapshotFile',
+  });
+
+export const SnapshotCaptureSchema = z.object({
+  slots: z.array(z.string().min(1)).default([]).describe('Explicit slot SUIDs to query for metadata.'),
+  points: z.array(PointTargetSchema).default([]).describe('Explicit routing points to query for gain, mute, and phase.'),
+  includeSnapshot: z
+    .boolean()
+    .default(true)
+    .describe('Include snapshot JSON inline when it is small enough for an MCP response.'),
+  writeToFile: z.boolean().default(false).describe('Write the full snapshot to a local artifact file.'),
+});
+
+export const SnapshotDiffSchema = z.object({
+  before: SnapshotReferenceSchema,
+  after: SnapshotReferenceSchema,
+  includeDiff: z.boolean().default(false).describe('Include capped diff details inline. Defaults to summary-only.'),
+  maxEntries: z.number().int().min(0).max(200).default(20).describe('Maximum inline diff entries when includeDiff is true.'),
+  writeToFile: z.boolean().default(false).describe('Write the full diff to a local artifact file.'),
+});
+
+export const SnapshotRestoreSchema = SnapshotReferenceSchema.extend({
+  selectedPoints: z.array(PointTargetSchema).optional().describe('Optional subset of snapshot points to restore.'),
+  properties: z
+    .array(z.enum(['dBGain', 'mute', 'phase']))
+    .optional()
+    .describe('Point properties to restore. Defaults to dBGain, mute, and phase.'),
+  dryRun: z.boolean().default(true).describe('When true, return the restore plan without writing.'),
+  confirmRestore: z
+    .literal('RESTORE_SNAPSHOT')
+    .optional()
+    .describe('Required when dryRun is false so restore execution is explicit.'),
+  confirmBroadRestore: z
+    .boolean()
+    .default(false)
+    .describe('Required for executing plans that affect multiple points or commands.'),
+  allowMissingSelectedPoints: z
+    .boolean()
+    .default(false)
+    .describe('When true, selectedPoints absent from the desired snapshot are reported and skipped.'),
+});

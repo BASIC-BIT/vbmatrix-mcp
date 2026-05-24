@@ -11,10 +11,12 @@ VBMatrix MCP runs locally through stdio and sends VBAN-TEXT packets to a configu
 MVP goals:
 
 - Query VBMatrix version, engine, master, and slot status.
+- Diagnose VBAN-TEXT reachability, command stream setup, and Matrix `Request Reply` packets.
 - Query a routing point's gain, mute, and phase state.
 - Query, set, and remove input/output channel labels.
 - Mutate a routing point's gain, mute, or phase by default, with server-side opt-out available.
 - Expose channel route resets and engine restart by default, with server-side opt-out available.
+- Capture, diff, and plan/restore targeted Matrix snapshots for explicit slots and points.
 
 ## Install From Source
 
@@ -40,6 +42,10 @@ Direct VBAN-TEXT smoke test after VBMatrix is configured:
 ```bash
 npm run smoke:vban
 ```
+
+Matrix query replies are expected as VBAN SERVICE packets on stream `Request Reply`. The configured `VBMATRIX_STREAM` names the incoming TEXT command stream, normally `Command1`; do not change it to `Request Reply`.
+
+`vbmatrix_vban_diagnostics` reports observed packet reasons such as wrong stream, unsupported protocol, or malformed packet data. If no UDP packets arrive before timeout, it reports `no_packets_observed` as indeterminate because UDP cannot reliably prove whether the cause is no listener, no command-stream reply, disabled stream, firewall/network block, wrong host/port, or Matrix not running.
 
 Manual live audio verification harness:
 
@@ -116,11 +122,14 @@ The tool surface is intentionally layered:
 Current primitive read tools:
 
 - `vbmatrix_ping`
+- `vbmatrix_vban_diagnostics`
 - `vbmatrix_get_engine`
 - `vbmatrix_get_master`
 - `vbmatrix_get_slot_info`
 - `vbmatrix_get_point`
 - `vbmatrix_get_channel_label`
+- `vbmatrix_capture_snapshot`
+- `vbmatrix_diff_snapshots`
 
 Current primitive write/destructive tools:
 
@@ -130,6 +139,7 @@ Current primitive write/destructive tools:
 - `vbmatrix_set_channel_label`
 - `vbmatrix_remove_channel_label`
 - `vbmatrix_reset_channel_routes` (requires `confirm: "RESET_CHANNEL_ROUTES"`)
+- `vbmatrix_restore_snapshot` (dry-run by default; execution requires `confirmRestore: "RESTORE_SNAPSHOT"`, and broad plans require `confirmBroadRestore: true`.)
 - `vbmatrix_restart_engine`
 
 Write tools are available by default so the user's MCP harness can decide what should be called. Set `VBMATRIX_MCP_ALLOW_WRITES=false`, `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` for narrower deployments.
@@ -182,6 +192,8 @@ Reset all routes for one output channel:
 ```
 
 Range label setting is intentionally not exposed yet. The current Matrix manual documents range label queries and range label removal with an empty `Name`, but not assigning one non-empty label across a range.
+
+Snapshot tools are targeted, not full-matrix scans. A snapshot contains selected slot metadata and selected point gain/mute/phase state; labels and preset metadata are listed as omissions until supported by typed VBAN-TEXT queries. Large snapshots are written to `.vbmatrix-snapshots/` and omitted from inline MCP responses by default.
 
 ## Development
 

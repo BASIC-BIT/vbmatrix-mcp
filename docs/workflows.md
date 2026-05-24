@@ -3,16 +3,20 @@
 These recipes use the current MCP tool surface only:
 
 - `vbmatrix_ping`
+- `vbmatrix_vban_diagnostics`
 - `vbmatrix_get_engine`
 - `vbmatrix_get_master`
 - `vbmatrix_get_slot_info`
 - `vbmatrix_get_point`
+- `vbmatrix_capture_snapshot`
+- `vbmatrix_diff_snapshots`
+- `vbmatrix_restore_snapshot`
 - `vbmatrix_set_point_gain`
 - `vbmatrix_set_point_mute`
 - `vbmatrix_set_point_phase`
 - `vbmatrix_restart_engine`
 
-The MVP has no broad matrix scan, preset, route group, undo stack, metering, or device-selection tools. Recipes that would benefit from those tools are marked as future-tool placeholders.
+The MVP has no broad matrix scan, preset, route group, undo stack, metering, or device-selection tools. Snapshot tools only capture explicit selected slots and points. Recipes that would benefit from broader tools are marked as future-tool placeholders.
 
 ## Safe Route Inspection
 
@@ -27,6 +31,7 @@ Use this when the user asks what a route is doing or before any live change.
 
 ```text
 vbmatrix_ping
+vbmatrix_vban_diagnostics
 vbmatrix_get_engine
 vbmatrix_get_master
 ```
@@ -157,6 +162,72 @@ vbmatrix_get_master
 - Bad: `Everything is show-ready` if only a partial route list was checked.
 
 Future-tool placeholder: a versioned show checklist or preset verifier could store known-good route expectations once the repo has a fixture format and validation model.
+
+## Live-Show Rollback Snapshot
+
+Use this before an approved live-show change that may need rollback.
+
+1. Build an explicit route list with the operator.
+
+- Include only known show-critical points and slot SUIDs.
+- Do not infer endpoints from labels such as main, booth, stream, or cue.
+
+2. Capture a targeted snapshot.
+
+```text
+vbmatrix_capture_snapshot({
+  "slots": ["VASIO8", "VAIO1"],
+  "points": [
+    {
+      "inputSuid": "VASIO8",
+      "inputChannel": 1,
+      "outputSuid": "VAIO1",
+      "outputChannel": 1
+    }
+  ],
+  "writeToFile": true
+})
+```
+
+3. Keep the returned `artifactPath` in the session notes and perform the approved route changes.
+
+4. If rollback is needed, plan first.
+
+```text
+vbmatrix_restore_snapshot({
+  "snapshotFile": ".vbmatrix-snapshots/vbmatrix-snapshot-example.json",
+  "dryRun": true
+})
+```
+
+5. Review every planned command. Execute only after operator approval.
+
+```text
+vbmatrix_restore_snapshot({
+  "snapshotFile": ".vbmatrix-snapshots/vbmatrix-snapshot-example.json",
+  "dryRun": false,
+  "confirmRestore": "RESTORE_SNAPSHOT",
+  "confirmBroadRestore": true
+})
+```
+
+Rollback limits:
+
+- Snapshot restore only restores selected point `dBGain`, `mute`, and `phase`.
+- Slot fields, labels, and preset metadata are informational and non-restorable in this MCP version.
+- A snapshot is not a whole-system undo unless the route list covered every relevant point.
+
+## Emergency Cleanup With Snapshot Guardrails
+
+Use this when a live routing experiment needs cleanup but there is no safe broad reset tool.
+
+1. Stop adding new writes and identify the exact points changed.
+2. If a pre-change snapshot exists, run `vbmatrix_diff_snapshots` against a fresh capture of the same points.
+3. Use `vbmatrix_restore_snapshot` with `dryRun: true` to generate a cleanup plan.
+4. If the operator approves, execute the restore with the explicit confirmations.
+5. If no snapshot exists, clean up one explicit point at a time with primitive setters after querying each pre-state.
+
+Do not use engine restart, raw VBAN commands, or broad reset/remove commands as cleanup shortcuts unless the operator explicitly accepts the disruption outside this MCP tool surface.
 
 ## Live Audio Evidence Workflow
 
