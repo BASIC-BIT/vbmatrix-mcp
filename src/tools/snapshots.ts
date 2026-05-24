@@ -187,10 +187,9 @@ export function registerSnapshotTools(server: McpServer): void {
         return jsonResponse({
           ok: true,
           summary: summarizeSnapshotDiff(diff),
-          diff: capped?.diff,
           inlineOmitted: !input.includeDiff,
           inlineOmittedReason: input.includeDiff ? undefined : 'Diff details omitted by default; set includeDiff=true for capped inline details.',
-          omittedEntries: capped?.omittedEntries,
+          ...(capped === undefined ? {} : { diff: capped.diff, omittedEntries: capped.omittedEntries }),
           artifactPath: input.writeToFile ? await writeDiffArtifact(diff) : undefined,
         });
       } catch (err) {
