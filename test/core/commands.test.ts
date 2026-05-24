@@ -8,18 +8,25 @@ import {
   pointExpression,
   pointPropertyQuery,
   parseQueryResponseValue,
+  quoteDeviceName,
   removeChannelLabelCommand,
-  resetChannelCommand,
+  removeSlotDeviceCommand,
   restartEngineCommand,
+  resetSlotCommand,
+  resetChannelCommand,
   setChannelLabelCommand,
   setPointGainCommand,
   setPointMuteCommand,
   setPointPhaseCommand,
+  setSlotDeviceCommand,
+  setSlotMasterCommand,
+  setSlotOnlineCommand,
   slotPropertyQuery,
   validateChannelIndex,
   validateChannelRange,
   validateGain,
   validateLabel,
+  validateSlotDeviceKind,
 } from '../../src/core/commands.js';
 
 const target = {
@@ -45,8 +52,38 @@ describe('VBMatrix command builders', () => {
   test('builds slot and command queries', () => {
     expect(slotPropertyQuery('VASIO8', 'Info')).toBe('Slot(VASIO8).Info=?;');
     expect(slotPropertyQuery('WIN1.IN', 'Info')).toBe('Slot(WIN1.IN).Info=?;');
+    expect(setSlotOnlineCommand('VAIO1', true)).toBe('Slot(VAIO1).Online=1;');
+    expect(setSlotOnlineCommand('VAIO1', false)).toBe('Slot(VAIO1).Online=0;');
+    expect(setSlotMasterCommand('VAIO1', true)).toBe('Slot(VAIO1).Master=1;');
+    expect(resetSlotCommand('VAIO1')).toBe('Slot(VAIO1).Reset;');
     expect(commandPropertyQuery('Version')).toBe('Command.Version=?;');
     expect(restartEngineCommand()).toBe('Command.Restart;');
+  });
+
+  test('builds safely quoted slot device commands', () => {
+    expect(quoteDeviceName('Focusrite USB ASIO')).toBe('"Focusrite USB ASIO"');
+    expect(setSlotDeviceCommand('VAIO1', 'ASIO', 'Focusrite USB ASIO')).toBe(
+      'Slot(VAIO1).Device.ASIO="Focusrite USB ASIO";'
+    );
+    expect(setSlotDeviceCommand('VAIO1', 'MME', 'CABLE Input (VB-Audio Virtual Cable)')).toBe(
+      'Slot(VAIO1).Device.MME="CABLE Input (VB-Audio Virtual Cable)";'
+    );
+    expect(setSlotDeviceCommand('VAIO1', 'KS', 'Speakers (Example)')).toBe(
+      'Slot(VAIO1).Device.KS="Speakers (Example)";'
+    );
+    expect(setSlotDeviceCommand('VAIO1', 'WDM', 'Headphones (Example)')).toBe(
+      'Slot(VAIO1).Device.WDM="Headphones (Example)";'
+    );
+    expect(removeSlotDeviceCommand('VAIO1')).toBe('Slot(VAIO1).Device="";');
+  });
+
+  test('rejects unsafe slot device names', () => {
+    expect(() => quoteDeviceName('')).toThrow(/must not be empty/);
+    expect(() => quoteDeviceName('Device"Name')).toThrow(/must not contain/);
+    expect(() => quoteDeviceName('Device;Command.Restart')).toThrow(/must not contain/);
+    expect(() => quoteDeviceName('Device\nCommand.Restart')).toThrow(/must not contain/);
+    expect(() => setSlotDeviceCommand('VAIO1;Command.Restart', 'ASIO', 'Device')).toThrow(/Invalid SUID/);
+    expect(() => validateSlotDeviceKind('RAW')).toThrow(/Device kind must be/);
   });
 
   test('builds input and output label commands', () => {
@@ -108,6 +145,8 @@ describe('VBMatrix command builders', () => {
     expect(parseQueryResponseValue('Command.Version=?;', 'Command.Version = VB-Audio Matrix 1.0.2.6;')).toBe(
       'VB-Audio Matrix 1.0.2.6'
     );
-    expect(() => parseQueryResponseValue('Command.Version=?;', 'Command.Engine = 1;')).toThrow(/Response key mismatch/);
+    expect(() => parseQueryResponseValue('Command.Version=?;', 'Command.Engine = 1;')).toThrow(
+      /Response key mismatch/
+    );
   });
 });

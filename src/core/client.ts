@@ -3,8 +3,10 @@ import {
   commandPropertyQuery,
   parseQueryResponseValue,
   pointPropertyQuery,
+  slotPropertyQuery,
   type PointState,
   type PointTarget,
+  type SlotState,
 } from './commands.js';
 import { sendVbanTextCommand, sendVbanTextCommandWithDiagnostics } from './vbanText.js';
 
@@ -66,5 +68,16 @@ export class VbMatrixClient {
       throw new Error(`Matrix returned Err for point query: ${pointPropertyQuery(target, 'dBGain')}`);
     }
     return { dBGain, mute, phase };
+  }
+
+  async querySlotState(suid: string): Promise<SlotState> {
+    const [info, online, runningStatus, master, device] = await Promise.all([
+      this.queryValue(slotPropertyQuery(suid, 'Info')),
+      this.queryValue(slotPropertyQuery(suid, 'Online')),
+      this.queryValue(slotPropertyQuery(suid, 'RunningStatus')),
+      this.queryValue(slotPropertyQuery(suid, 'Master')),
+      this.queryValue(slotPropertyQuery(suid, 'Device')),
+    ]);
+    return { info, online, runningStatus, master, device };
   }
 }

@@ -93,6 +93,11 @@ Write tools are explicit and available by default. They can be narrowed with env
 - `vbmatrix_set_point_gain` validates gain range and target policy.
 - `vbmatrix_set_point_mute` validates target policy.
 - `vbmatrix_set_point_phase` validates target policy.
+- `vbmatrix_set_slot_online` validates slot policy and toggles one slot online/offline.
+- `vbmatrix_set_slot_master` validates slot policy and toggles one slot master flag.
+- `vbmatrix_reset_slot` validates slot policy, requires explicit confirmation, and respects the destructive-action opt-out gate.
+- `vbmatrix_set_slot_device` validates slot policy, safely quotes ASIO/MME/KS/WDM device names, requires explicit confirmation, and respects the destructive-action opt-out gate.
+- `vbmatrix_remove_slot_device` validates slot policy, requires explicit confirmation, and respects the destructive-action opt-out gate.
 - `vbmatrix_set_channel_label` validates label text and target policy.
 - `vbmatrix_remove_channel_label` validates target policy and supports documented channel ranges.
 - `vbmatrix_reset_channel_routes` requires explicit confirmation and respects write plus destructive gates.
@@ -164,6 +169,6 @@ Write responses should include:
 - Raw free-form command execution.
 - Full-matrix scans by default.
 - Preset patch editing.
-- Broad `Reset`, `ResetGrid`, or `Shutdown` tools.
+- Broad `Remove`, `Reset`, `ResetGrid`, or `Shutdown` tools.
 - VBAN SERVICE subscriptions or meter streaming.
 - VBAN service/stream configuration writes. No source-linked Matrix command surface is currently documented for this; use the Matrix UI with an operator in the loop.

@@ -1,6 +1,13 @@
 import { describe, expect, test } from 'vitest';
 import { loadConfig } from '../../src/config/index.js';
-import { assertChannelResetAllowed, assertChannelWriteAllowed, assertDestructiveAllowed, assertPointWriteAllowed } from '../../src/core/safety.js';
+import {
+  assertChannelResetAllowed,
+  assertChannelWriteAllowed,
+  assertDestructiveAllowed,
+  assertPointWriteAllowed,
+  assertSlotDestructiveAllowed,
+  assertSlotWriteAllowed,
+} from '../../src/core/safety.js';
 
 const target = {
   inputSuid: 'VASIO8',
@@ -49,6 +56,30 @@ describe('safety gates', () => {
     expect(() => assertDestructiveAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_DESTRUCTIVE: 'false' }))).toThrow(
       /ALLOW_DESTRUCTIVE/
     );
+  });
+
+  test('applies write and SUID gates to slot writes', () => {
+    expect(() => assertSlotWriteAllowed(loadConfig({}), 'VAIO1')).not.toThrow();
+    expect(() => assertSlotWriteAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_WRITES: 'false' }), 'VAIO1')).toThrow(
+      /ALLOW_WRITES/
+    );
+    expect(() =>
+      assertSlotWriteAllowed(
+        loadConfig({
+          VBMATRIX_MCP_ALLOW_ALL_SUIDS: 'false',
+          VBMATRIX_MCP_ALLOWED_SUIDS: 'VASIO8',
+        }),
+        'VAIO1'
+      )
+    ).toThrow(/not in VBMATRIX_MCP_ALLOWED_SUIDS/);
+  });
+
+  test('requires destructive slot confirmation and destructive gate', () => {
+    expect(() => assertSlotDestructiveAllowed(loadConfig({}), 'VAIO1', true)).not.toThrow();
+    expect(() => assertSlotDestructiveAllowed(loadConfig({}), 'VAIO1', false)).toThrow(/confirm=true/);
+    expect(() =>
+      assertSlotDestructiveAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_DESTRUCTIVE: 'false' }), 'VAIO1', true)
+    ).toThrow(/ALLOW_DESTRUCTIVE/);
   });
 
   test('applies write and destructive gates to channel resets', () => {

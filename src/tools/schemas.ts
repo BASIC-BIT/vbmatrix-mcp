@@ -67,7 +67,9 @@ export const ResetChannelSchema = ChannelOrRangeTargetSchema.and(
 );
 
 export const SetPointGainSchema = PointTargetSchema.extend({
-  gainDb: z.union([z.number().min(MIN_GAIN_DB).max(MAX_GAIN_DB), z.literal('-inf')]).describe('Gain in dB, or -inf.'),
+  gainDb: z
+    .union([z.number().min(MIN_GAIN_DB).max(MAX_GAIN_DB), z.literal('-inf')])
+    .describe('Gain in dB, or -inf.'),
 });
 
 export const SetPointMuteSchema = PointTargetSchema.extend({
@@ -76,6 +78,32 @@ export const SetPointMuteSchema = PointTargetSchema.extend({
 
 export const SetPointPhaseSchema = PointTargetSchema.extend({
   phaseReversed: z.boolean().describe('Whether the point should be phase reversed.'),
+});
+
+export const SetSlotOnlineSchema = SlotInputSchema.extend({
+  online: z.boolean().describe('Whether the slot should be online.'),
+});
+
+export const SetSlotMasterSchema = SlotInputSchema.extend({
+  master: z.boolean().describe('Whether the slot should be the master clock source.'),
+});
+
+export const ResetSlotSchema = SlotInputSchema.extend({
+  confirm: z.literal(true).describe('Required explicit confirmation for this destructive slot reset.'),
+});
+
+export const SetSlotDeviceSchema = SlotInputSchema.extend({
+  kind: z.enum(['ASIO', 'MME', 'KS', 'WDM']).describe('Documented VBMatrix device API namespace.'),
+  deviceName: z.string().min(1).describe('Exact Windows/VBMatrix device name to quote in the command.'),
+  confirm: z
+    .literal(true)
+    .describe('Required explicit confirmation because changing devices can disrupt live audio.'),
+});
+
+export const RemoveSlotDeviceSchema = SlotInputSchema.extend({
+  confirm: z
+    .literal(true)
+    .describe('Required explicit confirmation because removing a device can disrupt live audio.'),
 });
 
 export const SnapshotReferenceSchema = z

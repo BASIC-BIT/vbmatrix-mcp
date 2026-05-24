@@ -3,6 +3,7 @@ import {
   validateChannelRangeTargetSyntax,
   validateChannelTargetSyntax,
   validatePointTargetSyntax,
+  validateSuidSyntax,
   type ChannelRangeTarget,
   type ChannelTarget,
   type PointTarget,
@@ -53,6 +54,22 @@ export function assertPointWriteAllowed(config: VbMatrixConfig, target: PointTar
   assertWritesAllowed(config);
   assertSuidAllowed(config, target.inputSuid);
   assertSuidAllowed(config, target.outputSuid);
+}
+
+export function assertSlotWriteAllowed(config: VbMatrixConfig, suid: string): void {
+  validateSuidSyntax(suid);
+  assertWritesAllowed(config);
+  assertSuidAllowed(config, suid);
+}
+
+export function assertSlotDestructiveAllowed(config: VbMatrixConfig, suid: string, confirmed: boolean): void {
+  assertSlotWriteAllowed(config, suid);
+  assertDestructiveAllowed(config);
+  if (!confirmed) {
+    throw new SafetyError('confirmation_required', 'Slot reset and device changes require confirm=true', {
+      confirmed,
+    });
+  }
 }
 
 export function assertChannelWriteAllowed(config: VbMatrixConfig, target: ChannelTarget | ChannelRangeTarget): void {

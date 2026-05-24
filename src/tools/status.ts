@@ -123,7 +123,8 @@ export function registerStatusTools(server: McpServer): void {
   server.registerTool(
     'vbmatrix_get_slot_info',
     {
-      description: 'Read-only query for VBMatrix slot info, online state, running status, master flag, and device string.',
+      description:
+        'Read-only query for VBMatrix slot info, online state, running status, master flag, and device string.',
       inputSchema: SlotInputSchema,
       annotations: readOnlyToolAnnotations,
     },
@@ -132,14 +133,19 @@ export function registerStatusTools(server: McpServer): void {
         const input = SlotInputSchema.parse(args);
         validateSuidSyntax(input.suid);
         const client = new VbMatrixClient();
-        const [info, online, runningStatus, master, device] = await Promise.all([
-          client.queryValue(slotPropertyQuery(input.suid, 'Info')),
-          client.queryValue(slotPropertyQuery(input.suid, 'Online')),
-          client.queryValue(slotPropertyQuery(input.suid, 'RunningStatus')),
-          client.queryValue(slotPropertyQuery(input.suid, 'Master')),
-          client.queryValue(slotPropertyQuery(input.suid, 'Device')),
-        ]);
-        return jsonResponse({ ok: true, suid: input.suid, info, online, runningStatus, master, device });
+        const queries = {
+          info: slotPropertyQuery(input.suid, 'Info'),
+          online: slotPropertyQuery(input.suid, 'Online'),
+          runningStatus: slotPropertyQuery(input.suid, 'RunningStatus'),
+          master: slotPropertyQuery(input.suid, 'Master'),
+          device: slotPropertyQuery(input.suid, 'Device'),
+        };
+        return jsonResponse({
+          ok: true,
+          suid: input.suid,
+          queries,
+          ...(await client.querySlotState(input.suid)),
+        });
       } catch (err) {
         return toolError(err instanceof Error ? err.message : 'Unknown VBMatrix slot query error');
       }
