@@ -14,7 +14,7 @@ VBMatrix MCP is organized around explicit, testable layers. The MCP layer should
 
 ## VBAN/VBMatrix core (`src/core/`)
 
-- `vbanText.ts` builds and sends VBAN-TEXT packets.
+- `vbanText.ts` builds and sends VBAN-TEXT packets. Query requests are sent on the configured command stream, but Matrix answers with a `Request Reply` service packet (`0x60` protocol byte).
 - `commands.ts` builds VBMatrix command strings and parses simple query responses.
 - `client.ts` exposes `query`, `send`, and `queryPointState` methods.
 - `safety.ts` enforces write gates, destructive gates, SUID allowlists, identifier validation, and channel bounds.

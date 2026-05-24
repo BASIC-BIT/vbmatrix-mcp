@@ -35,4 +35,18 @@ describe('VBAN-TEXT packet builder', () => {
     expect(extractVbanTextPayload(packet, 'Other')).toBeNull();
     expect(extractVbanTextPayload(Buffer.from('not-vban'), 'Command1')).toBeNull();
   });
+
+  test('extracts Matrix query replies from Request Reply service packets', () => {
+    const header = Buffer.alloc(VBAN_HEADER_SIZE);
+    Buffer.from('VBAN', 'ascii').copy(header, 0);
+    header[4] = 0x60;
+    header[5] = 0x80;
+    header[6] = 0x02;
+    Buffer.from('Request Reply', 'utf8').copy(header, 8);
+    header.writeUInt32LE(1, 24);
+
+    const packet = Buffer.concat([header, Buffer.from('Command.Version = "VB-Audio Matrix";', 'utf8')]);
+
+    expect(extractVbanTextPayload(packet, 'Command1')).toBe('Command.Version = "VB-Audio Matrix";');
+  });
 });

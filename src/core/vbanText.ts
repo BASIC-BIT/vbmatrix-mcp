@@ -3,8 +3,10 @@ import { createSocket } from 'node:dgram';
 export const VBAN_HEADER_SIZE = 28;
 export const VBAN_TEXT_SR_INDEX = 0x52;
 export const VBAN_TEXT_PROTOCOL = 0x40;
+export const VBAN_SERVICE_PROTOCOL = 0x60;
 export const VBAN_PROTOCOL_MASK = 0xe0;
 export const VBAN_TEXT_UTF8_FORMAT = 0x10;
+export const VBAN_REQUEST_REPLY_STREAM = 'Request Reply';
 export const DEFAULT_FRAME_COUNTER = 0;
 
 let frameCounter = DEFAULT_FRAME_COUNTER;
@@ -44,9 +46,16 @@ function readStreamName(message: Buffer): string {
 export function extractVbanTextPayload(message: Buffer, streamName: string): string | null {
   if (message.length < VBAN_HEADER_SIZE) return null;
   if (message.subarray(0, 4).toString('ascii') !== 'VBAN') return null;
-  if ((message[4] & VBAN_PROTOCOL_MASK) !== VBAN_TEXT_PROTOCOL) return null;
-  if (message[7] !== VBAN_TEXT_UTF8_FORMAT) return null;
-  if (readStreamName(message) !== streamName) return null;
+  const protocol = message[4] & VBAN_PROTOCOL_MASK;
+  const responseStreamName = readStreamName(message);
+  if (protocol === VBAN_TEXT_PROTOCOL) {
+    if (message[7] !== VBAN_TEXT_UTF8_FORMAT) return null;
+    if (responseStreamName !== streamName) return null;
+  } else if (protocol === VBAN_SERVICE_PROTOCOL) {
+    if (responseStreamName !== VBAN_REQUEST_REPLY_STREAM) return null;
+  } else {
+    return null;
+  }
   return message.subarray(VBAN_HEADER_SIZE).toString('utf8');
 }
 

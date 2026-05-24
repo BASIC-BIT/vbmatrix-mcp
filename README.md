@@ -108,7 +108,7 @@ Read tools:
 
 Write tools:
 
-- `vbmatrix_set_point_gain`
+- `vbmatrix_set_point_gain` (`gainDb: "-inf"` removes the point.)
 - `vbmatrix_set_point_mute`
 - `vbmatrix_set_point_phase`
 - `vbmatrix_restart_engine`
