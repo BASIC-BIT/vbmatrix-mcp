@@ -46,6 +46,14 @@ Direct VBAN-TEXT smoke test after VBMatrix is configured:
 npm run smoke:vban
 ```
 
+Run fixed read-only diagnostics scenarios for the configured stream, an intentionally wrong stream, and an intentionally wrong UDP port:
+
+```bash
+npm run diagnostics:vban
+```
+
+The scenario script always sends `Command.Version=?;` and does not expose raw VBAN command execution.
+
 Safe local packaging and configuration diagnostics:
 
 ```bash
