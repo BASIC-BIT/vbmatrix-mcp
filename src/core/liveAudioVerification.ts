@@ -59,7 +59,8 @@ export function buildLiveAudioVerificationCommands(config: LiveAudioVerifyConfig
 
 export function restorePointCommands(target: PointTarget, state: PointState): string[] {
   const commands: string[] = [];
-  commands.push(setPointGainCommand(target, state.dBGain === '-inf' ? '-inf' : Number(state.dBGain)));
+  if (state.dBGain === '-inf') return [setPointGainCommand(target, '-inf')];
+  commands.push(setPointGainCommand(target, Number(state.dBGain)));
   commands.push(setPointMuteCommand(target, state.mute === '1'));
   commands.push(setPointPhaseCommand(target, state.phase === '1'));
   return commands;

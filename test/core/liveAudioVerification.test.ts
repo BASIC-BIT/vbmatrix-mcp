@@ -39,6 +39,9 @@ describe('live audio verification planning', () => {
     ]);
     expect(restorePointCommands(config.target, { dBGain: '-inf', mute: '0', phase: '1' })).toEqual([
       'Point(VASIO8.IN[1],ASIO128.OUT[126]).Remove;',
+    ]);
+    expect(restorePointCommands(config.target, { dBGain: '-12', mute: '0', phase: '1' })).toEqual([
+      'Point(VASIO8.IN[1],ASIO128.OUT[126]).dBGain=-12;',
       'Point(VASIO8.IN[1],ASIO128.OUT[126]).Mute=0;',
       'Point(VASIO8.IN[1],ASIO128.OUT[126]).Phase=1;',
     ]);

@@ -12,7 +12,13 @@ import {
   type LiveAudioVerifyConfig,
   type VerificationMeasurements,
 } from '../src/core/liveAudioVerification.js';
-import { setPointGainCommand, setPointMuteCommand, setPointPhaseCommand } from '../src/core/commands.js';
+import {
+  type PointTarget,
+  setPointGainCommand,
+  setPointMuteCommand,
+  setPointPhaseCommand,
+} from '../src/core/commands.js';
+import { assertPointWriteAllowed } from '../src/core/safety.js';
 
 const DEFAULT_CONFIG_PATH = 'live-audio-verify.local.json';
 
@@ -155,8 +161,11 @@ async function measureConfig(config: LiveAudioVerifyConfig): Promise<Verificatio
   };
 }
 
-async function applyCommands(client: VbMatrixClient, commands: string[]): Promise<void> {
-  for (const command of commands) await client.send(command);
+async function applyCommands(client: VbMatrixClient, target: PointTarget, commands: string[]): Promise<void> {
+  for (const command of commands) {
+    assertPointWriteAllowed(client.config, target);
+    await client.send(command);
+  }
 }
 
 async function sleep(ms: number): Promise<void> {
@@ -165,18 +174,19 @@ async function sleep(ms: number): Promise<void> {
 
 async function runLive(config: LiveAudioVerifyConfig): Promise<void> {
   const client = new VbMatrixClient(loadConfig());
+  assertPointWriteAllowed(client.config, config.target);
   const before = await client.queryPointState(config.target);
   const rl = createInterface({ input, output });
   try {
     for (const stage of stages(config)) {
-      await applyCommands(client, stage.commands);
+      await applyCommands(client, config.target, stage.commands);
       if (config.settleMs !== undefined) await sleep(config.settleMs);
       console.error(`Capture ${stage.name} audio to ${stage.wavPath}, then press Enter.`);
       await rl.question('');
     }
   } finally {
     rl.close();
-    await applyCommands(client, restorePointCommands(config.target, before));
+    await applyCommands(client, config.target, restorePointCommands(config.target, before));
   }
 }
 

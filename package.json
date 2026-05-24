@@ -18,6 +18,8 @@
     "docs/live-audio-verification.md",
     "docs/research.md",
     "docs/safety.md",
+    "scripts/live-audio-verify.ts",
+    "live-audio-verify.example.json",
     "README.md",
     "CHANGELOG.md",
     "server.json",
@@ -34,10 +36,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "npm run lint && npm run typecheck && npm test",
+    "preverify:live-audio": "npm run build",
     "prepack": "npm run build",
     "pack:check": "npm pack --dry-run",
     "smoke:vban": "tsx scripts/vban-smoke.ts",
-    "verify:live-audio": "tsx scripts/live-audio-verify.ts",
+    "verify:live-audio": "node dist/scripts/live-audio-verify.js",
     "start": "node dist/bin/cli.js"
   },
   "engines": {
