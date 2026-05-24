@@ -50,6 +50,7 @@
     "pack:check": "npm pack --dry-run",
     "doctor": "tsx scripts/doctor.ts",
     "smoke:vban": "tsx scripts/vban-smoke.ts",
+    "diagnostics:vban": "tsx scripts/vban-diagnostics-scenarios.ts",
     "verify:live-audio": "node dist/scripts/live-audio-verify.js",
     "start": "node dist/bin/cli.js"
   },

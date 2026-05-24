@@ -18,6 +18,7 @@ Good coding-agent tasks:
 - Clone/build this repo.
 - Add local MCP config for OpenCode or another harness.
 - Run `npm run smoke:vban` to verify VBAN-TEXT reachability.
+- Run `npm run diagnostics:vban` to capture fixed read-only correct-stream, wrong-stream, and wrong-port diagnostics.
 - Run `npm run verify:live-audio` in dry-run/measurement mode after an operator provides a local fixture.
 - Run MCP tool discovery and call `vbmatrix_ping` or `vbmatrix_vban_diagnostics` once the harness is configured.
 - Edit environment variables for host, port, stream name, or opt-out safety gates.
@@ -64,6 +65,14 @@ npm run smoke:vban
 Expected: JSON with `ok: true` and a `version` value.
 
 If it fails, the smoke output includes packet diagnostics when available. The common healthy shape is command stream `Command1` and response stream `Request Reply`.
+
+For deeper setup evidence:
+
+```bash
+npm run diagnostics:vban
+```
+
+This sends only the fixed read-only `Command.Version=?;` query. The wrong-stream and wrong-port scenarios often both become `no_packets_observed`; treat that result as intentionally indeterminate rather than proof of a single root cause.
 
 If VBMatrix is on another host:
 

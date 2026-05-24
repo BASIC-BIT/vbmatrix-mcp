@@ -12,6 +12,8 @@ npm run doctor
 
 Use `npm run doctor -- --vban` only after VB-Audio Matrix is running and VBAN-TEXT is configured. It sends one read-only `Command.Version` query.
 
+When a setup failure needs more evidence, run `npm run diagnostics:vban`. It sends the same fixed read-only query through the configured command stream, an intentionally wrong stream, and an intentionally wrong UDP port so the resulting JSON can show which failures are observable and which zero-packet timeouts remain indeterminate.
+
 ## Package Command
 
 After npm publication, prefer package execution so clients do not depend on a source checkout path:
