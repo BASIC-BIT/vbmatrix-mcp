@@ -3,10 +3,12 @@ import {
   commandPropertyQuery,
   parseQueryResponseValue,
   pointPropertyQuery,
+  slotPropertyQuery,
   type PointState,
   type PointTarget,
+  type SlotState,
 } from './commands.js';
-import { sendVbanTextCommand } from './vbanText.js';
+import { sendVbanTextCommand, sendVbanTextCommandWithDiagnostics } from './vbanText.js';
 
 export class VbMatrixClient {
   readonly config: VbMatrixConfig;
@@ -37,6 +39,17 @@ export class VbMatrixClient {
     return response.trim();
   }
 
+  async queryWithDiagnostics(command: string) {
+    const result = await sendVbanTextCommandWithDiagnostics(command, {
+      host: this.config.host,
+      port: this.config.port,
+      streamName: this.config.streamName,
+      timeoutMs: this.config.timeoutMs,
+      waitForResponse: true,
+    });
+    return { ...result, response: result.response?.trim() ?? null };
+  }
+
   async queryValue(command: string): Promise<string> {
     return parseQueryResponseValue(command, await this.query(command));
   }
@@ -55,5 +68,16 @@ export class VbMatrixClient {
       throw new Error(`Matrix returned Err for point query: ${pointPropertyQuery(target, 'dBGain')}`);
     }
     return { dBGain, mute, phase };
+  }
+
+  async querySlotState(suid: string): Promise<SlotState> {
+    const [info, online, runningStatus, master, device] = await Promise.all([
+      this.queryValue(slotPropertyQuery(suid, 'Info')),
+      this.queryValue(slotPropertyQuery(suid, 'Online')),
+      this.queryValue(slotPropertyQuery(suid, 'RunningStatus')),
+      this.queryValue(slotPropertyQuery(suid, 'Master')),
+      this.queryValue(slotPropertyQuery(suid, 'Device')),
+    ]);
+    return { info, online, runningStatus, master, device };
   }
 }

@@ -18,12 +18,14 @@ VBMatrix MCP is organized around explicit, testable layers. The MCP layer should
 - `commands.ts` builds VBMatrix command strings and parses simple query responses.
 - `client.ts` exposes `query`, `send`, and `queryPointState` methods.
 - `safety.ts` enforces write gates, destructive gates, SUID allowlists, identifier validation, and channel bounds.
+- `snapshots.ts` defines the targeted snapshot format, pure diff logic, and point-restore planning.
 
 ## Tool registration (`src/tools/`)
 
 - `registerAllTools.ts` is the single wiring point.
 - `status.ts` contains read-only status and slot tools.
 - `points.ts` contains routing point read/write tools.
+- `snapshots.ts` contains targeted snapshot capture, diff, and guarded restore tools.
 - `system.ts` contains destructive/system operations, currently only engine restart.
 - New primitive tools should live beside the VBMatrix concept they expose and should register from `registerAllTools.ts` without changing existing tool names.
 - Future grouped-operation tools should use shared command builders, schemas, and safety helpers from the primitive layer instead of introducing a second command syntax path.

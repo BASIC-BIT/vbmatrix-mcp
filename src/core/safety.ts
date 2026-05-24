@@ -1,5 +1,15 @@
 import type { VbMatrixConfig } from '../config/index.js';
-import { validatePointRangeTargetSyntax, validatePointTargetSyntax, type PointRangeTarget, type PointTarget } from './commands.js';
+import {
+  validateChannelRangeTargetSyntax,
+  validateChannelTargetSyntax,
+  validatePointRangeTargetSyntax,
+  validatePointTargetSyntax,
+  validateSuidSyntax,
+  type ChannelRangeTarget,
+  type ChannelTarget,
+  type PointRangeTarget,
+  type PointTarget,
+} from './commands.js';
 
 export class SafetyError extends Error {
   readonly code: string;
@@ -53,6 +63,34 @@ export function assertPointRangeWriteAllowed(config: VbMatrixConfig, target: Poi
   assertWritesAllowed(config);
   assertSuidAllowed(config, target.inputSuid);
   assertSuidAllowed(config, target.outputSuid);
+}
+
+export function assertSlotWriteAllowed(config: VbMatrixConfig, suid: string): void {
+  validateSuidSyntax(suid);
+  assertWritesAllowed(config);
+  assertSuidAllowed(config, suid);
+}
+
+export function assertSlotDestructiveAllowed(config: VbMatrixConfig, suid: string, confirmed: boolean): void {
+  assertSlotWriteAllowed(config, suid);
+  assertDestructiveAllowed(config);
+  if (!confirmed) {
+    throw new SafetyError('confirmation_required', 'Slot reset and device changes require confirm=true', {
+      confirmed,
+    });
+  }
+}
+
+export function assertChannelWriteAllowed(config: VbMatrixConfig, target: ChannelTarget | ChannelRangeTarget): void {
+  if ('channel' in target) validateChannelTargetSyntax(target);
+  else validateChannelRangeTargetSyntax(target);
+  assertWritesAllowed(config);
+  assertSuidAllowed(config, target.suid);
+}
+
+export function assertChannelResetAllowed(config: VbMatrixConfig, target: ChannelTarget | ChannelRangeTarget): void {
+  assertChannelWriteAllowed(config, target);
+  assertDestructiveAllowed(config);
 }
 
 export function safetyDetails(config: VbMatrixConfig): Record<string, unknown> {

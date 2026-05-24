@@ -18,6 +18,7 @@
 - Live Matrix 1.0.2.6 testing showed `Point(...).dBGain=-inf;` is not the correct way to disconnect a point; it resets to `0.0`. Use `Point(...).Remove;` to restore query state to `dBGain = -inf`.
 - Point range syntax is represented with inclusive channel ranges inside the existing point expression, for example `Point(SUID.IN[i1..i2],SUID.OUT[j1..j2]).Mute=1;`.
 - Zone command syntax was not present in repo-local sources during issue #4 implementation. Zone tools are deferred until the documented grammar is captured or live-verified; this avoids exposing guessed `Zone(...)` writes.
+- Matrix manual version 1.0.1.8 documents input/output label query ranges, label removal ranges with `Name = ""`, and input/output reset ranges with `[i1..i2]` / `[j1..j2]` syntax. It does not show assigning one non-empty label across a range.
 
 ## Useful command examples
 
@@ -29,9 +30,31 @@ Point(SUID.IN[i1..i2],SUID.OUT[j1..j2]).dBGain=-6;
 Point(SUID.IN[i1..i2],SUID.OUT[j1..j2]).Mute=1;
 Point(SUID.IN[i1..i2],SUID.OUT[j1..j2]).Phase=0;
 Point(SUID.IN[i1..i2],SUID.OUT[j1..j2]).Remove;
+Input(SUID.IN[i]).Name=?;
+Input(SUID.IN[i1..i2]).Name=?;
+Input(SUID.IN[i]).Name="MyName";
+Input(SUID.IN[i1..i2]).Name="";
+Input(SUID.IN[i]).Reset;
+Input(SUID.IN[i1..i2]).Reset;
+Output(SUID.OUT[j]).Name=?;
+Output(SUID.OUT[j1..j2]).Name=?;
+Output(SUID.OUT[j]).Name="MyName";
+Output(SUID.OUT[j1..j2]).Name="";
+Output(SUID.OUT[j]).Reset;
+Output(SUID.OUT[j1..j2]).Reset;
 Slot(SUID).Online=?;
 Slot(SUID).Master=?;
 Slot(SUID).Device=?;
+Slot(SUID).Online=1;
+Slot(SUID).Online=0;
+Slot(SUID).Master=1;
+Slot(SUID).Master=0;
+Slot(SUID).Reset;
+Slot(SUID).Device.ASIO="Device Name";
+Slot(SUID).Device.MME="Device Name";
+Slot(SUID).Device.KS="Device Name";
+Slot(SUID).Device.WDM="Device Name";
+Slot(SUID).Device="";
 Slot(SUID).RunningStatus=?;
 Slot(SUID).Info=?;
 Command.Version=?;

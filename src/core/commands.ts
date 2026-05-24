@@ -31,6 +31,33 @@ export interface PointState {
   phase: string;
 }
 
+export interface SlotState {
+  info: string;
+  online: string;
+  runningStatus: string;
+  master: string;
+  device: string;
+}
+
+export type SlotDeviceKind = 'ASIO' | 'MME' | 'KS' | 'WDM';
+
+const SLOT_DEVICE_KINDS = ['ASIO', 'MME', 'KS', 'WDM'] as const;
+
+export type MatrixEndpointKind = 'input' | 'output';
+
+export interface ChannelTarget {
+  kind: MatrixEndpointKind;
+  suid: string;
+  channel: number;
+}
+
+export interface ChannelRangeTarget {
+  kind: MatrixEndpointKind;
+  suid: string;
+  startChannel: number;
+  endChannel: number;
+}
+
 export function validateSuidSyntax(suid: string): void {
   if (!SUID_PATTERN.test(suid)) {
     throw new Error(`Invalid SUID: ${suid}`);
@@ -43,19 +70,35 @@ export function validateChannelIndex(channel: number): void {
   }
 }
 
+export function validateChannelRange(rangeOrStart: ChannelRange | number, maybeEnd?: number): void {
+  const start = typeof rangeOrStart === 'number' ? rangeOrStart : rangeOrStart.start;
+  const end = typeof rangeOrStart === 'number' ? maybeEnd : rangeOrStart.end;
+  if (end === undefined) throw new Error('Range endChannel is required');
+  validateChannelIndex(start);
+  validateChannelIndex(end);
+  if (end < start) {
+    if (typeof rangeOrStart !== 'number') {
+      throw new Error(`Channel range start must be less than or equal to end: ${start}..${end}`);
+    }
+    throw new Error('Range endChannel must be greater than or equal to startChannel');
+  }
+}
+
+export function validateChannelTargetSyntax(target: ChannelTarget): void {
+  validateSuidSyntax(target.suid);
+  validateChannelIndex(target.channel);
+}
+
+export function validateChannelRangeTargetSyntax(target: ChannelRangeTarget): void {
+  validateSuidSyntax(target.suid);
+  validateChannelRange(target.startChannel, target.endChannel);
+}
+
 export function validatePointTargetSyntax(target: PointTarget): void {
   validateSuidSyntax(target.inputSuid);
   validateSuidSyntax(target.outputSuid);
   validateChannelIndex(target.inputChannel);
   validateChannelIndex(target.outputChannel);
-}
-
-export function validateChannelRange(range: ChannelRange): void {
-  validateChannelIndex(range.start);
-  validateChannelIndex(range.end);
-  if (range.start > range.end) {
-    throw new Error(`Channel range start must be less than or equal to end: ${range.start}..${range.end}`);
-  }
 }
 
 export function validatePointRangeTargetSyntax(target: PointRangeTarget): void {
@@ -77,14 +120,62 @@ export function pointExpression(target: PointTarget): string {
   return `Point(${target.inputSuid}.IN[${target.inputChannel}],${target.outputSuid}.OUT[${target.outputChannel}])`;
 }
 
-export function channelRangeExpression(range: ChannelRange): string {
+export function pointChannelRangeExpression(range: ChannelRange): string {
   validateChannelRange(range);
   return range.start === range.end ? `${range.start}` : `${range.start}..${range.end}`;
 }
 
 export function pointRangeExpression(target: PointRangeTarget): string {
   validatePointRangeTargetSyntax(target);
-  return `Point(${target.inputSuid}.IN[${channelRangeExpression(target.inputChannels)}],${target.outputSuid}.OUT[${channelRangeExpression(target.outputChannels)}])`;
+  return `Point(${target.inputSuid}.IN[${pointChannelRangeExpression(target.inputChannels)}],${target.outputSuid}.OUT[${pointChannelRangeExpression(target.outputChannels)}])`;
+}
+
+function endpointObject(kind: MatrixEndpointKind): 'Input' | 'Output' {
+  return kind === 'input' ? 'Input' : 'Output';
+}
+
+function endpointMember(kind: MatrixEndpointKind): 'IN' | 'OUT' {
+  return kind === 'input' ? 'IN' : 'OUT';
+}
+
+export function channelExpression(target: ChannelTarget): string {
+  validateChannelTargetSyntax(target);
+  return `${endpointObject(target.kind)}(${target.suid}.${endpointMember(target.kind)}[${target.channel}])`;
+}
+
+export function channelRangeExpression(target: ChannelRangeTarget): string {
+  validateChannelRangeTargetSyntax(target);
+  return `${endpointObject(target.kind)}(${target.suid}.${endpointMember(target.kind)}[${target.startChannel}..${target.endChannel}])`;
+}
+
+export function channelLabelQuery(target: ChannelTarget | ChannelRangeTarget): string {
+  const expression = 'channel' in target ? channelExpression(target) : channelRangeExpression(target);
+  return `${expression}.Name=?;`;
+}
+
+export function validateLabel(label: string): void {
+  if (/[;\r\n]/.test(label)) {
+    throw new Error('Label must not contain semicolons or newlines');
+  }
+}
+
+export function quoteLabel(label: string): string {
+  validateLabel(label);
+  return `"${label.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+}
+
+export function setChannelLabelCommand(target: ChannelTarget, label: string): string {
+  return `${channelExpression(target)}.Name=${quoteLabel(label)};`;
+}
+
+export function removeChannelLabelCommand(target: ChannelTarget | ChannelRangeTarget): string {
+  const expression = 'channel' in target ? channelExpression(target) : channelRangeExpression(target);
+  return `${expression}.Name="";`;
+}
+
+export function resetChannelCommand(target: ChannelTarget | ChannelRangeTarget): string {
+  const expression = 'channel' in target ? channelExpression(target) : channelRangeExpression(target);
+  return `${expression}.Reset;`;
 }
 
 export function pointPropertyQuery(target: PointTarget, property: 'dBGain' | 'Mute' | 'Phase'): string {
@@ -133,9 +224,52 @@ export function pointRangeSize(target: PointRangeTarget): number {
     (target.outputChannels.end - target.outputChannels.start + 1);
 }
 
-export function slotPropertyQuery(suid: string, property: 'Info' | 'Online' | 'RunningStatus' | 'Device' | 'Master'): string {
+export function slotPropertyQuery(
+  suid: string,
+  property: 'Info' | 'Online' | 'RunningStatus' | 'Device' | 'Master'
+): string {
   validateSuidSyntax(suid);
   return `Slot(${suid}).${property}=?;`;
+}
+
+export function setSlotOnlineCommand(suid: string, online: boolean): string {
+  validateSuidSyntax(suid);
+  return `Slot(${suid}).Online=${online ? 1 : 0};`;
+}
+
+export function setSlotMasterCommand(suid: string, master: boolean): string {
+  validateSuidSyntax(suid);
+  return `Slot(${suid}).Master=${master ? 1 : 0};`;
+}
+
+export function resetSlotCommand(suid: string): string {
+  validateSuidSyntax(suid);
+  return `Slot(${suid}).Reset;`;
+}
+
+export function quoteDeviceName(deviceName: string): string {
+  if (deviceName.length === 0) throw new Error('Device name must not be empty');
+  if (/[;\r\n"]/.test(deviceName)) {
+    throw new Error('Device name must not contain semicolons, newlines, or double quotes');
+  }
+  return `"${deviceName}"`;
+}
+
+export function validateSlotDeviceKind(kind: string): asserts kind is SlotDeviceKind {
+  if (!SLOT_DEVICE_KINDS.includes(kind as SlotDeviceKind)) {
+    throw new Error(`Device kind must be one of: ${SLOT_DEVICE_KINDS.join(', ')}`);
+  }
+}
+
+export function setSlotDeviceCommand(suid: string, kind: SlotDeviceKind, deviceName: string): string {
+  validateSuidSyntax(suid);
+  validateSlotDeviceKind(kind);
+  return `Slot(${suid}).Device.${kind}=${quoteDeviceName(deviceName)};`;
+}
+
+export function removeSlotDeviceCommand(suid: string): string {
+  validateSuidSyntax(suid);
+  return `Slot(${suid}).Device="";`;
 }
 
 export function commandPropertyQuery(property: 'Version' | 'Engine' | 'Master'): string {
@@ -166,7 +300,9 @@ export function parseQueryResponseValue(queryCommand: string, response: string):
   const expectedKey = normalizeResponseKey(expectedMatch[1]);
   const actualKey = normalizeResponseKey(responseMatch[1]);
   if (actualKey !== expectedKey) {
-    throw new Error(`Response key mismatch: expected ${expectedMatch[1].trim()}, got ${responseMatch[1].trim()}`);
+    throw new Error(
+      `Response key mismatch: expected ${expectedMatch[1].trim()}, got ${responseMatch[1].trim()}`
+    );
   }
 
   return responseMatch[2].trim();
