@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Added `vbmatrix_safe_route_workflow` for explicit point audition, cleanup, and emergency mute dry-runs with snapshot rollback data.
+
 ## 0.1.0
 
 - Set the initial package identity to `@basicbit/vbmatrix-mcp` with MCP discovery name `io.github.BASIC-BIT/vbmatrix-mcp`.

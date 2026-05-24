@@ -12,13 +12,73 @@ These recipes use the current MCP tool surface only:
 - `vbmatrix_capture_snapshot`
 - `vbmatrix_diff_snapshots`
 - `vbmatrix_restore_snapshot`
+- `vbmatrix_safe_route_workflow`
 - `vbmatrix_set_point_gain`
 - `vbmatrix_set_point_mute`
 - `vbmatrix_set_point_phase`
 - `vbmatrix_preset_patch`
 - `vbmatrix_restart_engine`
 
-The MCP has no broad matrix scan, direct zone editor, undo stack, metering, or device-selection tools. Snapshot tools only capture explicit selected slots and points. Preset patch tools operate on explicit numeric patch indexes and dry-run by default. Recipes that would benefit from broader tools are marked as future-tool placeholders.
+The MCP has no broad matrix scan, direct zone editor, undo stack, metering, or device-selection tools. Snapshot tools only capture explicit selected slots and points. Preset patch tools operate on explicit numeric patch indexes and dry-run by default. `vbmatrix_safe_route_workflow` groups a few explicit point operations with snapshot/rollback guardrails; it does not infer DJ intent, output groups, speakers, cue buses, or show-critical routes. Recipes that would benefit from broader tools are marked as future-tool placeholders.
+
+## Tool Selection
+
+Use primitives when making one known low-level read or write and the caller already has a rollback plan. Use `vbmatrix_safe_route_workflow` when the operator wants one of the supported explicit point workflows with dry-run, snapshot, planned commands, and rollback commands in one response. Use skills or playbooks, not deterministic code, when the request contains fuzzy roles such as deck, cue, booth, stream, main, monitor, or all outputs without exact SUID/channel points.
+
+Live audio validation was intentionally skipped for the safe routing workflow implementation. To validate audio later, first agree on safe test routes with the operator, then use `npm run verify:live-audio` after building and setting `VBMATRIX_LIVE_VERIFY=I_UNDERSTAND_THIS_CHANGES_AUDIO` with `--run`; otherwise keep the harness in dry-run mode.
+
+## Safe Routing Workflow Tool
+
+Use this for the three supported safe-core operations when every point target is explicit.
+
+Supported operations:
+
+- `auditionRoute`: snapshots one explicit point, plans or sets finite `gainDb`, `muted`, and `phaseReversed`, and returns rollback commands.
+- `cleanupRoutes`: snapshots explicit points, plans or removes only those points, and returns rollback commands.
+- `emergencyMute`: snapshots explicit points, plans or sets `Mute=1` only for those points, and returns rollback commands.
+
+Dry-run is the default. Execution requires `dryRun: false` and `confirmApply: "SAFE_ROUTE_APPLY"` after reviewing the returned plan and rollback data.
+
+Example audition preview:
+
+```text
+vbmatrix_safe_route_workflow({
+  "operation": "auditionRoute",
+  "target": {
+    "inputSuid": "VASIO8",
+    "inputChannel": 1,
+    "outputSuid": "ASIO128",
+    "outputChannel": 126
+  },
+  "gainDb": -6,
+  "muted": false,
+  "phaseReversed": false
+})
+```
+
+Example cleanup execution after preview:
+
+```text
+vbmatrix_safe_route_workflow({
+  "operation": "cleanupRoutes",
+  "points": [
+    {
+      "inputSuid": "VASIO8",
+      "inputChannel": 1,
+      "outputSuid": "ASIO128",
+      "outputChannel": 126
+    }
+  ],
+  "dryRun": false,
+  "confirmApply": "SAFE_ROUTE_APPLY"
+})
+```
+
+Deferred workflows:
+
+- Output-wide mute remains deferred because the server cannot enumerate and verify all contributing points for a physical or logical output.
+- DJ deck/cue/booth routing remains in skills/playbooks until the operator supplies exact SUID/channel points.
+- Live audio verification remains operator-approved and external to this workflow because route safety depends on the local rig and test signal.
 
 ## Safe Route Inspection
 
