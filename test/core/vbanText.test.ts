@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import {
   buildVbanTextPacket,
+  extractVbanTextPayload,
   VBAN_HEADER_SIZE,
   VBAN_TEXT_SR_INDEX,
   VBAN_TEXT_UTF8_FORMAT,
@@ -22,5 +23,16 @@ describe('VBAN-TEXT packet builder', () => {
     expect(() => buildVbanTextPacket('Command.Version=?;', { streamName: '12345678901234567' })).toThrow(
       /16 bytes/
     );
+  });
+
+  test('extracts only matching VBAN-TEXT payloads', () => {
+    const packet = buildVbanTextPacket('Command.Version = VB-Audio Matrix;', {
+      streamName: 'Command1',
+      frameCounter: 1,
+    });
+
+    expect(extractVbanTextPayload(packet, 'Command1')).toBe('Command.Version = VB-Audio Matrix;');
+    expect(extractVbanTextPayload(packet, 'Other')).toBeNull();
+    expect(extractVbanTextPayload(Buffer.from('not-vban'), 'Command1')).toBeNull();
   });
 });

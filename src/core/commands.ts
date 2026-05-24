@@ -1,6 +1,8 @@
 export const MIN_GAIN_DB = -100;
 export const MAX_GAIN_DB = 24;
-export const MAX_MATRIX_CHANNEL_INDEX = 679;
+export const MIN_MATRIX_CHANNEL = 1;
+export const MAX_MATRIX_CHANNEL = 3112;
+export type MatrixGain = number | '-inf';
 
 const SUID_PATTERN = /^[A-Za-z0-9_-]+$/;
 
@@ -24,8 +26,8 @@ export function validateSuidSyntax(suid: string): void {
 }
 
 export function validateChannelIndex(channel: number): void {
-  if (!Number.isInteger(channel) || channel < 0 || channel > MAX_MATRIX_CHANNEL_INDEX) {
-    throw new Error(`Channel index must be an integer from 0 to ${MAX_MATRIX_CHANNEL_INDEX}`);
+  if (!Number.isInteger(channel) || channel < MIN_MATRIX_CHANNEL || channel > MAX_MATRIX_CHANNEL) {
+    throw new Error(`Channel must be an integer from ${MIN_MATRIX_CHANNEL} to ${MAX_MATRIX_CHANNEL}`);
   }
 }
 
@@ -36,7 +38,8 @@ export function validatePointTargetSyntax(target: PointTarget): void {
   validateChannelIndex(target.outputChannel);
 }
 
-export function validateGain(gainDb: number): void {
+export function validateGain(gainDb: MatrixGain): void {
+  if (gainDb === '-inf') return;
   if (!Number.isFinite(gainDb) || gainDb < MIN_GAIN_DB || gainDb > MAX_GAIN_DB) {
     throw new Error(`Gain must be from ${MIN_GAIN_DB} dB to +${MAX_GAIN_DB} dB`);
   }
@@ -51,7 +54,7 @@ export function pointPropertyQuery(target: PointTarget, property: 'dBGain' | 'Mu
   return `${pointExpression(target)}.${property}=?;`;
 }
 
-export function setPointGainCommand(target: PointTarget, gainDb: number): string {
+export function setPointGainCommand(target: PointTarget, gainDb: MatrixGain): string {
   validateGain(gainDb);
   return `${pointExpression(target)}.dBGain=${gainDb};`;
 }
@@ -74,11 +77,31 @@ export function commandPropertyQuery(property: 'Version' | 'Engine' | 'Master'):
 }
 
 export function restartEngineCommand(): string {
-  return 'Command.Restart=1;';
+  return 'Command.Restart;';
 }
 
 export function parseResponseValue(response: string): string {
   const trimmed = response.trim();
   const match = /^.+?=\s*(.*?)\s*;?$/.exec(trimmed);
   return match ? match[1].trim() : trimmed;
+}
+
+function normalizeResponseKey(key: string): string {
+  return key.replace(/\s+/g, '');
+}
+
+export function parseQueryResponseValue(queryCommand: string, response: string): string {
+  const expectedMatch = /^(.+?)\s*=\s*\?\s*;?$/.exec(queryCommand.trim());
+  if (!expectedMatch) throw new Error(`Command is not a query: ${queryCommand}`);
+
+  const responseMatch = /^(.+?)\s*=\s*(.*?)\s*;?$/.exec(response.trim());
+  if (!responseMatch) throw new Error(`Response does not contain a query value: ${response.trim()}`);
+
+  const expectedKey = normalizeResponseKey(expectedMatch[1]);
+  const actualKey = normalizeResponseKey(responseMatch[1]);
+  if (actualKey !== expectedKey) {
+    throw new Error(`Response key mismatch: expected ${expectedMatch[1].trim()}, got ${responseMatch[1].trim()}`);
+  }
+
+  return responseMatch[2].trim();
 }

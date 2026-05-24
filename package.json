@@ -33,6 +33,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "npm run lint && npm run typecheck && npm test",
+    "prepack": "npm run build",
+    "pack:check": "npm pack --dry-run",
     "smoke:vban": "tsx scripts/vban-smoke.ts",
     "start": "node dist/bin/cli.js"
   },

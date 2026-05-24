@@ -29,7 +29,7 @@ Slot(SUID).Info=?;
 Command.Version=?;
 Command.Engine=?;
 Command.Master=?;
-Command.Restart=1;
+Command.Restart;
 ```
 
 ## Build decision

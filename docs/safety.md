@@ -9,7 +9,7 @@ Write gates:
 - `VBMATRIX_MCP_ALLOW_WRITES=false` disables point writes.
 - `VBMATRIX_MCP_ALLOW_ALL_SUIDS=true` allows all SUIDs by default.
 - Set `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false` and list SUIDs in `VBMATRIX_MCP_ALLOWED_SUIDS` for a server-side allowlist.
-- Channels must be integers in the supported matrix index range.
+- Channels must be integers in the supported 1-based Matrix/Coconut channel range.
 
 Destructive gate:
 

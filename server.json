@@ -26,6 +26,30 @@
           "isSecret": false
         },
         {
+          "name": "VBMATRIX_PORT",
+          "description": "VBAN UDP port used by VBMatrix.",
+          "format": "number",
+          "default": "6980",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VBMATRIX_STREAM",
+          "description": "Incoming VBAN-TEXT command stream name.",
+          "format": "string",
+          "default": "Command1",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VBMATRIX_TIMEOUT_MS",
+          "description": "Query response timeout in milliseconds.",
+          "format": "number",
+          "default": "2000",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
           "name": "VBMATRIX_MCP_ALLOW_WRITES",
           "description": "Allow routing point write operations. Defaults to true; set false for read-only mode.",
           "format": "boolean",
@@ -53,6 +77,15 @@
           "description": "Allow destructive/system operations such as engine restart. Defaults to true; set false to block them.",
           "format": "boolean",
           "default": "true",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VBMATRIX_MCP_LOG_LEVEL",
+          "description": "Log level for stderr diagnostics.",
+          "format": "string",
+          "choices": ["debug", "info", "warn", "error"],
+          "default": "info",
           "isRequired": false,
           "isSecret": false
         }

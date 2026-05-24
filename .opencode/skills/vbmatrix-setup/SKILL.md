@@ -92,6 +92,12 @@ OpenCode local config example:
 
 Then restart the harness and ask it to call `vbmatrix_ping`.
 
+6. Verify harness approval policy
+
+- For OpenCode, confirm the config includes `"permission": { "vbmatrix_*": "ask" }` if you want approval prompts.
+- For other harnesses, confirm their tool approval policy before leaving write/destructive tools enabled.
+- If approval behavior is unclear, set `VBMATRIX_MCP_ALLOW_WRITES=false` and `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` in the MCP server env until it is confirmed.
+
 ## Opt-Out Server-Side Policy
 
 This MCP exposes write/destructive tools by default so the harness can own approval policy.
@@ -108,6 +114,7 @@ Use these only when you want additional server-side limits:
 - `Timed out waiting for VBAN-TEXT response`: VBAN service or incoming TEXT stream is off, stream name mismatch, firewall block, wrong host, or wrong port.
 - `VBAN stream name must be 16 bytes or fewer`: shorten `VBMATRIX_STREAM`.
 - `Property = Err`: syntax is valid enough to reach VBMatrix, but the target point/slot/property likely does not exist.
+- `Response key mismatch`: a response arrived, but it did not match the queried property; check for other VBAN-TEXT traffic on the same stream.
 - No MCP tools visible: rebuild with `npm run build`, confirm harness config path points to `dist/bin/cli.js`, then restart the harness.
 
 ## Automation Boundary

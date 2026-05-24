@@ -2,6 +2,8 @@ import { createSocket } from 'node:dgram';
 
 export const VBAN_HEADER_SIZE = 28;
 export const VBAN_TEXT_SR_INDEX = 0x52;
+export const VBAN_TEXT_PROTOCOL = 0x40;
+export const VBAN_PROTOCOL_MASK = 0xe0;
 export const VBAN_TEXT_UTF8_FORMAT = 0x10;
 export const DEFAULT_FRAME_COUNTER = 0;
 
@@ -33,6 +35,19 @@ function streamNameBuffer(streamName: string): Buffer {
   const padded = Buffer.alloc(16);
   stream.copy(padded, 0);
   return padded;
+}
+
+function readStreamName(message: Buffer): string {
+  return message.subarray(8, 24).toString('utf8').replace(/\0+$/, '');
+}
+
+export function extractVbanTextPayload(message: Buffer, streamName: string): string | null {
+  if (message.length < VBAN_HEADER_SIZE) return null;
+  if (message.subarray(0, 4).toString('ascii') !== 'VBAN') return null;
+  if ((message[4] & VBAN_PROTOCOL_MASK) !== VBAN_TEXT_PROTOCOL) return null;
+  if (message[7] !== VBAN_TEXT_UTF8_FORMAT) return null;
+  if (readStreamName(message) !== streamName) return null;
+  return message.subarray(VBAN_HEADER_SIZE).toString('utf8');
 }
 
 export function buildVbanTextPacket(command: string, options: BuildPacketOptions): Buffer {
@@ -69,20 +84,27 @@ export async function sendVbanTextCommand(command: string, options: SendVbanText
         settle(() => reject(new Error(`Timed out waiting for VBAN-TEXT response to ${command}`)));
       }, options.timeoutMs);
 
-      socket.once('message', (message) => {
-        const response = message.subarray(VBAN_HEADER_SIZE).toString('utf8');
+      socket.on('message', (message) => {
+        const response = extractVbanTextPayload(message, options.streamName);
+        if (response === null) return;
         settle(() => resolve(response));
       });
     }
 
-    socket.send(packet, options.port, options.host, (err) => {
-      if (err) {
-        settle(() => reject(err));
-        return;
-      }
-      if (!waitForResponse) {
-        settle(() => resolve(null));
-      }
+    socket.once('error', (err) => {
+      settle(() => reject(err));
+    });
+
+    socket.connect(options.port, options.host, () => {
+      socket.send(packet, (err) => {
+        if (err) {
+          settle(() => reject(err));
+          return;
+        }
+        if (!waitForResponse) {
+          settle(() => resolve(null));
+        }
+      });
     });
   });
 }

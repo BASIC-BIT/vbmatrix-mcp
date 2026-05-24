@@ -12,8 +12,8 @@ MVP goals:
 
 - Query VBMatrix version, engine, master, and slot status.
 - Query a routing point's gain, mute, and phase state.
-- Mutate a routing point's gain, mute, or phase only when writes and SUIDs are explicitly allowed.
-- Keep destructive actions disabled unless explicitly enabled.
+- Mutate a routing point's gain, mute, or phase by default, with server-side opt-out available.
+- Expose engine restart by default, with server-side opt-out available.
 
 ## Install From Source
 
@@ -64,6 +64,8 @@ npm run smoke:vban
 ```
 
 ### Claude Desktop, Cursor, Kiro, Roo, Windsurf
+
+These clients differ in approval policy. If your harness does not prompt before tool calls, set `VBMATRIX_MCP_ALLOW_WRITES=false` or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` until you configure its approval controls.
 
 ```json
 {
@@ -120,6 +122,7 @@ npm run lint
 npm run typecheck
 npm test
 npm run check
+npm run pack:check
 ```
 
 See `docs/architecture.md`, `docs/design.md`, and `docs/safety.md` for the initial design.

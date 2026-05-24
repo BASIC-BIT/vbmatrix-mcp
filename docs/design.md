@@ -39,9 +39,13 @@ Core write commands:
 Point(VASIO8.IN[1],VASIO8.OUT[1]).dBGain=-6;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).Mute=1;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).Phase=0;
+Command.Restart;
 ```
 
-Implementation note: command builders intentionally avoid spaces inside `Point(...)` because public helper code reports VBAN-TEXT is sensitive to spaces after commas.
+Implementation notes:
+
+- Command builders intentionally avoid spaces inside `Point(...)` because public helper code reports VBAN-TEXT is sensitive to spaces after commas.
+- Point channel numbers are validated as 1-based, up to the largest documented Coconut matrix size. Slot-specific channel counts should be discovered before broad edits.
 
 ## Tool design
 

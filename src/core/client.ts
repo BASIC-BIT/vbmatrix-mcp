@@ -1,7 +1,7 @@
 import { getConfig, type VbMatrixConfig } from '../config/index.js';
 import {
   commandPropertyQuery,
-  parseResponseValue,
+  parseQueryResponseValue,
   pointPropertyQuery,
   type PointState,
   type PointTarget,
@@ -38,7 +38,7 @@ export class VbMatrixClient {
   }
 
   async queryValue(command: string): Promise<string> {
-    return parseResponseValue(await this.query(command));
+    return parseQueryResponseValue(command, await this.query(command));
   }
 
   async queryVersion(): Promise<string> {
