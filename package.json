@@ -13,6 +13,7 @@
   },
   "files": [
     "dist",
+    ".opencode/skills/**/*.md",
     "docs/architecture.md",
     "docs/design.md",
     "docs/research.md",

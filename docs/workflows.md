@@ -20,8 +20,8 @@ Use this when the user asks what a route is doing or before any live change.
 
 1. Confirm the exact endpoint IDs before querying.
 
-- Required: source SUID, source channel, destination SUID, destination channel.
-- If the request is fuzzy, ask the operator to identify the source and destination instead of guessing from names like cue, booth, stream, or main.
+- Required: input SUID, input channel, output SUID, output channel.
+- If the request is fuzzy, ask the operator to identify the input and output instead of guessing from names like cue, booth, stream, or main.
 
 2. Check control-plane health.
 
@@ -34,21 +34,26 @@ vbmatrix_get_master
 3. Check slot state for both SUIDs.
 
 ```text
-vbmatrix_get_slot_info(sourceSuid)
-vbmatrix_get_slot_info(destinationSuid)
+vbmatrix_get_slot_info({ "suid": "VASIO8" })
+vbmatrix_get_slot_info({ "suid": "VAIO1" })
 ```
 
 4. Query the exact point.
 
 ```text
-vbmatrix_get_point(sourceSuid, sourceChannel, destinationSuid, destinationChannel)
+vbmatrix_get_point({
+  "inputSuid": "VASIO8",
+  "inputChannel": 1,
+  "outputSuid": "VAIO1",
+  "outputChannel": 1
+})
 ```
 
 5. Report the route state in operator terms.
 
 - `gainDb`: route gain; `-inf` means removed/silent for gain writes.
-- `mute`: route mute state.
-- `phase`: polarity inversion state.
+- `muted`: route mute state.
+- `phaseReversed`: polarity inversion state.
 - Include engine/master/slot anomalies before recommending writes.
 
 ## Route Apply And Cleanup
@@ -66,9 +71,29 @@ Use this when the operator approves a specific point change.
 3. Apply exactly one small write.
 
 ```text
-vbmatrix_set_point_gain(...)
-vbmatrix_set_point_mute(...)
-vbmatrix_set_point_phase(...)
+vbmatrix_set_point_gain({
+  "inputSuid": "VASIO8",
+  "inputChannel": 1,
+  "outputSuid": "VAIO1",
+  "outputChannel": 1,
+  "gainDb": -3
+})
+
+vbmatrix_set_point_mute({
+  "inputSuid": "VASIO8",
+  "inputChannel": 1,
+  "outputSuid": "VAIO1",
+  "outputChannel": 1,
+  "muted": true
+})
+
+vbmatrix_set_point_phase({
+  "inputSuid": "VASIO8",
+  "inputChannel": 1,
+  "outputSuid": "VAIO1",
+  "outputChannel": 1,
+  "phaseReversed": false
+})
 ```
 
 4. Read and report the tool response.
@@ -116,7 +141,7 @@ vbmatrix_get_master
 
 2. Ask the operator for the show-critical route list.
 
-- Example fields: purpose, source SUID/channel, destination SUID/channel, expected gain, expected mute, expected phase.
+- Example fields: purpose, input SUID/channel, output SUID/channel, expected `gainDb`, expected `muted`, expected `phaseReversed`.
 - Keep this as an operator-provided checklist until route inventory tools exist.
 
 3. For each listed route:
@@ -150,13 +175,18 @@ Use this when diagnosing a problem during or after a live session.
 vbmatrix_ping
 vbmatrix_get_engine
 vbmatrix_get_master
-vbmatrix_get_slot_info(relevantSuid)
-vbmatrix_get_point(relevantPoint)
+vbmatrix_get_slot_info({ "suid": "VASIO8" })
+vbmatrix_get_point({
+  "inputSuid": "VASIO8",
+  "inputChannel": 1,
+  "outputSuid": "VAIO1",
+  "outputChannel": 1
+})
 ```
 
 3. Separate observed facts from hypotheses.
 
-- Fact: `Point(...).Mute` returned `1`.
+- Fact: `muted` returned `true`.
 - Hypothesis: `This may explain silence on that route.`
 
 4. If a change is needed, move to the route apply flow and ask for approval.
