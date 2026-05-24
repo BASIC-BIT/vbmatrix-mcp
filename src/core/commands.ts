@@ -52,6 +52,33 @@ export interface SlotState {
   device: string;
 }
 
+export interface PresetPatchState {
+  name: string;
+  comment: string;
+  apply: string;
+  mute: string;
+  phase: string;
+  gain: string;
+  zone: string;
+  point: string;
+}
+
+export type PresetPatchQueryProperty = 'Name' | 'Comment' | 'Apply' | 'Mute' | 'Phase' | 'Gain' | 'Zone' | 'Point';
+
+export type PresetPatchOperation =
+  | 'apply'
+  | 'recall'
+  | 'copy'
+  | 'paste'
+  | 'delete'
+  | 'gain'
+  | 'mute'
+  | 'phase'
+  | 'resetZone'
+  | 'update'
+  | 'name'
+  | 'comment';
+
 export type SlotDeviceKind = 'ASIO' | 'MME' | 'KS' | 'WDM';
 
 const SLOT_DEVICE_KINDS = ['ASIO', 'MME', 'KS', 'WDM'] as const;
@@ -136,6 +163,12 @@ export function validateGain(gainDb: MatrixGain): void {
   if (gainDb === '-inf') return;
   if (!Number.isFinite(gainDb) || gainDb < MIN_GAIN_DB || gainDb > MAX_GAIN_DB) {
     throw new Error(`Gain must be from ${MIN_GAIN_DB} dB to +${MAX_GAIN_DB} dB`);
+  }
+}
+
+export function validatePresetPatchIndex(index: number): void {
+  if (!Number.isInteger(index) || index < 1) {
+    throw new Error('Preset patch index must be a 1-based integer');
   }
 }
 
@@ -337,6 +370,51 @@ export function setSlotDeviceCommand(suid: string, kind: SlotDeviceKind, deviceN
 export function removeSlotDeviceCommand(suid: string): string {
   validateSuidSyntax(suid);
   return `Slot(${suid}).Device="";`;
+}
+
+export function presetPatchPropertyQuery(index: number, property: PresetPatchQueryProperty): string {
+  validatePresetPatchIndex(index);
+  return `PresetPatch[${index}].${property}=?;`;
+}
+
+export function presetPatchActionCommand(index: number, operation: Exclude<PresetPatchOperation, 'gain' | 'mute' | 'phase' | 'name' | 'comment'>): string {
+  validatePresetPatchIndex(index);
+  const propertyByOperation: Record<typeof operation, string> = {
+    apply: 'Apply',
+    recall: 'Recall',
+    copy: 'Copy',
+    paste: 'Paste',
+    delete: 'Delete',
+    resetZone: 'ResetZone',
+    update: 'Update',
+  };
+  return `PresetPatch[${index}].${propertyByOperation[operation]};`;
+}
+
+export function setPresetPatchGainCommand(index: number, gainDb: number): string {
+  validatePresetPatchIndex(index);
+  validateGain(gainDb);
+  return `PresetPatch[${index}].Gain=${gainDb};`;
+}
+
+export function setPresetPatchMuteCommand(index: number, muted: boolean): string {
+  validatePresetPatchIndex(index);
+  return `PresetPatch[${index}].Mute=${muted ? 1 : 0};`;
+}
+
+export function setPresetPatchPhaseCommand(index: number, phaseReversed: boolean): string {
+  validatePresetPatchIndex(index);
+  return `PresetPatch[${index}].Phase=${phaseReversed ? 1 : 0};`;
+}
+
+export function setPresetPatchNameCommand(index: number, name: string): string {
+  validatePresetPatchIndex(index);
+  return `PresetPatch[${index}].Name=${quoteLabel(name)};`;
+}
+
+export function setPresetPatchCommentCommand(index: number, comment: string): string {
+  validatePresetPatchIndex(index);
+  return `PresetPatch[${index}].Comment=${quoteLabel(comment)};`;
 }
 
 export function commandPropertyQuery(property: 'Version' | 'Engine' | 'Master'): string {

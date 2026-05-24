@@ -5,6 +5,8 @@ import {
   assertChannelWriteAllowed,
   assertDestructiveAllowed,
   assertPointWriteAllowed,
+  assertPresetPatchDestructiveAllowed,
+  assertPresetPatchWriteAllowed,
   assertSlotDestructiveAllowed,
   assertSlotWriteAllowed,
   assertZoneResetAllowed,
@@ -124,5 +126,17 @@ describe('safety gates', () => {
     expect(() => assertZoneResetAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_DESTRUCTIVE: 'false' }), zoneTarget)).toThrow(
       /ALLOW_DESTRUCTIVE/
     );
+  });
+
+  test('applies write and destructive gates to preset patch operations', () => {
+    expect(() => assertPresetPatchWriteAllowed(loadConfig({}), 1)).not.toThrow();
+    expect(() => assertPresetPatchDestructiveAllowed(loadConfig({}), 1)).not.toThrow();
+    expect(() => assertPresetPatchWriteAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_WRITES: 'false' }), 1)).toThrow(
+      /ALLOW_WRITES/
+    );
+    expect(() =>
+      assertPresetPatchDestructiveAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_DESTRUCTIVE: 'false' }), 1)
+    ).toThrow(/ALLOW_DESTRUCTIVE/);
+    expect(() => assertPresetPatchWriteAllowed(loadConfig({}), 0)).toThrow(/1-based/);
   });
 });

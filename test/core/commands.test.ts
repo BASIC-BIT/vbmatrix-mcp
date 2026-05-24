@@ -4,6 +4,8 @@ import {
   channelLabelQuery,
   channelRangeExpression,
   commandPropertyQuery,
+  presetPatchActionCommand,
+  presetPatchPropertyQuery,
   pointRangeExpression,
   parseResponseValue,
   pointExpression,
@@ -27,6 +29,11 @@ import {
   setPointRangeGainCommand,
   setPointRangeMuteCommand,
   setPointRangePhaseCommand,
+  setPresetPatchCommentCommand,
+  setPresetPatchGainCommand,
+  setPresetPatchMuteCommand,
+  setPresetPatchNameCommand,
+  setPresetPatchPhaseCommand,
   setSlotDeviceCommand,
   setSlotMasterCommand,
   setSlotOnlineCommand,
@@ -39,6 +46,7 @@ import {
   validateChannelRange,
   validateGain,
   validateLabel,
+  validatePresetPatchIndex,
   validatePresetNumber,
   validateSlotDeviceKind,
   zoneExpression,
@@ -157,6 +165,34 @@ describe('VBMatrix command builders', () => {
       'Slot(VAIO1).Device.WDM="Headphones (Example)";'
     );
     expect(removeSlotDeviceCommand('VAIO1')).toBe('Slot(VAIO1).Device="";');
+  });
+
+  test('builds documented preset patch queries and writes', () => {
+    expect(presetPatchPropertyQuery(1, 'Name')).toBe('PresetPatch[1].Name=?;');
+    expect(presetPatchPropertyQuery(1, 'Apply')).toBe('PresetPatch[1].Apply=?;');
+    expect(presetPatchPropertyQuery(1, 'Point')).toBe('PresetPatch[1].Point=?;');
+    expect(presetPatchActionCommand(1, 'apply')).toBe('PresetPatch[1].Apply;');
+    expect(presetPatchActionCommand(1, 'recall')).toBe('PresetPatch[1].Recall;');
+    expect(presetPatchActionCommand(1, 'copy')).toBe('PresetPatch[1].Copy;');
+    expect(presetPatchActionCommand(1, 'paste')).toBe('PresetPatch[1].Paste;');
+    expect(presetPatchActionCommand(1, 'delete')).toBe('PresetPatch[1].Delete;');
+    expect(presetPatchActionCommand(1, 'resetZone')).toBe('PresetPatch[1].ResetZone;');
+    expect(presetPatchActionCommand(1, 'update')).toBe('PresetPatch[1].Update;');
+    expect(setPresetPatchGainCommand(1, -6)).toBe('PresetPatch[1].Gain=-6;');
+    expect(setPresetPatchMuteCommand(1, true)).toBe('PresetPatch[1].Mute=1;');
+    expect(setPresetPatchPhaseCommand(1, false)).toBe('PresetPatch[1].Phase=0;');
+    expect(setPresetPatchNameCommand(1, 'DJ Scene')).toBe('PresetPatch[1].Name="DJ Scene";');
+    expect(setPresetPatchCommentCommand(1, 'Quote " and slash \\')).toBe(
+      'PresetPatch[1].Comment="Quote \\" and slash \\\\";'
+    );
+  });
+
+  test('rejects invalid preset patch inputs', () => {
+    expect(() => validatePresetPatchIndex(0)).toThrow(/1-based/);
+    expect(() => validatePresetPatchIndex(1)).not.toThrow();
+    expect(() => setPresetPatchNameCommand(1, 'bad;Command.Restart')).toThrow(/semicolons/);
+    expect(() => setPresetPatchCommentCommand(1, 'bad\ncomment')).toThrow(/newlines/);
+    expect(() => setPresetPatchGainCommand(1, -101)).toThrow(/Gain must be/);
   });
 
   test('rejects unsafe slot device names', () => {

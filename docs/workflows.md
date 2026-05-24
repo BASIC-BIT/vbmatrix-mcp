@@ -8,15 +8,17 @@ These recipes use the current MCP tool surface only:
 - `vbmatrix_get_master`
 - `vbmatrix_get_slot_info`
 - `vbmatrix_get_point`
+- `vbmatrix_get_preset_patch`
 - `vbmatrix_capture_snapshot`
 - `vbmatrix_diff_snapshots`
 - `vbmatrix_restore_snapshot`
 - `vbmatrix_set_point_gain`
 - `vbmatrix_set_point_mute`
 - `vbmatrix_set_point_phase`
+- `vbmatrix_preset_patch`
 - `vbmatrix_restart_engine`
 
-The MVP has no broad matrix scan, preset, route group, undo stack, metering, or device-selection tools. Snapshot tools only capture explicit selected slots and points. Recipes that would benefit from broader tools are marked as future-tool placeholders.
+The MCP has no broad matrix scan, direct zone editor, undo stack, metering, or device-selection tools. Snapshot tools only capture explicit selected slots and points. Preset patch tools operate on explicit numeric patch indexes and dry-run by default. Recipes that would benefit from broader tools are marked as future-tool placeholders.
 
 ## Safe Route Inspection
 
@@ -163,6 +165,19 @@ vbmatrix_get_master
 
 Future-tool placeholder: a versioned show checklist or preset verifier could store known-good route expectations once the repo has a fixture format and validation model.
 
+## Preset Patch Scene Change
+
+Use this when the operator has already prepared a Matrix preset patch and wants to inspect or apply it as a scene.
+
+1. Confirm the exact 1-based preset patch index. Do not infer indexes from labels such as intro, break, stream, or DJ.
+2. Read patch state with `vbmatrix_get_preset_patch({ "index": 1 })` and report name, comment, gain, apply/mute/phase counts, zone count, and point count.
+3. Capture a targeted point snapshot first if the operator needs MCP rollback for known critical routes.
+4. Dry-run the scene action, for example `vbmatrix_preset_patch({ "index": 1, "operation": "apply" })`.
+5. Execute only after operator approval with `dryRun: false` and `confirmOperation: "PRESET_PATCH_WRITE"`.
+6. Report the exact command and before/after preset patch state. If post-state query fails, report that the write was sent but verification failed.
+
+Load/save/save-as remain outside this workflow until file safety is designed.
+
 ## Live-Show Rollback Snapshot
 
 Use this before an approved live-show change that may need rollback.
@@ -214,7 +229,7 @@ vbmatrix_restore_snapshot({
 Rollback limits:
 
 - Snapshot restore only restores selected point `dBGain`, `mute`, and `phase`.
-- Slot fields, labels, and preset metadata are informational and non-restorable in this MCP version.
+- Slot fields, labels, and preset metadata are informational and non-restorable in snapshot restore.
 - A snapshot is not a whole-system undo unless the route list covered every relevant point.
 
 ## Emergency Cleanup With Snapshot Guardrails

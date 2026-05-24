@@ -7,6 +7,10 @@ export const SlotInputSchema = z.object({
   suid: z.string().min(1).describe('VBMatrix slot unique identifier, for example VASIO8, VAIO1, or ASIO128.'),
 });
 
+export const PresetPatchIndexSchema = z.object({
+  index: z.number().int().min(1).describe('1-based VBMatrix preset patch index.'),
+});
+
 export const PointTargetSchema = z.object({
   inputSuid: z.string().min(1).describe('Input-side SUID, for example VASIO8.'),
   inputChannel: z
@@ -171,6 +175,22 @@ export const RemoveSlotDeviceSchema = SlotInputSchema.extend({
   confirm: z
     .literal(true)
     .describe('Required explicit confirmation because removing a device can disrupt live audio.'),
+});
+
+export const PresetPatchOperationSchema = PresetPatchIndexSchema.extend({
+  operation: z
+    .enum(['apply', 'recall', 'copy', 'paste', 'delete', 'gain', 'mute', 'phase', 'resetZone', 'update', 'name', 'comment'])
+    .describe('Documented PresetPatch[n] operation. Load/save/save-as are intentionally deferred for file safety.'),
+  gainDb: z.number().min(MIN_GAIN_DB).max(MAX_GAIN_DB).optional().describe('Required when operation is gain.'),
+  muted: z.boolean().optional().describe('Required when operation is mute.'),
+  phaseReversed: z.boolean().optional().describe('Required when operation is phase.'),
+  name: z.string().optional().describe('Required when operation is name. Semicolons and newlines are rejected before sending VBAN-TEXT.'),
+  comment: z.string().optional().describe('Required when operation is comment. Semicolons and newlines are rejected before sending VBAN-TEXT.'),
+  dryRun: z.boolean().default(true).describe('When true, return the exact command without sending it.'),
+  confirmOperation: z
+    .literal('PRESET_PATCH_WRITE')
+    .optional()
+    .describe('Required when dryRun is false so preset patch scene changes are explicit.'),
 });
 
 export const SnapshotReferenceSchema = z
