@@ -25,6 +25,9 @@ VBMatrix MCP is organized around explicit, testable layers. The MCP layer should
 - `status.ts` contains read-only status and slot tools.
 - `points.ts` contains routing point read/write tools.
 - `system.ts` contains destructive/system operations, currently only engine restart.
+- New primitive tools should live beside the VBMatrix concept they expose and should register from `registerAllTools.ts` without changing existing tool names.
+- Future grouped-operation tools should use shared command builders, schemas, and safety helpers from the primitive layer instead of introducing a second command syntax path.
+- Workflow automation should usually live in `.opencode/skills/` or docs unless it has deterministic typed inputs, bounded effects, and a preview path suitable for an MCP tool.
 
 ## Infra + utils
 

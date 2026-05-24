@@ -30,6 +30,14 @@ Do not expose these as normal tools:
 
 Point write tools should query the affected point before and after sending a command. If a query times out, the write should still report that fact explicitly rather than hiding it.
 
+Grouped operation and workflow tools should preserve query-before-write for each affected target. If a future batch tool supports partial application, that behavior must be explicit in the input schema and response; fail-closed all-or-nothing behavior is the default.
+
+## Preview and dry-run
+
+Any future tool that can affect multiple targets, multiple properties, output buses, destructive/system state, or reset/remove behavior should provide a dry-run or preview mode before execution. Preview responses should show planned commands, target summaries, safety gate decisions, and validation failures without sending write VBAN-TEXT packets.
+
+Primitive single-target setters do not need a separate preview mode when they already expose exact typed inputs and query-before-write responses.
+
 ## Network trust
 
 The VBMatrix manual says TEXT command streams can receive messages from anywhere. Use this server on trusted local networks only, keep MCP local over stdio, and use OS/firewall controls for VBAN UDP exposure.
