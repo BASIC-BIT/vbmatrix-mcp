@@ -38,6 +38,8 @@ Slot(VASIO8).RunningStatus=?;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).dBGain=?;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).Mute=?;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).Phase=?;
+Input(VASIO8.IN[1]).Name=?;
+Output(VASIO8.OUT[1]).Name=?;
 ```
 
 Core write commands:
@@ -46,6 +48,8 @@ Core write commands:
 Point(VASIO8.IN[1],VASIO8.OUT[1]).dBGain=-6;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).Mute=1;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).Phase=0;
+Input(VASIO8.IN[1]).Name="Mic";
+Output(VASIO8.OUT[1]).Reset;
 Command.Restart;
 ```
 
@@ -89,6 +93,9 @@ Write tools are explicit and available by default. They can be narrowed with env
 - `vbmatrix_set_point_gain` validates gain range and target policy.
 - `vbmatrix_set_point_mute` validates target policy.
 - `vbmatrix_set_point_phase` validates target policy.
+- `vbmatrix_set_channel_label` validates label text and target policy.
+- `vbmatrix_remove_channel_label` validates target policy and supports documented channel ranges.
+- `vbmatrix_reset_channel_routes` requires explicit confirmation and respects write plus destructive gates.
 - `vbmatrix_restore_snapshot` restores selected point properties from a snapshot; it dry-runs by default and requires explicit confirmation before writes.
 - `vbmatrix_restart_engine` respects the destructive-action opt-out gate.
 
@@ -157,6 +164,6 @@ Write responses should include:
 - Raw free-form command execution.
 - Full-matrix scans by default.
 - Preset patch editing.
-- `Remove`, `Reset`, `ResetGrid`, or `Shutdown` tools.
+- Broad `Reset`, `ResetGrid`, or `Shutdown` tools.
 - VBAN SERVICE subscriptions or meter streaming.
 - VBAN service/stream configuration writes. No source-linked Matrix command surface is currently documented for this; use the Matrix UI with an operator in the loop.

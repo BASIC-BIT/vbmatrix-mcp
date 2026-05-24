@@ -19,6 +19,21 @@ export interface PointState {
   phase: string;
 }
 
+export type MatrixEndpointKind = 'input' | 'output';
+
+export interface ChannelTarget {
+  kind: MatrixEndpointKind;
+  suid: string;
+  channel: number;
+}
+
+export interface ChannelRangeTarget {
+  kind: MatrixEndpointKind;
+  suid: string;
+  startChannel: number;
+  endChannel: number;
+}
+
 export function validateSuidSyntax(suid: string): void {
   if (!SUID_PATTERN.test(suid)) {
     throw new Error(`Invalid SUID: ${suid}`);
@@ -29,6 +44,24 @@ export function validateChannelIndex(channel: number): void {
   if (!Number.isInteger(channel) || channel < MIN_MATRIX_CHANNEL || channel > MAX_MATRIX_CHANNEL) {
     throw new Error(`Channel must be an integer from ${MIN_MATRIX_CHANNEL} to ${MAX_MATRIX_CHANNEL}`);
   }
+}
+
+export function validateChannelRange(startChannel: number, endChannel: number): void {
+  validateChannelIndex(startChannel);
+  validateChannelIndex(endChannel);
+  if (endChannel < startChannel) {
+    throw new Error('Range endChannel must be greater than or equal to startChannel');
+  }
+}
+
+export function validateChannelTargetSyntax(target: ChannelTarget): void {
+  validateSuidSyntax(target.suid);
+  validateChannelIndex(target.channel);
+}
+
+export function validateChannelRangeTargetSyntax(target: ChannelRangeTarget): void {
+  validateSuidSyntax(target.suid);
+  validateChannelRange(target.startChannel, target.endChannel);
 }
 
 export function validatePointTargetSyntax(target: PointTarget): void {
@@ -48,6 +81,54 @@ export function validateGain(gainDb: MatrixGain): void {
 export function pointExpression(target: PointTarget): string {
   validatePointTargetSyntax(target);
   return `Point(${target.inputSuid}.IN[${target.inputChannel}],${target.outputSuid}.OUT[${target.outputChannel}])`;
+}
+
+function endpointObject(kind: MatrixEndpointKind): 'Input' | 'Output' {
+  return kind === 'input' ? 'Input' : 'Output';
+}
+
+function endpointMember(kind: MatrixEndpointKind): 'IN' | 'OUT' {
+  return kind === 'input' ? 'IN' : 'OUT';
+}
+
+export function channelExpression(target: ChannelTarget): string {
+  validateChannelTargetSyntax(target);
+  return `${endpointObject(target.kind)}(${target.suid}.${endpointMember(target.kind)}[${target.channel}])`;
+}
+
+export function channelRangeExpression(target: ChannelRangeTarget): string {
+  validateChannelRangeTargetSyntax(target);
+  return `${endpointObject(target.kind)}(${target.suid}.${endpointMember(target.kind)}[${target.startChannel}..${target.endChannel}])`;
+}
+
+export function channelLabelQuery(target: ChannelTarget | ChannelRangeTarget): string {
+  const expression = 'channel' in target ? channelExpression(target) : channelRangeExpression(target);
+  return `${expression}.Name=?;`;
+}
+
+export function validateLabel(label: string): void {
+  if (/[;\r\n]/.test(label)) {
+    throw new Error('Label must not contain semicolons or newlines');
+  }
+}
+
+export function quoteLabel(label: string): string {
+  validateLabel(label);
+  return `"${label.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+}
+
+export function setChannelLabelCommand(target: ChannelTarget, label: string): string {
+  return `${channelExpression(target)}.Name=${quoteLabel(label)};`;
+}
+
+export function removeChannelLabelCommand(target: ChannelTarget | ChannelRangeTarget): string {
+  const expression = 'channel' in target ? channelExpression(target) : channelRangeExpression(target);
+  return `${expression}.Name="";`;
+}
+
+export function resetChannelCommand(target: ChannelTarget | ChannelRangeTarget): string {
+  const expression = 'channel' in target ? channelExpression(target) : channelRangeExpression(target);
+  return `${expression}.Reset;`;
 }
 
 export function pointPropertyQuery(target: PointTarget, property: 'dBGain' | 'Mute' | 'Phase'): string {
