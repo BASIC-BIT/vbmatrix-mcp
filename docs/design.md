@@ -47,7 +47,24 @@ Implementation notes:
 - Command builders intentionally avoid spaces inside `Point(...)` because public helper code reports VBAN-TEXT is sensitive to spaces after commas.
 - Point channel numbers are validated as 1-based, up to the largest documented Coconut matrix size. Slot-specific channel counts should be discovered before broad edits.
 
-## Tool design
+## Tool surface taxonomy
+
+The public MCP tool surface is layered so later PRs can add capability without turning the server into a fuzzy command interpreter.
+
+### Layer 1: primitives
+
+Primitive tools expose one explicit VBMatrix fact or one explicit VBMatrix command family. They are the default choice for new functionality.
+
+Conventions:
+
+- Name reads as `vbmatrix_get_<noun>` or another small verb that describes the exact query.
+- Name writes as `vbmatrix_set_<noun>_<property>` when they assign one property on one target.
+- Accept typed identifiers, channel numbers, booleans, enums, and bounded numbers. Do not accept natural-language instructions.
+- Return structured JSON with the exact command string when a command is sent.
+- Use MCP annotations that match the operation: read-only, write, or destructive.
+- Keep scans bounded and opt-in; do not make broad discovery part of a primitive unless the tool name says so.
+
+Current primitives:
 
 Read tools are small and direct:
 
@@ -63,6 +80,38 @@ Write tools are explicit and available by default. They can be narrowed with env
 - `vbmatrix_set_point_mute` validates target policy.
 - `vbmatrix_set_point_phase` validates target policy.
 - `vbmatrix_restart_engine` respects the destructive-action opt-out gate.
+
+### Layer 2: grouped operations
+
+Grouped operation tools coordinate several primitive operations for one explicit task, such as setting multiple properties on one point or applying a small caller-supplied set of routing changes.
+
+Conventions:
+
+- Name grouped operations as `vbmatrix_apply_<noun>` or `vbmatrix_update_<noun>` only when they perform more than one primitive action.
+- Inputs must be explicit lists, targets, and values. Avoid intent-shaped fields such as `goal`, `preset description`, or `make it work`.
+- Provide `dryRun` or `preview` before sending commands when the grouped operation can affect more than one target, more than one property, or an output bus.
+- Preview responses should include planned commands, target summaries, safety decisions, and validation errors, without sending VBAN-TEXT write commands.
+- Execution responses should include per-step results, the commands sent, and enough `before`/`after` state for an agent or user to audit the change.
+- Preserve query-before-write for each affected target unless a future design explicitly documents why a target cannot be queried.
+- If any step is blocked by safety policy, fail closed by default rather than partially applying a batch. Partial-apply behavior must be opt-in and visible in the schema.
+
+Grouped operations should be added only after the underlying primitive tools and command builders exist. They should call shared command/safety helpers, not synthesize ad hoc command strings.
+
+### Layer 3: workflows
+
+Workflow tools encode a named operational procedure across several grouped operations or system concepts, such as a guided sound-check, safe matrix snapshot, or recovery routine.
+
+Conventions:
+
+- Prefer an OpenCode skill, README playbook, or external runbook when the workflow requires human judgment, fuzzy intent, UI inspection, or environment-specific choices.
+- Add a workflow MCP tool only when the procedure has stable deterministic inputs, bounded effects, inspectable preview output, and clear rollback or stopping points.
+- Name workflow tools with a concrete verb and domain object, for example `vbmatrix_prepare_<workflow>` or `vbmatrix_verify_<workflow>`. Do not use broad names such as `vbmatrix_fix_audio`.
+- Include a dry-run/preview path for any workflow that can write, restart, remove, reset, or fan out across multiple targets.
+- Keep workflow tools sparse. The agent should compose primitives and grouped operations when the steps are situational.
+
+### When not to add a tool
+
+Do not add a deterministic MCP tool when the missing behavior is primarily interpretation of ambiguous user language. In those cases, expose smaller facts or validations for the agent to use, then let the agent decide which primitive or grouped operation to call.
 
 ## Response shape
 
