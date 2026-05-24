@@ -18,15 +18,29 @@ import {
   SetSlotOnlineSchema,
 } from './schemas.js';
 
-async function writeSlot(
+export async function writeSlot(
   suid: string,
   command: string,
   client: VbMatrixClient
 ): Promise<Record<string, unknown>> {
   const before = await client.querySlotState(suid);
   await client.send(command);
-  const after = await client.querySlotState(suid);
-  return { ok: true, suid, command, before, after, safety: safetyDetails(client.config) };
+  const safety = safetyDetails(client.config);
+  try {
+    const after = await client.querySlotState(suid);
+    return { ok: true, suid, command, before, after, safety };
+  } catch (err) {
+    return {
+      ok: false,
+      partial: true,
+      commandSent: true,
+      suid,
+      command,
+      before,
+      afterError: err instanceof Error ? err.message : 'Unknown VBMatrix post-write slot query error',
+      safety,
+    };
+  }
 }
 
 export function registerSlotTools(server: McpServer): void {
