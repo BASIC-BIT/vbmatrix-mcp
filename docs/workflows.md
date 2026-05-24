@@ -3,6 +3,7 @@
 These recipes use the current MCP tool surface only:
 
 - `vbmatrix_ping`
+- `vbmatrix_vban_diagnostics`
 - `vbmatrix_get_engine`
 - `vbmatrix_get_master`
 - `vbmatrix_get_slot_info`
@@ -27,6 +28,7 @@ Use this when the user asks what a route is doing or before any live change.
 
 ```text
 vbmatrix_ping
+vbmatrix_vban_diagnostics
 vbmatrix_get_engine
 vbmatrix_get_master
 ```

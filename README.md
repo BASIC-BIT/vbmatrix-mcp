@@ -11,6 +11,7 @@ VBMatrix MCP runs locally through stdio and sends VBAN-TEXT packets to a configu
 MVP goals:
 
 - Query VBMatrix version, engine, master, and slot status.
+- Diagnose VBAN-TEXT reachability, command stream setup, and Matrix `Request Reply` packets.
 - Query a routing point's gain, mute, and phase state.
 - Mutate a routing point's gain, mute, or phase by default, with server-side opt-out available.
 - Expose engine restart by default, with server-side opt-out available.
@@ -39,6 +40,8 @@ Direct VBAN-TEXT smoke test after VBMatrix is configured:
 ```bash
 npm run smoke:vban
 ```
+
+Matrix query replies are expected as VBAN SERVICE packets on stream `Request Reply`. The configured `VBMATRIX_STREAM` names the incoming TEXT command stream, normally `Command1`; do not change it to `Request Reply`.
 
 Manual live audio verification harness:
 
@@ -115,6 +118,7 @@ The tool surface is intentionally layered:
 Current primitive read tools:
 
 - `vbmatrix_ping`
+- `vbmatrix_vban_diagnostics`
 - `vbmatrix_get_engine`
 - `vbmatrix_get_master`
 - `vbmatrix_get_slot_info`
