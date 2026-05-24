@@ -40,6 +40,14 @@ Direct VBAN-TEXT smoke test after VBMatrix is configured:
 npm run smoke:vban
 ```
 
+Manual live audio verification harness:
+
+```bash
+npm run verify:live-audio
+```
+
+The live harness dry-runs by default. It only changes Matrix routes when `--run` is passed and `VBMATRIX_LIVE_VERIFY=I_UNDERSTAND_THIS_CHANGES_AUDIO` is set. See `docs/live-audio-verification.md`.
+
 ## MCP Client Config
 
 ### OpenCode
@@ -133,7 +141,7 @@ npm run check
 npm run pack:check
 ```
 
-See `docs/architecture.md`, `docs/design.md`, `docs/safety.md`, `docs/skills.md`, and `docs/workflows.md` for the initial design and applied workflows.
+See `docs/architecture.md`, `docs/design.md`, `docs/safety.md`, `docs/live-audio-verification.md`, `docs/skills.md`, and `docs/workflows.md` for the initial design, verification workflow, and applied workflows.
 
 Repo-local OpenCode skills:
 
