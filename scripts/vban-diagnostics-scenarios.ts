@@ -43,6 +43,10 @@ function connection(config: VbMatrixConfig): ScenarioResult['connection'] {
   };
 }
 
+function isNoAcceptedReplyError(err: unknown): boolean {
+  return err instanceof VbanTextTimeoutError || (err instanceof Error && 'code' in err && err.code === 'ECONNREFUSED');
+}
+
 async function runScenario(scenario: Scenario): Promise<ScenarioResult> {
   const command = commandPropertyQuery('Version');
   const client = new VbMatrixClient(scenario.config);
@@ -77,17 +81,17 @@ async function runScenario(scenario: Scenario): Promise<ScenarioResult> {
       };
     }
   } catch (err) {
-    const isTimeout = err instanceof VbanTextTimeoutError;
+    const noAcceptedReply = isNoAcceptedReplyError(err);
     return {
       name: scenario.name,
       description: scenario.description,
       expected: scenario.expected,
       expectedOutcome: scenario.expectedOutcome,
-      expectationMet: scenario.expectedOutcome === 'timeout' && isTimeout,
+      expectationMet: scenario.expectedOutcome === 'timeout' && noAcceptedReply,
       connection: connection(scenario.config),
       ok: false,
       error: err instanceof Error ? err.message : String(err),
-      diagnostics: isTimeout ? err.diagnostics : undefined,
+      diagnostics: err instanceof VbanTextTimeoutError ? err.diagnostics : undefined,
     };
   }
 }
