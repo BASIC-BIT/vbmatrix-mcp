@@ -12,8 +12,9 @@ MVP goals:
 
 - Query VBMatrix version, engine, master, and slot status.
 - Query a routing point's gain, mute, and phase state.
+- Query, set, and remove input/output channel labels.
 - Mutate a routing point's gain, mute, or phase by default, with server-side opt-out available.
-- Expose engine restart by default, with server-side opt-out available.
+- Expose channel route resets and engine restart by default, with server-side opt-out available.
 
 ## Install From Source
 
@@ -119,17 +120,68 @@ Current primitive read tools:
 - `vbmatrix_get_master`
 - `vbmatrix_get_slot_info`
 - `vbmatrix_get_point`
+- `vbmatrix_get_channel_label`
 
 Current primitive write/destructive tools:
 
 - `vbmatrix_set_point_gain` (`gainDb: "-inf"` removes the point.)
 - `vbmatrix_set_point_mute`
 - `vbmatrix_set_point_phase`
+- `vbmatrix_set_channel_label`
+- `vbmatrix_remove_channel_label`
+- `vbmatrix_reset_channel_routes` (requires `confirm: "RESET_CHANNEL_ROUTES"`)
 - `vbmatrix_restart_engine`
 
 Write tools are available by default so the user's MCP harness can decide what should be called. Set `VBMATRIX_MCP_ALLOW_WRITES=false`, `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` for narrower deployments.
 
 Future tools should keep natural-language interpretation in the agent layer. MCP schemas should use explicit SUIDs, channels, enum-like values, booleans, and bounded numbers instead of free-form routing goals.
+
+## Label And Reset Recipes
+
+Read one input label:
+
+```json
+{
+  "kind": "input",
+  "suid": "VASIO8",
+  "channel": 1
+}
+```
+
+Set one output label:
+
+```json
+{
+  "kind": "output",
+  "suid": "ASIO128",
+  "channel": 126,
+  "label": "Control Room"
+}
+```
+
+Remove labels from a documented Matrix channel range:
+
+```json
+{
+  "kind": "input",
+  "suid": "VASIO8",
+  "startChannel": 1,
+  "endChannel": 8
+}
+```
+
+Reset all routes for one output channel:
+
+```json
+{
+  "kind": "output",
+  "suid": "ASIO128",
+  "channel": 126,
+  "confirm": "RESET_CHANNEL_ROUTES"
+}
+```
+
+Range label setting is intentionally not exposed yet. The current Matrix manual documents range label queries and range label removal with an empty `Name`, but not assigning one non-empty label across a range.
 
 ## Development
 
