@@ -6,10 +6,13 @@ import { VbMatrixClient } from '../core/client.js';
 import { assertPointWriteAllowed, safetyDetails } from '../core/safety.js';
 import {
   createMatrixSnapshot,
+  capSnapshotDiff,
   diffMatrixSnapshots,
   matrixSnapshotSummary,
   planSnapshotRestore,
+  summarizeSnapshotDiff,
   validateMatrixSnapshot,
+  type SnapshotDiff,
   type MatrixPointSnapshot,
   type MatrixSlotSnapshot,
   type MatrixSnapshot,
@@ -41,6 +44,15 @@ async function writeSnapshotArtifact(snapshot: MatrixSnapshot): Promise<string> 
   const stamp = snapshot.capturedAt.replace(/[:.]/g, '-');
   const filePath = path.join(dir, `vbmatrix-snapshot-${stamp}.json`);
   await writeFile(filePath, `${JSON.stringify(snapshot, null, 2)}\n`, 'utf8');
+  return filePath;
+}
+
+async function writeDiffArtifact(diff: SnapshotDiff): Promise<string> {
+  const dir = snapshotDir();
+  await mkdir(dir, { recursive: true });
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const filePath = path.join(dir, `vbmatrix-diff-${stamp}.json`);
+  await writeFile(filePath, `${JSON.stringify(diff, null, 2)}\n`, 'utf8');
   return filePath;
 }
 
@@ -104,6 +116,25 @@ function selectedRestoreTargets(snapshot: MatrixSnapshot, selectedPoints: PointT
   return selectedPoints ?? snapshot.points.map((point) => point.target);
 }
 
+export function validateSnapshotCaptureRetrievable(input: {
+  includeSnapshot: boolean;
+  writeToFile: boolean;
+  entryCount: number;
+}): void {
+  if (!input.includeSnapshot && !input.writeToFile && input.entryCount <= INLINE_ENTRY_LIMIT) {
+    throw new Error('includeSnapshot=false requires writeToFile=true for small snapshots so the snapshot is retrievable.');
+  }
+}
+
+function pointKey(target: PointTarget): string {
+  return `${target.inputSuid}.IN[${target.inputChannel}]->${target.outputSuid}.OUT[${target.outputChannel}]`;
+}
+
+function missingSelectedTargets(snapshot: MatrixSnapshot, selectedPoints: PointTarget[]): PointTarget[] {
+  const desiredTargets = new Set(snapshot.points.map((point) => pointKey(point.target)));
+  return selectedPoints.filter((target) => !desiredTargets.has(pointKey(target)));
+}
+
 export function registerSnapshotTools(server: McpServer): void {
   server.registerTool(
     'vbmatrix_capture_snapshot',
@@ -119,6 +150,11 @@ export function registerSnapshotTools(server: McpServer): void {
         const client = new VbMatrixClient();
         const snapshot = await captureSnapshot({ slots: input.slots, points: input.points, client });
         const entryCount = snapshot.slots.length + snapshot.points.length;
+        validateSnapshotCaptureRetrievable({
+          includeSnapshot: input.includeSnapshot,
+          writeToFile: input.writeToFile,
+          entryCount,
+        });
         const artifactPath = input.writeToFile || entryCount > INLINE_ENTRY_LIMIT ? await writeSnapshotArtifact(snapshot) : undefined;
         const includeInline = input.includeSnapshot && entryCount <= INLINE_ENTRY_LIMIT;
         return jsonResponse({
@@ -146,7 +182,17 @@ export function registerSnapshotTools(server: McpServer): void {
       try {
         const input = SnapshotDiffSchema.parse(args);
         const [before, after] = await Promise.all([readSnapshotReference(input.before), readSnapshotReference(input.after)]);
-        return jsonResponse({ ok: true, diff: diffMatrixSnapshots(before, after) });
+        const diff = diffMatrixSnapshots(before, after);
+        const capped = input.includeDiff ? capSnapshotDiff(diff, input.maxEntries) : undefined;
+        return jsonResponse({
+          ok: true,
+          summary: summarizeSnapshotDiff(diff),
+          diff: capped?.diff,
+          inlineOmitted: !input.includeDiff,
+          inlineOmittedReason: input.includeDiff ? undefined : 'Diff details omitted by default; set includeDiff=true for capped inline details.',
+          omittedEntries: capped?.omittedEntries,
+          artifactPath: input.writeToFile ? await writeDiffArtifact(diff) : undefined,
+        });
       } catch (err) {
         return toolError(err instanceof Error ? err.message : 'Unknown VBMatrix snapshot diff error');
       }
@@ -167,13 +213,21 @@ export function registerSnapshotTools(server: McpServer): void {
         const desired = await readSnapshotReference(input);
         const client = new VbMatrixClient();
         const targets = selectedRestoreTargets(desired, input.selectedPoints);
-        const currentPoints = await Promise.all(targets.map((target) => queryPoint(client, target)));
+        const missingTargets = missingSelectedTargets(desired, targets);
+        if (missingTargets.length > 0 && !input.allowMissingSelectedPoints) {
+          throw new Error(
+            `Selected restore points are not present in the desired snapshot: ${missingTargets.map(pointKey).join(', ')}`
+          );
+        }
+        const restorableTargets = targets.filter((target) => !missingTargets.some((missing) => pointKey(missing) === pointKey(target)));
+        const currentPoints = await Promise.all(restorableTargets.map((target) => queryPoint(client, target)));
         const current = createMatrixSnapshot({ metadata: {}, slots: [], points: currentPoints });
         const plan = planSnapshotRestore({
           desired,
           current,
           selectedPoints: targets,
           properties: input.properties as RestorablePointProperty[] | undefined,
+          allowMissingSelectedPoints: input.allowMissingSelectedPoints,
         });
 
         if (input.dryRun) {

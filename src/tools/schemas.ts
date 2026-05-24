@@ -58,6 +58,9 @@ export const SnapshotCaptureSchema = z.object({
 export const SnapshotDiffSchema = z.object({
   before: SnapshotReferenceSchema,
   after: SnapshotReferenceSchema,
+  includeDiff: z.boolean().default(false).describe('Include capped diff details inline. Defaults to summary-only.'),
+  maxEntries: z.number().int().min(0).max(200).default(20).describe('Maximum inline diff entries when includeDiff is true.'),
+  writeToFile: z.boolean().default(false).describe('Write the full diff to a local artifact file.'),
 });
 
 export const SnapshotRestoreSchema = SnapshotReferenceSchema.extend({
@@ -75,4 +78,8 @@ export const SnapshotRestoreSchema = SnapshotReferenceSchema.extend({
     .boolean()
     .default(false)
     .describe('Required for executing plans that affect multiple points or commands.'),
+  allowMissingSelectedPoints: z
+    .boolean()
+    .default(false)
+    .describe('When true, selectedPoints absent from the desired snapshot are reported and skipped.'),
 });

@@ -78,6 +78,22 @@ export interface SnapshotDiff {
   };
 }
 
+export interface SnapshotDiffSummary {
+  from: SnapshotSummary;
+  to: SnapshotSummary;
+  slotChanges: {
+    added: number;
+    removed: number;
+    changed: number;
+  };
+  pointChanges: {
+    added: number;
+    removed: number;
+    changed: number;
+  };
+  totalChanges: number;
+}
+
 export interface RestorePlanStep {
   target: PointTarget;
   property: RestorablePointProperty;
@@ -94,6 +110,7 @@ export interface RestorePlan {
     properties: RestorablePointProperty[];
     broad: boolean;
     nonRestorable: string[];
+    missingSelectedPoints: PointTarget[];
   };
   steps: RestorePlanStep[];
 }
@@ -211,6 +228,63 @@ export function diffMatrixSnapshots(before: MatrixSnapshot, after: MatrixSnapsho
   };
 }
 
+export function summarizeSnapshotDiff(diff: SnapshotDiff): SnapshotDiffSummary {
+  const slotChanges = {
+    added: diff.slots.added.length,
+    removed: diff.slots.removed.length,
+    changed: diff.slots.changed.length,
+  };
+  const pointChanges = {
+    added: diff.points.added.length,
+    removed: diff.points.removed.length,
+    changed: diff.points.changed.length,
+  };
+  return {
+    from: diff.from,
+    to: diff.to,
+    slotChanges,
+    pointChanges,
+    totalChanges:
+      slotChanges.added +
+      slotChanges.removed +
+      slotChanges.changed +
+      pointChanges.added +
+      pointChanges.removed +
+      pointChanges.changed,
+  };
+}
+
+export function capSnapshotDiff(diff: SnapshotDiff, maxEntries: number): { diff: SnapshotDiff; omittedEntries: number } {
+  if (!Number.isInteger(maxEntries) || maxEntries < 0) throw new Error('maxEntries must be a non-negative integer');
+  let remaining = maxEntries;
+  let omittedEntries = 0;
+
+  function takeEntries<T>(entries: T[]): T[] {
+    const capped = entries.slice(0, remaining);
+    remaining -= capped.length;
+    omittedEntries += entries.length - capped.length;
+    return capped;
+  }
+
+  return {
+    diff: {
+      from: diff.from,
+      to: diff.to,
+      slots: {
+        added: takeEntries(diff.slots.added),
+        removed: takeEntries(diff.slots.removed),
+        changed: takeEntries(diff.slots.changed),
+      },
+      points: {
+        added: takeEntries(diff.points.added),
+        removed: takeEntries(diff.points.removed),
+        changed: takeEntries(diff.points.changed),
+      },
+    },
+    omittedEntries,
+  };
+}
+
 function parseGain(value: string): MatrixGain {
   if (value === '-inf') return '-inf';
   const parsed = Number(value);
@@ -235,6 +309,7 @@ export function planSnapshotRestore(input: {
   current: MatrixSnapshot;
   selectedPoints?: PointTarget[];
   properties?: RestorablePointProperty[];
+  allowMissingSelectedPoints?: boolean;
 }): RestorePlan {
   validateMatrixSnapshot(input.desired);
   validateMatrixSnapshot(input.current);
@@ -243,6 +318,13 @@ export function planSnapshotRestore(input: {
   for (const target of selectedPoints) validatePointTargetSyntax(target);
 
   const currentPoints = new Map(input.current.points.map((point) => [pointKey(point.target), point]));
+  const desiredPoints = new Map(input.desired.points.map((point) => [pointKey(point.target), point]));
+  const missingSelectedPoints = selectedPoints.filter((target) => !desiredPoints.has(pointKey(target)));
+  if (missingSelectedPoints.length > 0 && !input.allowMissingSelectedPoints) {
+    throw new Error(
+      `Selected restore points are not present in the desired snapshot: ${missingSelectedPoints.map(pointKey).join(', ')}`
+    );
+  }
   const selectedDesired = input.desired.points.filter((point) =>
     selectedPoints.some((target) => pointTargetEquals(target, point.target))
   );
@@ -266,6 +348,7 @@ export function planSnapshotRestore(input: {
       properties,
       broad: selectedDesired.length > 1 || steps.length > 1,
       nonRestorable: ['slots are metadata-only', 'labels omitted', 'preset metadata omitted'],
+      missingSelectedPoints,
     },
     steps,
   };
