@@ -15,6 +15,7 @@ MVP goals:
 - Query a routing point's gain, mute, and phase state.
 - Query, set, and remove input/output channel labels.
 - Mutate a routing point's gain, mute, or phase by default, with server-side opt-out available.
+- Mutate explicit point ranges with dry-run/confirmation safeguards.
 - Expose channel route resets and engine restart by default, with server-side opt-out available.
 - Capture, diff, and plan/restore targeted Matrix snapshots for explicit slots and points.
 
@@ -136,6 +137,8 @@ Current primitive write/destructive tools:
 - `vbmatrix_set_point_gain` (`gainDb: "-inf"` removes the point.)
 - `vbmatrix_set_point_mute`
 - `vbmatrix_set_point_phase`
+- `vbmatrix_remove_point`
+- `vbmatrix_apply_point_range` (dry-runs by default; supports `gain`, `mute`, `phase`, and `remove`.)
 - `vbmatrix_set_slot_online`
 - `vbmatrix_set_slot_master`
 - `vbmatrix_reset_slot` (`confirm: true` required; destructive gate)
@@ -150,6 +153,8 @@ Current primitive write/destructive tools:
 Write tools are available by default so the user's MCP harness can decide what should be called. Set `VBMATRIX_MCP_ALLOW_WRITES=false`, `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` for narrower deployments. Slot reset and device changes should be operator-in-the-loop actions; use `vbmatrix_get_slot_info` first to copy current device strings and verify before/after state.
 
 Future tools should keep natural-language interpretation in the agent layer. MCP schemas should use explicit SUIDs, channels, enum-like values, booleans, and bounded numbers instead of free-form routing goals.
+
+Zone routing tools are intentionally deferred until the exact documented `Zone(...)` VBAN-TEXT grammar is captured or live-verified. The server does not expose guessed zone commands.
 
 ## Label And Reset Recipes
 

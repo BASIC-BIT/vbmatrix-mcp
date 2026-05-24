@@ -17,6 +17,8 @@ Destructive gate:
 
 Slot device assignment/removal and slot reset also require `confirm=true` in the tool input. These tools are operator-in-the-loop actions because they can interrupt live audio devices even though they target one slot.
 
+Broad point range tools also require command-level confirmation when executing. `vbmatrix_apply_point_range` dry-runs by default and requires `confirmApply=true` with `dryRun=false` before it sends a range command. `vbmatrix_remove_point` requires `confirmRemove=true` for single-point removal.
+
 ## Commands intentionally not exposed
 
 Do not expose these as normal tools:
@@ -25,6 +27,7 @@ Do not expose these as normal tools:
 - `Command.Reset`
 - `Command.ResetGrid`
 - broad `Zone(...).Reset`
+- unverified `Zone(...)` gain/mute/phase/copy/preset commands
 - broad slot-wide `Input(...).Reset` or `Output(...).Reset` beyond explicit channel/range targets
 - raw free-form VBAN-TEXT command execution
 

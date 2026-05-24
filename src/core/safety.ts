@@ -2,10 +2,12 @@ import type { VbMatrixConfig } from '../config/index.js';
 import {
   validateChannelRangeTargetSyntax,
   validateChannelTargetSyntax,
+  validatePointRangeTargetSyntax,
   validatePointTargetSyntax,
   validateSuidSyntax,
   type ChannelRangeTarget,
   type ChannelTarget,
+  type PointRangeTarget,
   type PointTarget,
 } from './commands.js';
 
@@ -51,6 +53,13 @@ export function assertSuidAllowed(config: VbMatrixConfig, suid: string): void {
 
 export function assertPointWriteAllowed(config: VbMatrixConfig, target: PointTarget): void {
   validatePointTargetSyntax(target);
+  assertWritesAllowed(config);
+  assertSuidAllowed(config, target.inputSuid);
+  assertSuidAllowed(config, target.outputSuid);
+}
+
+export function assertPointRangeWriteAllowed(config: VbMatrixConfig, target: PointRangeTarget): void {
+  validatePointRangeTargetSyntax(target);
   assertWritesAllowed(config);
   assertSuidAllowed(config, target.inputSuid);
   assertSuidAllowed(config, target.outputSuid);

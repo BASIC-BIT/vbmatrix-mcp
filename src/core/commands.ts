@@ -13,6 +13,18 @@ export interface PointTarget {
   outputChannel: number;
 }
 
+export interface ChannelRange {
+  start: number;
+  end: number;
+}
+
+export interface PointRangeTarget {
+  inputSuid: string;
+  inputChannels: ChannelRange;
+  outputSuid: string;
+  outputChannels: ChannelRange;
+}
+
 export interface PointState {
   dBGain: string;
   mute: string;
@@ -58,10 +70,16 @@ export function validateChannelIndex(channel: number): void {
   }
 }
 
-export function validateChannelRange(startChannel: number, endChannel: number): void {
-  validateChannelIndex(startChannel);
-  validateChannelIndex(endChannel);
-  if (endChannel < startChannel) {
+export function validateChannelRange(rangeOrStart: ChannelRange | number, maybeEnd?: number): void {
+  const start = typeof rangeOrStart === 'number' ? rangeOrStart : rangeOrStart.start;
+  const end = typeof rangeOrStart === 'number' ? maybeEnd : rangeOrStart.end;
+  if (end === undefined) throw new Error('Range endChannel is required');
+  validateChannelIndex(start);
+  validateChannelIndex(end);
+  if (end < start) {
+    if (typeof rangeOrStart !== 'number') {
+      throw new Error(`Channel range start must be less than or equal to end: ${start}..${end}`);
+    }
     throw new Error('Range endChannel must be greater than or equal to startChannel');
   }
 }
@@ -83,6 +101,13 @@ export function validatePointTargetSyntax(target: PointTarget): void {
   validateChannelIndex(target.outputChannel);
 }
 
+export function validatePointRangeTargetSyntax(target: PointRangeTarget): void {
+  validateSuidSyntax(target.inputSuid);
+  validateSuidSyntax(target.outputSuid);
+  validateChannelRange(target.inputChannels);
+  validateChannelRange(target.outputChannels);
+}
+
 export function validateGain(gainDb: MatrixGain): void {
   if (gainDb === '-inf') return;
   if (!Number.isFinite(gainDb) || gainDb < MIN_GAIN_DB || gainDb > MAX_GAIN_DB) {
@@ -93,6 +118,16 @@ export function validateGain(gainDb: MatrixGain): void {
 export function pointExpression(target: PointTarget): string {
   validatePointTargetSyntax(target);
   return `Point(${target.inputSuid}.IN[${target.inputChannel}],${target.outputSuid}.OUT[${target.outputChannel}])`;
+}
+
+export function pointChannelRangeExpression(range: ChannelRange): string {
+  validateChannelRange(range);
+  return range.start === range.end ? `${range.start}` : `${range.start}..${range.end}`;
+}
+
+export function pointRangeExpression(target: PointRangeTarget): string {
+  validatePointRangeTargetSyntax(target);
+  return `Point(${target.inputSuid}.IN[${pointChannelRangeExpression(target.inputChannels)}],${target.outputSuid}.OUT[${pointChannelRangeExpression(target.outputChannels)}])`;
 }
 
 function endpointObject(kind: MatrixEndpointKind): 'Input' | 'Output' {
@@ -153,12 +188,40 @@ export function setPointGainCommand(target: PointTarget, gainDb: MatrixGain): st
   return `${pointExpression(target)}.dBGain=${gainDb};`;
 }
 
+export function removePointCommand(target: PointTarget): string {
+  return `${pointExpression(target)}.Remove;`;
+}
+
 export function setPointMuteCommand(target: PointTarget, muted: boolean): string {
   return `${pointExpression(target)}.Mute=${muted ? 1 : 0};`;
 }
 
 export function setPointPhaseCommand(target: PointTarget, phaseReversed: boolean): string {
   return `${pointExpression(target)}.Phase=${phaseReversed ? 1 : 0};`;
+}
+
+export function setPointRangeGainCommand(target: PointRangeTarget, gainDb: MatrixGain): string {
+  validateGain(gainDb);
+  if (gainDb === '-inf') return removePointRangeCommand(target);
+  return `${pointRangeExpression(target)}.dBGain=${gainDb};`;
+}
+
+export function setPointRangeMuteCommand(target: PointRangeTarget, muted: boolean): string {
+  return `${pointRangeExpression(target)}.Mute=${muted ? 1 : 0};`;
+}
+
+export function setPointRangePhaseCommand(target: PointRangeTarget, phaseReversed: boolean): string {
+  return `${pointRangeExpression(target)}.Phase=${phaseReversed ? 1 : 0};`;
+}
+
+export function removePointRangeCommand(target: PointRangeTarget): string {
+  return `${pointRangeExpression(target)}.Remove;`;
+}
+
+export function pointRangeSize(target: PointRangeTarget): number {
+  validatePointRangeTargetSyntax(target);
+  return (target.inputChannels.end - target.inputChannels.start + 1) *
+    (target.outputChannels.end - target.outputChannels.start + 1);
 }
 
 export function slotPropertyQuery(
