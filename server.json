@@ -7,12 +7,12 @@
     "url": "https://github.com/BASIC-BIT/vbmatrix-mcp",
     "source": "github"
   },
-  "version": "0.0.0",
+  "version": "0.1.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@basicbit/vbmatrix-mcp",
-      "version": "0.0.0",
+      "version": "0.1.0",
       "transport": {
         "type": "stdio"
       },

@@ -52,6 +52,17 @@ export const PointRangeTargetSchema = z.object({
   outputChannels: ChannelRangeSchema.describe('Inclusive output channel range for OUT[start..end].'),
 });
 
+export const ZoneTargetSchema = z.object({
+  startInputSuid: z.string().min(1).describe('Input-side SUID for the first zone corner.'),
+  startInputChannel: z.number().int().min(MIN_MATRIX_CHANNEL).max(MAX_MATRIX_CHANNEL),
+  startOutputSuid: z.string().min(1).describe('Output-side SUID for the first zone corner.'),
+  startOutputChannel: z.number().int().min(MIN_MATRIX_CHANNEL).max(MAX_MATRIX_CHANNEL),
+  endInputSuid: z.string().min(1).describe('Input-side SUID for the opposite zone corner.'),
+  endInputChannel: z.number().int().min(MIN_MATRIX_CHANNEL).max(MAX_MATRIX_CHANNEL),
+  endOutputSuid: z.string().min(1).describe('Output-side SUID for the opposite zone corner.'),
+  endOutputChannel: z.number().int().min(MIN_MATRIX_CHANNEL).max(MAX_MATRIX_CHANNEL),
+});
+
 export const ChannelKindSchema = z.enum(['input', 'output']).describe('VBMatrix endpoint side.');
 
 export const ChannelTargetSchema = z.object({
@@ -125,6 +136,19 @@ export const ApplyPointRangeSchema = PointRangeTargetSchema.extend({
     .literal(true)
     .optional()
     .describe('Required when dryRun is false to confirm applying the range operation.'),
+});
+
+export const ApplyZoneSchema = ZoneTargetSchema.extend({
+  operation: z.enum(['gain', 'mute', 'phase', 'reset', 'copy', 'store', 'add']).describe('Typed zone operation.'),
+  gainDb: z
+    .union([z.number().min(MIN_GAIN_DB).max(MAX_GAIN_DB), z.literal('-inf')])
+    .optional()
+    .describe('Required when operation is gain. -inf builds the documented zone Reset command.'),
+  muted: z.boolean().optional().describe('Required when operation is mute.'),
+  phaseReversed: z.boolean().optional().describe('Required when operation is phase.'),
+  presetNumber: z.number().int().min(1).optional().describe('Required when operation is store or add.'),
+  dryRun: z.boolean().optional().describe('When true, return planned command without sending it.'),
+  confirmApply: z.literal(true).optional().describe('Required when dryRun is false to apply the zone operation.'),
 });
 
 export const SetSlotOnlineSchema = SlotInputSchema.extend({

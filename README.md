@@ -16,6 +16,7 @@ MVP goals:
 - Query, set, and remove input/output channel labels.
 - Mutate a routing point's gain, mute, or phase by default, with server-side opt-out available.
 - Mutate explicit point ranges with dry-run/confirmation safeguards.
+- Mutate documented Matrix zones with dry-run/confirmation safeguards.
 - Expose channel route resets and engine restart by default, with server-side opt-out available.
 - Capture, diff, and plan/restore targeted Matrix snapshots for explicit slots and points.
 
@@ -44,6 +45,14 @@ Direct VBAN-TEXT smoke test after VBMatrix is configured:
 npm run smoke:vban
 ```
 
+Safe local packaging and configuration diagnostics:
+
+```bash
+npm run doctor
+```
+
+`npm run doctor` checks Node, build output, package discovery metadata, and environment parsing without contacting Matrix. Add `-- --vban` only when you want it to send a read-only `Command.Version` query.
+
 Matrix query replies are expected as VBAN SERVICE packets on stream `Request Reply`. The configured `VBMATRIX_STREAM` names the incoming TEXT command stream, normally `Command1`; do not change it to `Request Reply`.
 
 `vbmatrix_vban_diagnostics` reports observed packet reasons such as wrong stream, unsupported protocol, or malformed packet data. If no UDP packets arrive before timeout, it reports `no_packets_observed` as indeterminate because UDP cannot reliably prove whether the cause is no listener, no command-stream reply, disabled stream, firewall/network block, wrong host/port, or Matrix not running.
@@ -58,45 +67,7 @@ The live harness dry-runs by default. It only changes Matrix routes when `--run`
 
 ## MCP Client Config
 
-### OpenCode
-
-```json
-{
-  "mcp": {
-    "vbmatrix": {
-      "type": "local",
-      "command": ["node", "D:/bench/vbmatrix-mcp/dist/bin/cli.js"],
-      "enabled": true,
-      "environment": {
-        "VBMATRIX_HOST": "127.0.0.1",
-        "VBMATRIX_MCP_ALLOW_WRITES": "true"
-      }
-    }
-  },
-  "permission": {
-    "vbmatrix_*": "ask"
-  }
-}
-```
-
-### Claude Desktop, Cursor, Kiro, Roo, Windsurf
-
-These clients differ in approval policy. If your harness does not prompt before tool calls, set `VBMATRIX_MCP_ALLOW_WRITES=false` or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` until you configure its approval controls.
-
-```json
-{
-  "mcpServers": {
-    "vbmatrix": {
-      "command": "node",
-      "args": ["D:/bench/vbmatrix-mcp/dist/bin/cli.js"],
-      "env": {
-        "VBMATRIX_HOST": "127.0.0.1",
-        "VBMATRIX_MCP_ALLOW_WRITES": "true"
-      }
-    }
-  }
-}
-```
+See `docs/client-config.md` for OpenCode, Claude Desktop, Cursor, VS Code, Codex CLI, and Copilot coding agent examples. Clients differ in approval policy; if your harness does not prompt before tool calls, set `VBMATRIX_MCP_ALLOW_WRITES=false` or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` until approval controls are configured.
 
 ## Configuration
 
@@ -140,6 +111,7 @@ Current primitive write/destructive tools:
 - `vbmatrix_set_point_phase`
 - `vbmatrix_remove_point`
 - `vbmatrix_apply_point_range` (dry-runs by default; supports `gain`, `mute`, `phase`, and `remove`.)
+- `vbmatrix_apply_zone` (dry-runs by default; supports `gain`, `mute`, `phase`, `reset`, `copy`, `store`, and `add`.)
 - `vbmatrix_set_slot_online`
 - `vbmatrix_set_slot_master`
 - `vbmatrix_reset_slot` (`confirm: true` required; destructive gate)
@@ -155,8 +127,6 @@ Current primitive write/destructive tools:
 Write tools are available by default so the user's MCP harness can decide what should be called. Set `VBMATRIX_MCP_ALLOW_WRITES=false`, `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` for narrower deployments. Slot reset and device changes should be operator-in-the-loop actions; use `vbmatrix_get_slot_info` first to copy current device strings and verify before/after state.
 
 Future tools should keep natural-language interpretation in the agent layer. MCP schemas should use explicit SUIDs, channels, enum-like values, booleans, and bounded numbers instead of free-form routing goals.
-
-Direct zone routing tools are intentionally deferred until the exact documented `Zone(...)` VBAN-TEXT grammar is captured or live-verified in this codebase. Preset patch `resetZone` is exposed through the documented `PresetPatch[n].ResetZone` command. The server does not expose guessed zone commands.
 
 ## Preset Patch Scene Recipes
 
@@ -187,6 +157,8 @@ Execute only after reviewing the dry-run command and confirming the target patch
   "confirmOperation": "PRESET_PATCH_WRITE"
 }
 ```
+
+`vbmatrix_apply_zone` uses the documented `Zone(SUID.IN[n], SUID.OUT[j]: SUID.IN[k], SUID.OUT[l])` VBAN-TEXT grammar from VB-Audio's forum. It dry-runs by default, requires `confirmApply: true` when `dryRun: false`, and reports that zone aggregate before/after state queries are not documented.
 
 Preset patch writes query patch state before and after when Matrix replies to the documented status requests. Use `vbmatrix_capture_snapshot` before broad scene changes when you need a point-level rollback artifact. Preset patch load/save/save-as are deferred until file path safety is designed.
 
@@ -237,6 +209,26 @@ Reset all routes for one output channel:
 
 Range label setting is intentionally not exposed yet. The current Matrix manual documents range label queries and range label removal with an empty `Name`, but not assigning one non-empty label across a range.
 
+Dry-run a zone mute across a documented Matrix rectangle:
+
+```json
+{
+  "startInputSuid": "VASIO8",
+  "startInputChannel": 1,
+  "startOutputSuid": "ASIO128",
+  "startOutputChannel": 125,
+  "endInputSuid": "VASIO8",
+  "endInputChannel": 2,
+  "endOutputSuid": "ASIO128",
+  "endOutputChannel": 126,
+  "operation": "mute",
+  "muted": true,
+  "dryRun": true
+}
+```
+
+Review the returned `command` before execution. Zone `reset` and `gainDb: "-inf"` build `Zone(...).Reset;` and require the destructive gate when executed.
+
 Snapshot tools are targeted, not full-matrix scans. A snapshot contains selected slot metadata and selected point gain/mute/phase state; labels are listed as omissions until supported by typed snapshot capture. Preset patch metadata is available through `vbmatrix_get_preset_patch` but is not yet embedded in snapshots. Large snapshots are written to `.vbmatrix-snapshots/` and omitted from inline MCP responses by default.
 
 ## Development
@@ -249,7 +241,7 @@ npm run check
 npm run pack:check
 ```
 
-See `docs/architecture.md`, `docs/design.md`, `docs/safety.md`, `docs/live-audio-verification.md`, `docs/skills.md`, and `docs/workflows.md` for the initial design, verification workflow, and applied workflows.
+See `docs/architecture.md`, `docs/client-config.md`, `docs/design.md`, `docs/safety.md`, `docs/live-audio-verification.md`, `docs/release.md`, `docs/skills.md`, `docs/workflows.md`, `docs/agentic-workflow.md`, and `docs/improvement-log.md` for design, client onboarding, verification, release, applied workflows, and lightweight maintainer loops.
 
 Repo-local OpenCode skills:
 

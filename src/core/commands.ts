@@ -25,6 +25,19 @@ export interface PointRangeTarget {
   outputChannels: ChannelRange;
 }
 
+export interface ZoneTarget {
+  startInputSuid: string;
+  startInputChannel: number;
+  startOutputSuid: string;
+  startOutputChannel: number;
+  endInputSuid: string;
+  endInputChannel: number;
+  endOutputSuid: string;
+  endOutputChannel: number;
+}
+
+export type ZoneOperation = 'gain' | 'mute' | 'phase' | 'reset' | 'copy' | 'store' | 'add';
+
 export interface PointState {
   dBGain: string;
   mute: string;
@@ -133,6 +146,17 @@ export function validatePointRangeTargetSyntax(target: PointRangeTarget): void {
   validateSuidSyntax(target.outputSuid);
   validateChannelRange(target.inputChannels);
   validateChannelRange(target.outputChannels);
+}
+
+export function validateZoneTargetSyntax(target: ZoneTarget): void {
+  validateSuidSyntax(target.startInputSuid);
+  validateSuidSyntax(target.startOutputSuid);
+  validateSuidSyntax(target.endInputSuid);
+  validateSuidSyntax(target.endOutputSuid);
+  validateChannelIndex(target.startInputChannel);
+  validateChannelIndex(target.startOutputChannel);
+  validateChannelIndex(target.endInputChannel);
+  validateChannelIndex(target.endOutputChannel);
 }
 
 export function validateGain(gainDb: MatrixGain): void {
@@ -255,6 +279,49 @@ export function pointRangeSize(target: PointRangeTarget): number {
   validatePointRangeTargetSyntax(target);
   return (target.inputChannels.end - target.inputChannels.start + 1) *
     (target.outputChannels.end - target.outputChannels.start + 1);
+}
+
+export function zoneExpression(target: ZoneTarget): string {
+  validateZoneTargetSyntax(target);
+  return `Zone(${target.startInputSuid}.IN[${target.startInputChannel}], ${target.startOutputSuid}.OUT[${target.startOutputChannel}]: ${target.endInputSuid}.IN[${target.endInputChannel}], ${target.endOutputSuid}.OUT[${target.endOutputChannel}])`;
+}
+
+export function setZoneGainCommand(target: ZoneTarget, gainDb: MatrixGain): string {
+  validateGain(gainDb);
+  if (gainDb === '-inf') return resetZoneCommand(target);
+  return `${zoneExpression(target)}.dBGain=${gainDb};`;
+}
+
+export function setZoneMuteCommand(target: ZoneTarget, muted: boolean): string {
+  return `${zoneExpression(target)}.Mute=${muted ? 1 : 0};`;
+}
+
+export function setZonePhaseCommand(target: ZoneTarget, phaseReversed: boolean): string {
+  return `${zoneExpression(target)}.Phase=${phaseReversed ? 1 : 0};`;
+}
+
+export function resetZoneCommand(target: ZoneTarget): string {
+  return `${zoneExpression(target)}.Reset;`;
+}
+
+export function copyZoneCommand(target: ZoneTarget): string {
+  return `${zoneExpression(target)}.Copy;`;
+}
+
+export function storeZoneCommand(target: ZoneTarget, presetNumber: number): string {
+  validatePresetNumber(presetNumber);
+  return `${zoneExpression(target)}.Store=${presetNumber};`;
+}
+
+export function addZoneCommand(target: ZoneTarget, presetNumber: number): string {
+  validatePresetNumber(presetNumber);
+  return `${zoneExpression(target)}.Add=${presetNumber};`;
+}
+
+export function validatePresetNumber(presetNumber: number): void {
+  if (!Number.isInteger(presetNumber) || presetNumber < 1) {
+    throw new Error('Preset number must be a positive integer');
+  }
 }
 
 export function slotPropertyQuery(

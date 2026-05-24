@@ -145,6 +145,7 @@ Current grouped operations:
 
 - `vbmatrix_apply_point_range` applies gain, mute, phase, or remove to an explicit `IN[start..end]` and `OUT[start..end]` point range. It dry-runs by default, requires `confirmApply=true` to execute, and reports a state-query caveat unless the range is exactly one point.
 - `vbmatrix_preset_patch` applies documented `PresetPatch[n]` operations. It dry-runs by default, requires `confirmOperation="PRESET_PATCH_WRITE"` to execute, and queries the patch summary before and after execution when Matrix replies to status requests.
+- `vbmatrix_apply_zone` applies documented `Zone(...)` gain, mute, phase, reset, copy, store, and add operations to an explicit two-corner Matrix zone. It dry-runs by default, requires `confirmApply=true` to execute, and reports a state-query caveat because aggregate zone status queries are not documented.
 
 ### Layer 3: workflows
 
@@ -178,7 +179,7 @@ Write responses should include:
 - Raw free-form command execution.
 - Full-matrix scans by default.
 - Preset patch load/save/save-as until file path safety is designed.
-- Zone operations until the exact documented `Zone(...)` grammar is captured or live-verified.
+- Preset grid file save/load commands until file path safety is designed.
 - Broad `Remove`, `Reset`, `ResetGrid`, or `Shutdown` tools.
 - VBAN SERVICE subscriptions or meter streaming.
 - VBAN service/stream configuration writes. No source-linked Matrix command surface is currently documented for this; use the Matrix UI with an operator in the loop.

@@ -6,10 +6,12 @@ import {
   validatePointTargetSyntax,
   validatePresetPatchIndex,
   validateSuidSyntax,
+  validateZoneTargetSyntax,
   type ChannelRangeTarget,
   type ChannelTarget,
   type PointRangeTarget,
   type PointTarget,
+  type ZoneTarget,
 } from './commands.js';
 
 export class SafetyError extends Error {
@@ -64,6 +66,20 @@ export function assertPointRangeWriteAllowed(config: VbMatrixConfig, target: Poi
   assertWritesAllowed(config);
   assertSuidAllowed(config, target.inputSuid);
   assertSuidAllowed(config, target.outputSuid);
+}
+
+export function assertZoneWriteAllowed(config: VbMatrixConfig, target: ZoneTarget): void {
+  validateZoneTargetSyntax(target);
+  assertWritesAllowed(config);
+  assertSuidAllowed(config, target.startInputSuid);
+  assertSuidAllowed(config, target.startOutputSuid);
+  assertSuidAllowed(config, target.endInputSuid);
+  assertSuidAllowed(config, target.endOutputSuid);
+}
+
+export function assertZoneResetAllowed(config: VbMatrixConfig, target: ZoneTarget): void {
+  assertZoneWriteAllowed(config, target);
+  assertDestructiveAllowed(config);
 }
 
 export function assertSlotWriteAllowed(config: VbMatrixConfig, suid: string): void {
