@@ -15,6 +15,8 @@ Destructive gate:
 
 - `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` disables `vbmatrix_restart_engine` and any future destructive/system tools.
 
+Broad point range tools also require command-level confirmation when executing. `vbmatrix_apply_point_range` dry-runs by default and requires `confirmApply=true` with `dryRun=false` before it sends a range command. `vbmatrix_remove_point` requires `confirmRemove=true` for single-point removal.
+
 ## Commands intentionally not exposed
 
 Do not expose these as normal tools:
@@ -23,6 +25,7 @@ Do not expose these as normal tools:
 - `Command.Reset`
 - `Command.ResetGrid`
 - broad `Zone(...).Reset`
+- unverified `Zone(...)` gain/mute/phase/copy/preset commands
 - broad `Input(...).Reset` or `Output(...).Reset`
 - raw free-form VBAN-TEXT command execution
 

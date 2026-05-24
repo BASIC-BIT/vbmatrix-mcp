@@ -1,5 +1,5 @@
 import type { VbMatrixConfig } from '../config/index.js';
-import { validatePointTargetSyntax, type PointTarget } from './commands.js';
+import { validatePointRangeTargetSyntax, validatePointTargetSyntax, type PointRangeTarget, type PointTarget } from './commands.js';
 
 export class SafetyError extends Error {
   readonly code: string;
@@ -43,6 +43,13 @@ export function assertSuidAllowed(config: VbMatrixConfig, suid: string): void {
 
 export function assertPointWriteAllowed(config: VbMatrixConfig, target: PointTarget): void {
   validatePointTargetSyntax(target);
+  assertWritesAllowed(config);
+  assertSuidAllowed(config, target.inputSuid);
+  assertSuidAllowed(config, target.outputSuid);
+}
+
+export function assertPointRangeWriteAllowed(config: VbMatrixConfig, target: PointRangeTarget): void {
+  validatePointRangeTargetSyntax(target);
   assertWritesAllowed(config);
   assertSuidAllowed(config, target.inputSuid);
   assertSuidAllowed(config, target.outputSuid);

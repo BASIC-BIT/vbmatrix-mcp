@@ -13,6 +13,7 @@ MVP goals:
 - Query VBMatrix version, engine, master, and slot status.
 - Query a routing point's gain, mute, and phase state.
 - Mutate a routing point's gain, mute, or phase by default, with server-side opt-out available.
+- Mutate explicit point ranges with dry-run/confirmation safeguards.
 - Expose engine restart by default, with server-side opt-out available.
 
 ## Install From Source
@@ -125,11 +126,15 @@ Current primitive write/destructive tools:
 - `vbmatrix_set_point_gain` (`gainDb: "-inf"` removes the point.)
 - `vbmatrix_set_point_mute`
 - `vbmatrix_set_point_phase`
+- `vbmatrix_remove_point`
+- `vbmatrix_apply_point_range` (dry-runs by default; supports `gain`, `mute`, `phase`, and `remove`.)
 - `vbmatrix_restart_engine`
 
 Write tools are available by default so the user's MCP harness can decide what should be called. Set `VBMATRIX_MCP_ALLOW_WRITES=false`, `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` for narrower deployments.
 
 Future tools should keep natural-language interpretation in the agent layer. MCP schemas should use explicit SUIDs, channels, enum-like values, booleans, and bounded numbers instead of free-form routing goals.
+
+Zone routing tools are intentionally deferred until the exact documented `Zone(...)` VBAN-TEXT grammar is captured or live-verified. The server does not expose guessed zone commands.
 
 ## Development
 

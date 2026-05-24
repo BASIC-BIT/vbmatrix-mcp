@@ -31,6 +31,7 @@ Slot(VASIO8).RunningStatus=?;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).dBGain=?;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).Mute=?;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).Phase=?;
+Point(VASIO8.IN[1..2],ASIO128.OUT[125..126]).Mute=1;
 ```
 
 Core write commands:
@@ -39,6 +40,7 @@ Core write commands:
 Point(VASIO8.IN[1],VASIO8.OUT[1]).dBGain=-6;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).Mute=1;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).Phase=0;
+Point(VASIO8.IN[1],VASIO8.OUT[1]).Remove;
 Command.Restart;
 ```
 
@@ -79,6 +81,7 @@ Write tools are explicit and available by default. They can be narrowed with env
 - `vbmatrix_set_point_gain` validates gain range and target policy.
 - `vbmatrix_set_point_mute` validates target policy.
 - `vbmatrix_set_point_phase` validates target policy.
+- `vbmatrix_remove_point` removes one point and requires explicit confirmation.
 - `vbmatrix_restart_engine` respects the destructive-action opt-out gate.
 
 ### Layer 2: grouped operations
@@ -96,6 +99,10 @@ Conventions:
 - If any step is blocked by safety policy, fail closed by default rather than partially applying a batch. Partial-apply behavior must be opt-in and visible in the schema.
 
 Grouped operations should be added only after the underlying primitive tools and command builders exist. They should call shared command/safety helpers, not synthesize ad hoc command strings.
+
+Current grouped operations:
+
+- `vbmatrix_apply_point_range` applies gain, mute, phase, or remove to an explicit `IN[start..end]` and `OUT[start..end]` point range. It dry-runs by default, requires `confirmApply=true` to execute, and reports a state-query caveat unless the range is exactly one point.
 
 ### Layer 3: workflows
 
@@ -129,5 +136,6 @@ Write responses should include:
 - Raw free-form command execution.
 - Full-matrix scans by default.
 - Preset patch editing.
-- `Remove`, `Reset`, `ResetGrid`, or `Shutdown` tools.
+- Zone operations until the exact documented `Zone(...)` grammar is captured or live-verified.
+- `Reset`, `ResetGrid`, or `Shutdown` tools.
 - VBAN SERVICE subscriptions or meter streaming.

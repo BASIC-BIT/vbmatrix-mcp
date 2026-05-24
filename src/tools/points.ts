@@ -1,19 +1,51 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import {
+  pointRangeSize,
+  removePointCommand,
+  removePointRangeCommand,
   setPointGainCommand,
   setPointMuteCommand,
   setPointPhaseCommand,
+  setPointRangeGainCommand,
+  setPointRangeMuteCommand,
+  setPointRangePhaseCommand,
+  validatePointRangeTargetSyntax,
   validatePointTargetSyntax,
+  type PointRangeTarget,
   type PointTarget,
 } from '../core/commands.js';
 import { VbMatrixClient } from '../core/client.js';
-import { assertPointWriteAllowed, safetyDetails } from '../core/safety.js';
+import { assertPointRangeWriteAllowed, assertPointWriteAllowed, safetyDetails } from '../core/safety.js';
 import { readOnlyToolAnnotations, writeToolAnnotations } from '../utils/toolAnnotations.js';
 import { jsonResponse, toolError } from '../utils/toolResponses.js';
-import { PointTargetSchema, SetPointGainSchema, SetPointMuteSchema, SetPointPhaseSchema } from './schemas.js';
+import {
+  ApplyPointRangeSchema,
+  PointRangeTargetSchema,
+  PointTargetSchema,
+  RemovePointSchema,
+  SetPointGainSchema,
+  SetPointMuteSchema,
+  SetPointPhaseSchema,
+} from './schemas.js';
 
 function targetFromArgs(args: unknown): PointTarget {
   return PointTargetSchema.parse(args);
+}
+
+function rangeTargetFromArgs(args: unknown): PointRangeTarget {
+  return PointRangeTargetSchema.parse(args);
+}
+
+function singlePointFromRange(target: PointRangeTarget): PointTarget | null {
+  if (target.inputChannels.start !== target.inputChannels.end || target.outputChannels.start !== target.outputChannels.end) {
+    return null;
+  }
+  return {
+    inputSuid: target.inputSuid,
+    inputChannel: target.inputChannels.start,
+    outputSuid: target.outputSuid,
+    outputChannel: target.outputChannels.start,
+  };
 }
 
 async function writePoint(
@@ -44,6 +76,105 @@ export function registerPointTools(server: McpServer): void {
         return jsonResponse({ ok: true, target, state: await client.queryPointState(target) });
       } catch (err) {
         return toolError(err instanceof Error ? err.message : 'Unknown VBMatrix point query error');
+      }
+    }
+  );
+
+  server.registerTool(
+    'vbmatrix_remove_point',
+    {
+      description:
+        'Typed single-point remove/disconnect. Queries before and after; requires confirmRemove=true; accepts no raw VBAN-TEXT commands.',
+      inputSchema: RemovePointSchema,
+      annotations: writeToolAnnotations,
+    },
+    async (args) => {
+      try {
+        const input = RemovePointSchema.parse(args);
+        const target = targetFromArgs(input);
+        const client = new VbMatrixClient();
+        return jsonResponse(await writePoint(target, removePointCommand(target), client));
+      } catch (err) {
+        return toolError(err instanceof Error ? err.message : 'Unknown VBMatrix point remove error');
+      }
+    }
+  );
+
+  server.registerTool(
+    'vbmatrix_apply_point_range',
+    {
+      description:
+        'Typed point range operation for gain, mute, phase, or remove using IN[start..end] and OUT[start..end]. dryRun defaults to true; execution requires confirmApply=true. Range state queries are only supported when the range identifies one point.',
+      inputSchema: ApplyPointRangeSchema,
+      annotations: writeToolAnnotations,
+    },
+    async (args) => {
+      try {
+        const input = ApplyPointRangeSchema.parse(args);
+        const target = rangeTargetFromArgs(input);
+        validatePointRangeTargetSyntax(target);
+
+        let command: string;
+        if (input.operation === 'gain') {
+          if (input.gainDb === undefined) throw new Error('gainDb is required when operation is gain');
+          command = setPointRangeGainCommand(target, input.gainDb);
+        } else if (input.operation === 'mute') {
+          if (input.muted === undefined) throw new Error('muted is required when operation is mute');
+          command = setPointRangeMuteCommand(target, input.muted);
+        } else if (input.operation === 'phase') {
+          if (input.phaseReversed === undefined) throw new Error('phaseReversed is required when operation is phase');
+          command = setPointRangePhaseCommand(target, input.phaseReversed);
+        } else {
+          command = removePointRangeCommand(target);
+        }
+
+        const client = new VbMatrixClient();
+        const affectedPoints = pointRangeSize(target);
+        const dryRun = input.dryRun !== false;
+        const queryTarget = singlePointFromRange(target);
+        const stateQuery = queryTarget
+          ? { supported: true, caveat: null }
+          : {
+              supported: false,
+              caveat: 'VBMatrix range/zone aggregate state query support is not verified; no before/after state was queried.',
+            };
+
+        if (dryRun) {
+          return jsonResponse({
+            ok: true,
+            dryRun: true,
+            target,
+            operation: input.operation,
+            affectedPoints,
+            command,
+            stateQuery,
+            safety: safetyDetails(client.config),
+          });
+        }
+
+        if (input.confirmApply !== true) {
+          throw new Error('confirmApply=true is required when dryRun is false');
+        }
+
+        assertPointRangeWriteAllowed(client.config, target);
+        const before = queryTarget ? await client.queryPointState(queryTarget) : null;
+        await client.send(command);
+        const after = queryTarget ? await client.queryPointState(queryTarget) : null;
+
+        return jsonResponse({
+          ok: true,
+          dryRun: false,
+          target,
+          operation: input.operation,
+          affectedPoints,
+          command,
+          before,
+          after,
+          stateQuery,
+          safety: safetyDetails(client.config),
+        });
+      } catch (err) {
+        return toolError(err instanceof Error ? err.message : 'Unknown VBMatrix point range operation error');
       }
     }
   );
