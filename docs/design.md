@@ -17,6 +17,13 @@ Packet basics:
 - Frame counter: 32-bit little-endian.
 - Payload: UTF-8 VBMatrix command string.
 
+Matrix query replies are accepted from two packet shapes:
+
+- VBAN-TEXT packets on the configured command stream, retained for compatibility with text-style responders.
+- VBAN SERVICE protocol `0x60` packets on stream `Request Reply`, which is the observed VB-Audio Matrix query reply path.
+
+`VBMATRIX_STREAM` configures the incoming command stream, normally `Command1`. It should not be set to `Request Reply`; that stream is used by Matrix for responses.
+
 ## Command model
 
 Core read commands:
@@ -31,6 +38,8 @@ Slot(VASIO8).RunningStatus=?;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).dBGain=?;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).Mute=?;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).Phase=?;
+Input(VASIO8.IN[1]).Name=?;
+Output(VASIO8.OUT[1]).Name=?;
 ```
 
 Core write commands:
@@ -39,6 +48,8 @@ Core write commands:
 Point(VASIO8.IN[1],VASIO8.OUT[1]).dBGain=-6;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).Mute=1;
 Point(VASIO8.IN[1],VASIO8.OUT[1]).Phase=0;
+Input(VASIO8.IN[1]).Name="Mic";
+Output(VASIO8.OUT[1]).Reset;
 Command.Restart;
 ```
 
@@ -69,10 +80,13 @@ Current primitives:
 Read tools are small and direct:
 
 - `vbmatrix_ping` returns version and connection metadata.
+- `vbmatrix_vban_diagnostics` sends the same version query and returns packet classification, ignored stream/protocol details, timeout classification, and setup hints. Zero-packet timeouts are reported as `no_packets_observed` and indeterminate; observed wrong-stream, unsupported-protocol, and malformed-packet cases remain distinct.
 - `vbmatrix_get_engine` queries engine state.
 - `vbmatrix_get_master` queries master clock state.
 - `vbmatrix_get_slot_info` returns slot properties.
 - `vbmatrix_get_point` returns gain, mute, and phase for one point.
+- `vbmatrix_capture_snapshot` captures explicit selected slot metadata and point state.
+- `vbmatrix_diff_snapshots` compares two explicit Matrix snapshots.
 
 Write tools are explicit and available by default. They can be narrowed with environment settings when server-side policy is useful:
 
@@ -84,7 +98,28 @@ Write tools are explicit and available by default. They can be narrowed with env
 - `vbmatrix_reset_slot` validates slot policy, requires explicit confirmation, and respects the destructive-action opt-out gate.
 - `vbmatrix_set_slot_device` validates slot policy, safely quotes ASIO/MME/KS/WDM device names, requires explicit confirmation, and respects the destructive-action opt-out gate.
 - `vbmatrix_remove_slot_device` validates slot policy, requires explicit confirmation, and respects the destructive-action opt-out gate.
+- `vbmatrix_set_channel_label` validates label text and target policy.
+- `vbmatrix_remove_channel_label` validates target policy and supports documented channel ranges.
+- `vbmatrix_reset_channel_routes` requires explicit confirmation and respects write plus destructive gates.
+- `vbmatrix_restore_snapshot` restores selected point properties from a snapshot; it dry-runs by default and requires explicit confirmation before writes.
 - `vbmatrix_restart_engine` respects the destructive-action opt-out gate.
+
+## Snapshot format
+
+Snapshots are deterministic JSON objects with `schemaVersion: 1` and explicit scope. They do not infer endpoints from names or labels.
+
+Included data:
+
+- `metadata`: optional Matrix version, engine, and master values when those queries succeed.
+- `scope.slots`: selected slot SUIDs.
+- `scope.points`: selected point targets.
+- `slots`: selected slot `Info`, `Online`, `RunningStatus`, `Master`, and `Device` values.
+- `points`: selected point `dBGain`, `mute`, and `phase` values.
+- `omissions`: currently records labels and preset metadata as unsupported by typed queries.
+
+Snapshot tools intentionally avoid full-matrix dumps by default. Large captures are written to `.vbmatrix-snapshots/` and responses return a summary plus artifact path instead of dumping the full object into chat.
+
+Restore planning uses only selected point state. Slot metadata, labels, and preset metadata are non-restorable until typed write/query commands exist for them.
 
 ### Layer 2: grouped operations
 
@@ -134,5 +169,6 @@ Write responses should include:
 - Raw free-form command execution.
 - Full-matrix scans by default.
 - Preset patch editing.
-- Broad `Remove`, `ResetGrid`, or `Shutdown` tools.
+- Broad `Remove`, `Reset`, `ResetGrid`, or `Shutdown` tools.
 - VBAN SERVICE subscriptions or meter streaming.
+- VBAN service/stream configuration writes. No source-linked Matrix command surface is currently documented for this; use the Matrix UI with an operator in the loop.

@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'vitest';
 import { loadConfig } from '../../src/config/index.js';
 import {
+  assertChannelResetAllowed,
+  assertChannelWriteAllowed,
   assertDestructiveAllowed,
   assertPointWriteAllowed,
   assertSlotDestructiveAllowed,
@@ -12,6 +14,12 @@ const target = {
   inputChannel: 1,
   outputSuid: 'VASIO8',
   outputChannel: 1,
+};
+
+const channelTarget = {
+  kind: 'input' as const,
+  suid: 'VASIO8',
+  channel: 1,
 };
 
 describe('safety gates', () => {
@@ -71,6 +79,17 @@ describe('safety gates', () => {
     expect(() => assertSlotDestructiveAllowed(loadConfig({}), 'VAIO1', false)).toThrow(/confirm=true/);
     expect(() =>
       assertSlotDestructiveAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_DESTRUCTIVE: 'false' }), 'VAIO1', true)
+    ).toThrow(/ALLOW_DESTRUCTIVE/);
+  });
+
+  test('applies write and destructive gates to channel resets', () => {
+    expect(() => assertChannelWriteAllowed(loadConfig({}), channelTarget)).not.toThrow();
+    expect(() => assertChannelResetAllowed(loadConfig({}), channelTarget)).not.toThrow();
+    expect(() => assertChannelResetAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_WRITES: 'false' }), channelTarget)).toThrow(
+      /ALLOW_WRITES/
+    );
+    expect(() =>
+      assertChannelResetAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_DESTRUCTIVE: 'false' }), channelTarget)
     ).toThrow(/ALLOW_DESTRUCTIVE/);
   });
 });

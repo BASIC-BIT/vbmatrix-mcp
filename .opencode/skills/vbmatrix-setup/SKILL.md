@@ -19,7 +19,7 @@ Good coding-agent tasks:
 - Add local MCP config for OpenCode or another harness.
 - Run `npm run smoke:vban` to verify VBAN-TEXT reachability.
 - Run `npm run verify:live-audio` in dry-run/measurement mode after an operator provides a local fixture.
-- Run MCP tool discovery and call `vbmatrix_ping` once the harness is configured.
+- Run MCP tool discovery and call `vbmatrix_ping` or `vbmatrix_vban_diagnostics` once the harness is configured.
 - Edit environment variables for host, port, stream name, or opt-out safety gates.
 
 Operator or desktop-automation tasks:
@@ -46,6 +46,7 @@ Desktop automation may do some UI clicks if a Windows UI Automation MCP is confi
 - Enable an incoming TEXT/Command stream.
 - Use stream name `Command1` unless you plan to set `VBMATRIX_STREAM`.
 - Keep the default VBAN UDP port `6980` unless you plan to set `VBMATRIX_PORT`.
+- Expect query responses on Matrix's `Request Reply` service stream. Do not name the incoming command stream `Request Reply`.
 
 3. Build this repo
 
@@ -61,6 +62,8 @@ npm run smoke:vban
 ```
 
 Expected: JSON with `ok: true` and a `version` value.
+
+If it fails, the smoke output includes packet diagnostics when available. The common healthy shape is command stream `Command1` and response stream `Request Reply`.
 
 If VBMatrix is on another host:
 
@@ -91,7 +94,7 @@ OpenCode local config example:
 }
 ```
 
-Then restart the harness and ask it to call `vbmatrix_ping`.
+Then restart the harness and ask it to call `vbmatrix_ping`. If that times out, call `vbmatrix_vban_diagnostics` for read-only packet classification and setup hints.
 
 6. Verify harness approval policy
 
@@ -112,7 +115,8 @@ Use these only when you want additional server-side limits:
 
 ## Troubleshooting
 
-- `Timed out waiting for VBAN-TEXT response`: VBAN service or incoming TEXT stream is off, stream name mismatch, firewall block, wrong host, or wrong port.
+- `Timed out waiting for VBAN-TEXT response`: VBAN service or incoming TEXT stream is off, stream name mismatch, firewall block, wrong host, or wrong port. Run `vbmatrix_vban_diagnostics` before changing Matrix settings.
+- `Request Reply` gotcha: Matrix query replies arrive as VBAN service protocol `0x60` on stream `Request Reply`; the configured command stream should normally remain `Command1`.
 - `VBAN stream name must be 16 bytes or fewer`: shorten `VBMATRIX_STREAM`.
 - `Property = Err`: syntax is valid enough to reach VBMatrix, but the target point/slot/property likely does not exist.
 - `Response key mismatch`: a response arrived, but it did not match the queried property; check for other VBAN-TEXT traffic on the same stream.

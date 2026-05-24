@@ -1,14 +1,20 @@
 import { describe, expect, test } from 'vitest';
 import {
+  channelExpression,
+  channelLabelQuery,
+  channelRangeExpression,
   commandPropertyQuery,
   parseResponseValue,
   pointExpression,
   pointPropertyQuery,
   parseQueryResponseValue,
   quoteDeviceName,
+  removeChannelLabelCommand,
   removeSlotDeviceCommand,
   restartEngineCommand,
   resetSlotCommand,
+  resetChannelCommand,
+  setChannelLabelCommand,
   setPointGainCommand,
   setPointMuteCommand,
   setPointPhaseCommand,
@@ -17,7 +23,9 @@ import {
   setSlotOnlineCommand,
   slotPropertyQuery,
   validateChannelIndex,
+  validateChannelRange,
   validateGain,
+  validateLabel,
   validateSlotDeviceKind,
 } from '../../src/core/commands.js';
 
@@ -78,6 +86,36 @@ describe('VBMatrix command builders', () => {
     expect(() => validateSlotDeviceKind('RAW')).toThrow(/Device kind must be/);
   });
 
+  test('builds input and output label commands', () => {
+    expect(channelExpression({ kind: 'input', suid: 'VASIO8', channel: 1 })).toBe('Input(VASIO8.IN[1])');
+    expect(channelExpression({ kind: 'output', suid: 'ASIO128', channel: 126 })).toBe('Output(ASIO128.OUT[126])');
+    expect(channelLabelQuery({ kind: 'input', suid: 'VASIO8', channel: 1 })).toBe('Input(VASIO8.IN[1]).Name=?;');
+    expect(setChannelLabelCommand({ kind: 'output', suid: 'ASIO128', channel: 126 }, 'Control Room')).toBe(
+      'Output(ASIO128.OUT[126]).Name="Control Room";'
+    );
+    expect(setChannelLabelCommand({ kind: 'input', suid: 'VASIO8', channel: 1 }, 'Quote " and slash \\')).toBe(
+      'Input(VASIO8.IN[1]).Name="Quote \\" and slash \\\\";'
+    );
+    expect(removeChannelLabelCommand({ kind: 'input', suid: 'VASIO8', channel: 1 })).toBe(
+      'Input(VASIO8.IN[1]).Name="";'
+    );
+  });
+
+  test('builds documented input and output range commands', () => {
+    expect(channelRangeExpression({ kind: 'input', suid: 'VASIO8', startChannel: 1, endChannel: 8 })).toBe(
+      'Input(VASIO8.IN[1..8])'
+    );
+    expect(channelLabelQuery({ kind: 'output', suid: 'ASIO128', startChannel: 125, endChannel: 128 })).toBe(
+      'Output(ASIO128.OUT[125..128]).Name=?;'
+    );
+    expect(removeChannelLabelCommand({ kind: 'output', suid: 'ASIO128', startChannel: 125, endChannel: 128 })).toBe(
+      'Output(ASIO128.OUT[125..128]).Name="";'
+    );
+    expect(resetChannelCommand({ kind: 'input', suid: 'VASIO8', startChannel: 1, endChannel: 8 })).toBe(
+      'Input(VASIO8.IN[1..8]).Reset;'
+    );
+  });
+
   test('parses query response values', () => {
     expect(parseResponseValue('Command.Version = VB-Audio Matrix 1.0.2.6;')).toBe('VB-Audio Matrix 1.0.2.6');
     expect(parseResponseValue('Point(VASIO8.IN[1],VASIO8.OUT[1]).dBGain = -inf;')).toBe('-inf');
@@ -95,6 +133,12 @@ describe('VBMatrix command builders', () => {
     expect(() => validateChannelIndex(1)).not.toThrow();
     expect(() => validateChannelIndex(680)).not.toThrow();
     expect(() => validateChannelIndex(3112)).not.toThrow();
+  });
+
+  test('rejects invalid ranges and label injection', () => {
+    expect(() => validateChannelRange(8, 1)).toThrow(/endChannel/);
+    expect(() => validateLabel('bad;Command.Reset')).toThrow(/semicolons/);
+    expect(() => validateLabel('bad\nlabel')).toThrow(/newlines/);
   });
 
   test('verifies query response keys', () => {

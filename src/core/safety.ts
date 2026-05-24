@@ -1,5 +1,13 @@
 import type { VbMatrixConfig } from '../config/index.js';
-import { validatePointTargetSyntax, validateSuidSyntax, type PointTarget } from './commands.js';
+import {
+  validateChannelRangeTargetSyntax,
+  validateChannelTargetSyntax,
+  validatePointTargetSyntax,
+  validateSuidSyntax,
+  type ChannelRangeTarget,
+  type ChannelTarget,
+  type PointTarget,
+} from './commands.js';
 
 export class SafetyError extends Error {
   readonly code: string;
@@ -62,6 +70,18 @@ export function assertSlotDestructiveAllowed(config: VbMatrixConfig, suid: strin
       confirmed,
     });
   }
+}
+
+export function assertChannelWriteAllowed(config: VbMatrixConfig, target: ChannelTarget | ChannelRangeTarget): void {
+  if ('channel' in target) validateChannelTargetSyntax(target);
+  else validateChannelRangeTargetSyntax(target);
+  assertWritesAllowed(config);
+  assertSuidAllowed(config, target.suid);
+}
+
+export function assertChannelResetAllowed(config: VbMatrixConfig, target: ChannelTarget | ChannelRangeTarget): void {
+  assertChannelWriteAllowed(config, target);
+  assertDestructiveAllowed(config);
 }
 
 export function safetyDetails(config: VbMatrixConfig): Record<string, unknown> {
