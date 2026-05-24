@@ -14,9 +14,12 @@ import {
   quoteDeviceName,
   removeChannelLabelCommand,
   removeSlotDeviceCommand,
+  resetZoneCommand,
   restartEngineCommand,
   resetSlotCommand,
   resetChannelCommand,
+  addZoneCommand,
+  copyZoneCommand,
   setChannelLabelCommand,
   setPointGainCommand,
   setPointMuteCommand,
@@ -27,12 +30,18 @@ import {
   setSlotDeviceCommand,
   setSlotMasterCommand,
   setSlotOnlineCommand,
+  setZoneGainCommand,
+  setZoneMuteCommand,
+  setZonePhaseCommand,
   slotPropertyQuery,
+  storeZoneCommand,
   validateChannelIndex,
   validateChannelRange,
   validateGain,
   validateLabel,
+  validatePresetNumber,
   validateSlotDeviceKind,
+  zoneExpression,
 } from '../../src/core/commands.js';
 
 const target = {
@@ -47,6 +56,17 @@ const rangeTarget = {
   inputChannels: { start: 1, end: 2 },
   outputSuid: 'ASIO128',
   outputChannels: { start: 125, end: 126 },
+};
+
+const zoneTarget = {
+  startInputSuid: 'VASIO8',
+  startInputChannel: 1,
+  startOutputSuid: 'ASIO128',
+  startOutputChannel: 125,
+  endInputSuid: 'VASIO8',
+  endInputChannel: 2,
+  endOutputSuid: 'ASIO128',
+  endOutputChannel: 126,
 };
 
 describe('VBMatrix command builders', () => {
@@ -81,6 +101,34 @@ describe('VBMatrix command builders', () => {
         outputChannels: { start: 126, end: 126 },
       })
     ).toBe('Point(VASIO8.IN[1],ASIO128.OUT[126])');
+  });
+
+  test('builds documented zone commands', () => {
+    expect(zoneExpression(zoneTarget)).toBe('Zone(VASIO8.IN[1], ASIO128.OUT[125]: VASIO8.IN[2], ASIO128.OUT[126])');
+    expect(setZoneGainCommand(zoneTarget, -6)).toBe(
+      'Zone(VASIO8.IN[1], ASIO128.OUT[125]: VASIO8.IN[2], ASIO128.OUT[126]).dBGain=-6;'
+    );
+    expect(setZoneGainCommand(zoneTarget, '-inf')).toBe(
+      'Zone(VASIO8.IN[1], ASIO128.OUT[125]: VASIO8.IN[2], ASIO128.OUT[126]).Reset;'
+    );
+    expect(setZoneMuteCommand(zoneTarget, true)).toBe(
+      'Zone(VASIO8.IN[1], ASIO128.OUT[125]: VASIO8.IN[2], ASIO128.OUT[126]).Mute=1;'
+    );
+    expect(setZonePhaseCommand(zoneTarget, false)).toBe(
+      'Zone(VASIO8.IN[1], ASIO128.OUT[125]: VASIO8.IN[2], ASIO128.OUT[126]).Phase=0;'
+    );
+    expect(resetZoneCommand(zoneTarget)).toBe(
+      'Zone(VASIO8.IN[1], ASIO128.OUT[125]: VASIO8.IN[2], ASIO128.OUT[126]).Reset;'
+    );
+    expect(copyZoneCommand(zoneTarget)).toBe(
+      'Zone(VASIO8.IN[1], ASIO128.OUT[125]: VASIO8.IN[2], ASIO128.OUT[126]).Copy;'
+    );
+    expect(storeZoneCommand(zoneTarget, 3)).toBe(
+      'Zone(VASIO8.IN[1], ASIO128.OUT[125]: VASIO8.IN[2], ASIO128.OUT[126]).Store=3;'
+    );
+    expect(addZoneCommand(zoneTarget, 4)).toBe(
+      'Zone(VASIO8.IN[1], ASIO128.OUT[125]: VASIO8.IN[2], ASIO128.OUT[126]).Add=4;'
+    );
   });
 
   test('builds slot and command queries', () => {
@@ -160,6 +208,8 @@ describe('VBMatrix command builders', () => {
     expect(() => validateGain(-101)).toThrow(/Gain must be/);
     expect(() => validateGain(25)).toThrow(/Gain must be/);
     expect(() => validateGain('-inf')).not.toThrow();
+    expect(() => validatePresetNumber(0)).toThrow(/positive integer/);
+    expect(() => validatePresetNumber(1)).not.toThrow();
   });
 
   test('uses documented one-based channel numbers', () => {

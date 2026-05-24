@@ -144,6 +144,7 @@ Grouped operations should be added only after the underlying primitive tools and
 Current grouped operations:
 
 - `vbmatrix_apply_point_range` applies gain, mute, phase, or remove to an explicit `IN[start..end]` and `OUT[start..end]` point range. It dry-runs by default, requires `confirmApply=true` to execute, and reports a state-query caveat unless the range is exactly one point.
+- `vbmatrix_apply_zone` applies documented `Zone(...)` gain, mute, phase, reset, copy, store, and add operations to an explicit two-corner Matrix zone. It dry-runs by default, requires `confirmApply=true` to execute, and reports a state-query caveat because aggregate zone status queries are not documented.
 
 ### Layer 3: workflows
 
@@ -177,7 +178,7 @@ Write responses should include:
 - Raw free-form command execution.
 - Full-matrix scans by default.
 - Preset patch editing.
-- Zone operations until the exact documented `Zone(...)` grammar is captured or live-verified.
+- Zone paste or aggregate zone queries until documented or live-verified.
 - Broad `Remove`, `Reset`, `ResetGrid`, or `Shutdown` tools.
 - VBAN SERVICE subscriptions or meter streaming.
 - VBAN service/stream configuration writes. No source-linked Matrix command surface is currently documented for this; use the Matrix UI with an operator in the loop.

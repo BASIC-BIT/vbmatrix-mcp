@@ -16,6 +16,7 @@ MVP goals:
 - Query, set, and remove input/output channel labels.
 - Mutate a routing point's gain, mute, or phase by default, with server-side opt-out available.
 - Mutate explicit point ranges with dry-run/confirmation safeguards.
+- Mutate documented Matrix zones with dry-run/confirmation safeguards.
 - Expose channel route resets and engine restart by default, with server-side opt-out available.
 - Capture, diff, and plan/restore targeted Matrix snapshots for explicit slots and points.
 
@@ -139,6 +140,7 @@ Current primitive write/destructive tools:
 - `vbmatrix_set_point_phase`
 - `vbmatrix_remove_point`
 - `vbmatrix_apply_point_range` (dry-runs by default; supports `gain`, `mute`, `phase`, and `remove`.)
+- `vbmatrix_apply_zone` (dry-runs by default; supports `gain`, `mute`, `phase`, `reset`, `copy`, `store`, and `add`.)
 - `vbmatrix_set_slot_online`
 - `vbmatrix_set_slot_master`
 - `vbmatrix_reset_slot` (`confirm: true` required; destructive gate)
@@ -154,7 +156,7 @@ Write tools are available by default so the user's MCP harness can decide what s
 
 Future tools should keep natural-language interpretation in the agent layer. MCP schemas should use explicit SUIDs, channels, enum-like values, booleans, and bounded numbers instead of free-form routing goals.
 
-Zone routing tools are intentionally deferred until the exact documented `Zone(...)` VBAN-TEXT grammar is captured or live-verified. The server does not expose guessed zone commands.
+`vbmatrix_apply_zone` uses the documented `Zone(SUID.IN[n], SUID.OUT[j]: SUID.IN[k], SUID.OUT[l])` VBAN-TEXT grammar from VB-Audio's forum. It dry-runs by default, requires `confirmApply: true` when `dryRun: false`, and reports that zone aggregate before/after state queries are not documented.
 
 ## Label And Reset Recipes
 
@@ -202,6 +204,26 @@ Reset all routes for one output channel:
 ```
 
 Range label setting is intentionally not exposed yet. The current Matrix manual documents range label queries and range label removal with an empty `Name`, but not assigning one non-empty label across a range.
+
+Dry-run a zone mute across a documented Matrix rectangle:
+
+```json
+{
+  "startInputSuid": "VASIO8",
+  "startInputChannel": 1,
+  "startOutputSuid": "ASIO128",
+  "startOutputChannel": 125,
+  "endInputSuid": "VASIO8",
+  "endInputChannel": 2,
+  "endOutputSuid": "ASIO128",
+  "endOutputChannel": 126,
+  "operation": "mute",
+  "muted": true,
+  "dryRun": true
+}
+```
+
+Review the returned `command` before execution. Zone `reset` and `gainDb: "-inf"` build `Zone(...).Reset;` and require the destructive gate when executed.
 
 Snapshot tools are targeted, not full-matrix scans. A snapshot contains selected slot metadata and selected point gain/mute/phase state; labels and preset metadata are listed as omissions until supported by typed VBAN-TEXT queries. Large snapshots are written to `.vbmatrix-snapshots/` and omitted from inline MCP responses by default.
 

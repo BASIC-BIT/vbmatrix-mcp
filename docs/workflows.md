@@ -229,6 +229,33 @@ Use this when a live routing experiment needs cleanup but there is no safe broad
 
 Do not use engine restart, raw VBAN commands, or broad reset/remove commands as cleanup shortcuts unless the operator explicitly accepts the disruption outside this MCP tool surface.
 
+## Zone Apply With Dry-Run
+
+Use this when the operator has provided exact Matrix zone corners and a concrete zone operation.
+
+1. Capture the exact `startInputSuid`, `startInputChannel`, `startOutputSuid`, `startOutputChannel`, `endInputSuid`, `endInputChannel`, `endOutputSuid`, and `endOutputChannel`.
+2. Dry-run `vbmatrix_apply_zone` and inspect the returned `command`.
+3. Confirm that the operator accepts the zone scope and that no aggregate before/after state query is available.
+4. Execute only with `dryRun: false` and `confirmApply: true` after approval.
+
+```text
+vbmatrix_apply_zone({
+  "startInputSuid": "VASIO8",
+  "startInputChannel": 1,
+  "startOutputSuid": "ASIO128",
+  "startOutputChannel": 125,
+  "endInputSuid": "VASIO8",
+  "endInputChannel": 2,
+  "endOutputSuid": "ASIO128",
+  "endOutputChannel": 126,
+  "operation": "gain",
+  "gainDb": -6,
+  "dryRun": true
+})
+```
+
+Zone reset and `gainDb: "-inf"` build `Zone(...).Reset;`; execute them only when the destructive gate is enabled and the operator explicitly approves route removal.
+
 ## Live Audio Evidence Workflow
 
 Use this when diagnosing a problem during or after a live session.
