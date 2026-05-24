@@ -4,6 +4,7 @@
 
 - Added fixed read-only `npm run diagnostics:vban` scenarios for VBAN setup troubleshooting.
 - Added `vbmatrix_safe_route_workflow` for explicit point audition, cleanup, and emergency mute dry-runs with snapshot rollback data.
+- Documented the Voicemeeter read-only discovery, VBAN-TEXT smoke-test plan, and provider safety design boundaries.
 
 ## 0.1.0
 
