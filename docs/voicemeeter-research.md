@@ -188,27 +188,20 @@ Long term:
 - If both providers ship in one package, consider renaming repo/package to `vbaudio-mcp` or creating a monorepo with packages such as `@basicbit/vbmatrix-mcp`, `@basicbit/voicemeeter-mcp`, and optionally `@basicbit/vbaudio-mcp` as a combined server.
 - If Voicemeeter support requires native dependencies, a sibling package may be cleaner than adding Windows-only FFI concerns to the Matrix package.
 
-## Recommended Follow-Up Issues
+## Follow-Up Issues
 
-These are proposed issue scopes only; no GitHub issues were created by this research pass.
+This research supports expansion only through narrow, product-specific follow-up work. The implementation follow-ups are intentionally grouped into a small number of larger, agent-ready issues:
 
-1. Add a read-only Voicemeeter Remote API discovery spike.
-   Scope: choose a TypeScript FFI/helper-process strategy, call login, get type, get version, and logout. Return structured edition metadata only.
+1. [#24 Spike read-only Voicemeeter Remote API discovery](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/24)
+   Scope: choose a TypeScript FFI/helper-process strategy, call login, get type, get version, and logout. Return structured edition metadata only. Do not add generic parameter strings, scripts, write tools, MacroButtons mutation, audio callbacks, or raw VBAN command execution.
 
-2. Define a Voicemeeter parameter allowlist and typed validators.
-   Scope: start with `Strip[i].mute`, `Strip[i].gain`, `Strip[i].A1/B1`, and `Bus[i].mute/gain`, with edition-aware index bounds. Do not expose generic parameter strings as public write tools.
+2. [#22 Research Voicemeeter VBAN-TEXT query and reply behavior](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/22)
+   Scope: with operator approval and a local install, send a read-only parameter query over the configured VBAN-TEXT stream and document whether replies use normal TEXT, SERVICE `Request Reply`, no reply, or another mechanism. This must land before any typed Voicemeeter VBAN tools rely on query/reply behavior.
 
-3. Verify Voicemeeter VBAN-TEXT query behavior.
-   Scope: with operator approval and a local install, send a read-only parameter query over the configured VBAN-TEXT stream and document whether replies use normal TEXT, SERVICE `Request Reply`, no reply, or another mechanism.
+3. [#23 Design Voicemeeter provider capabilities and safety model](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/23)
+   Scope: define Voicemeeter provider capabilities, edition-aware validators, future write safety gates, tool naming, label/device/level/preset/MacroButtons boundaries, and whether native DLL integration belongs in this package or a sibling `voicemeeter-mcp` package. Feed concrete requirements into [#16](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/16).
 
-4. Evaluate a sibling `voicemeeter-mcp` package.
-   Scope: compare native DLL integration complexity against keeping this package pure UDP/TypeScript.
-
-5. Add read-only level/meter monitoring design.
-   Scope: compare Remote API `VBVMR_GetLevel` polling against VBAN real-time packet subscriptions, including update rates and MCP resource/tool shape.
-
-6. Research preset and MacroButtons boundaries.
-   Scope: source supported preset file/script formats and MacroButtons behavior. Recommend whether MCP should expose numbered button status/trigger only, or typed macro administration tools.
+These issues cover the earlier candidate scopes for typed parameter validators, sibling-package evaluation, level/meter monitoring design, preset boundaries, and MacroButtons boundaries without splitting them into tiny chores.
 
 ## Unresolved Questions
 
