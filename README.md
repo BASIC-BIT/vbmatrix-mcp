@@ -133,8 +133,9 @@ npm run check
 npm run pack:check
 ```
 
-See `docs/architecture.md`, `docs/design.md`, and `docs/safety.md` for the initial design.
+See `docs/architecture.md`, `docs/design.md`, `docs/safety.md`, `docs/skills.md`, and `docs/workflows.md` for the initial design and applied workflows.
 
-Repo-local OpenCode setup skill:
+Repo-local OpenCode skills:
 
-- `.opencode/skills/vbmatrix-setup/SKILL.md`
+- Catalog: `docs/skills.md`
+- Skills: `.opencode/skills/*/SKILL.md`
