@@ -24,8 +24,10 @@ export function matrixCapabilitiesPayload(): Record<string, unknown> {
     provider: matrixProviderMetadata,
     capabilitySemantics:
       'Capability groups describe implemented tool families, not whether environment safety gates currently allow writes or destructive execution.',
-    registeredProviders: [matrixProviderMetadata.id],
-    unavailableProviders: [],
+    providerScope: {
+      currentProvider: matrixProviderMetadata.id,
+      note: 'This is a Matrix-specific capability report, not a registry-wide product inventory.',
+    },
     compatibility: {
       existingToolPrefixStable: true,
       productNeutralTools: 'not exposed until multiple product providers have shipped compatible behavior',

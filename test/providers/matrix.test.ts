@@ -19,7 +19,10 @@ describe('Matrix product provider metadata', () => {
       ok: true,
       capabilitySemantics:
         'Capability groups describe implemented tool families, not whether environment safety gates currently allow writes or destructive execution.',
-      registeredProviders: ['matrix'],
+      providerScope: {
+        currentProvider: 'matrix',
+        note: 'This is a Matrix-specific capability report, not a registry-wide product inventory.',
+      },
       compatibility: {
         existingToolPrefixStable: true,
         productNeutralTools: 'not exposed until multiple product providers have shipped compatible behavior',

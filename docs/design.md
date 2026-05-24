@@ -187,4 +187,4 @@ Write responses should include:
 
 ## Provider Migration Note
 
-Existing `vbmatrix_*` tool names are stable. The current provider boundary registers Matrix as the only product provider and reports product capability groups through `vbmatrix_get_capabilities`. Future Voicemeeter work should add explicit `voicemeeter_*` tools behind a product-specific provider first. Product-neutral `vbaudio_*` tools should remain deferred until both providers have shipped and a compatibility layer can be documented without changing existing Matrix behavior.
+Existing `vbmatrix_*` tool names are stable. The current provider boundary registers Matrix as the only product provider and reports Matrix capability groups through `vbmatrix_get_capabilities`. Future Voicemeeter work should add explicit `voicemeeter_*` tools behind a product-specific provider first. Product-neutral `vbaudio_*` tools should remain deferred until both providers have shipped and a compatibility layer can be documented without changing existing Matrix behavior.
