@@ -34,6 +34,12 @@ Run locally during development:
 npm run dev
 ```
 
+Direct VBAN-TEXT smoke test after VBMatrix is configured:
+
+```bash
+npm run smoke:vban
+```
+
 ## MCP Client Config
 
 ### OpenCode
@@ -117,3 +123,7 @@ npm run check
 ```
 
 See `docs/architecture.md`, `docs/design.md`, and `docs/safety.md` for the initial design.
+
+Repo-local OpenCode setup skill:
+
+- `.opencode/skills/vbmatrix-setup/SKILL.md`

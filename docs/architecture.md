@@ -36,3 +36,8 @@ VBMatrix MCP is organized around explicit, testable layers. The MCP layer should
 
 - `test/core` focuses on deterministic command strings, packet generation, parsing, and safety behavior.
 - Live VBMatrix tests are intentionally not included yet. Add opt-in live tests later with a gitignored fixture describing safe SUID/channel ranges.
+
+## Setup automation
+
+- `.opencode/skills/vbmatrix-setup/SKILL.md` is the repo-local setup playbook for agents.
+- `scripts/vban-smoke.ts` provides a direct VBAN-TEXT smoke test outside MCP harnesses.
