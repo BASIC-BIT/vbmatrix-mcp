@@ -25,6 +25,6 @@
       "@modelcontextprotocol/sdk/*": ["./node_modules/@modelcontextprotocol/sdk/dist/esm/*"]
     }
   },
-  "include": ["src", "bin", "scripts/live-audio-verify.ts"],
+  "include": ["src", "bin", "scripts/*.ts"],
   "exclude": ["dist", "node_modules", "test"]
 }
