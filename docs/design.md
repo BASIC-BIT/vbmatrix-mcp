@@ -17,6 +17,13 @@ Packet basics:
 - Frame counter: 32-bit little-endian.
 - Payload: UTF-8 VBMatrix command string.
 
+Matrix query replies are accepted from two packet shapes:
+
+- VBAN-TEXT packets on the configured command stream, retained for compatibility with text-style responders.
+- VBAN SERVICE protocol `0x60` packets on stream `Request Reply`, which is the observed VB-Audio Matrix query reply path.
+
+`VBMATRIX_STREAM` configures the incoming command stream, normally `Command1`. It should not be set to `Request Reply`; that stream is used by Matrix for responses.
+
 ## Command model
 
 Core read commands:
@@ -69,6 +76,7 @@ Current primitives:
 Read tools are small and direct:
 
 - `vbmatrix_ping` returns version and connection metadata.
+- `vbmatrix_vban_diagnostics` sends the same version query and returns packet classification, ignored stream/protocol details, timeout classification, and setup hints. Zero-packet timeouts are reported as `no_packets_observed` and indeterminate; observed wrong-stream, unsupported-protocol, and malformed-packet cases remain distinct.
 - `vbmatrix_get_engine` queries engine state.
 - `vbmatrix_get_master` queries master clock state.
 - `vbmatrix_get_slot_info` returns slot properties.
@@ -151,3 +159,4 @@ Write responses should include:
 - Preset patch editing.
 - `Remove`, `Reset`, `ResetGrid`, or `Shutdown` tools.
 - VBAN SERVICE subscriptions or meter streaming.
+- VBAN service/stream configuration writes. No source-linked Matrix command surface is currently documented for this; use the Matrix UI with an operator in the loop.

@@ -6,7 +6,7 @@ import {
   type PointState,
   type PointTarget,
 } from './commands.js';
-import { sendVbanTextCommand } from './vbanText.js';
+import { sendVbanTextCommand, sendVbanTextCommandWithDiagnostics } from './vbanText.js';
 
 export class VbMatrixClient {
   readonly config: VbMatrixConfig;
@@ -35,6 +35,17 @@ export class VbMatrixClient {
     });
     if (response === null) throw new Error(`No response for query: ${command}`);
     return response.trim();
+  }
+
+  async queryWithDiagnostics(command: string) {
+    const result = await sendVbanTextCommandWithDiagnostics(command, {
+      host: this.config.host,
+      port: this.config.port,
+      streamName: this.config.streamName,
+      timeoutMs: this.config.timeoutMs,
+      waitForResponse: true,
+    });
+    return { ...result, response: result.response?.trim() ?? null };
   }
 
   async queryValue(command: string): Promise<string> {
