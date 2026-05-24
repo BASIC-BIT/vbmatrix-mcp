@@ -185,7 +185,7 @@ npm run check
 npm run pack:check
 ```
 
-See `docs/architecture.md`, `docs/client-config.md`, `docs/design.md`, `docs/safety.md`, `docs/live-audio-verification.md`, `docs/release.md`, `docs/skills.md`, and `docs/workflows.md` for design, client onboarding, verification, release, and applied workflows.
+See `docs/architecture.md`, `docs/client-config.md`, `docs/design.md`, `docs/safety.md`, `docs/live-audio-verification.md`, `docs/release.md`, `docs/skills.md`, `docs/workflows.md`, `docs/agentic-workflow.md`, and `docs/improvement-log.md` for design, client onboarding, verification, release, applied workflows, and lightweight maintainer loops.
 
 Repo-local OpenCode skills:
 
