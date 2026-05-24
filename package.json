@@ -1,6 +1,6 @@
 {
   "name": "@basicbit/vbmatrix-mcp",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "mcpName": "io.github.BASIC-BIT/vbmatrix-mcp",
   "description": "MCP server for VB-Audio Matrix over VBAN-TEXT.",
   "type": "module",
@@ -9,7 +9,8 @@
     "access": "public"
   },
   "bin": {
-    "vbmatrix-mcp": "dist/bin/cli.js"
+    "vbmatrix-mcp": "dist/bin/cli.js",
+    "vbmatrix-mcp-doctor": "dist/scripts/doctor.js"
   },
   "files": [
     "dist",
@@ -19,6 +20,8 @@
     "docs/design.md",
     "docs/improvement-log.md",
     "docs/live-audio-verification.md",
+    "docs/client-config.md",
+    "docs/release.md",
     "docs/research.md",
     "docs/voicemeeter-research.md",
     "docs/safety.md",
@@ -45,6 +48,7 @@
     "preverify:live-audio": "npm run build",
     "prepack": "npm run build",
     "pack:check": "npm pack --dry-run",
+    "doctor": "tsx scripts/doctor.ts",
     "smoke:vban": "tsx scripts/vban-smoke.ts",
     "verify:live-audio": "node dist/scripts/live-audio-verify.js",
     "start": "node dist/bin/cli.js"
