@@ -18,8 +18,11 @@ npm ci
 npm run check
 npm run build
 npm run doctor
+npm run package:smoke
 npm run pack:check
 ```
+
+`package:smoke` is a local dry-run package verification. It inspects built artifacts, confirms the CLI and doctor bin targets, and checks `npm pack --dry-run --json --ignore-scripts` contents without starting the long-lived MCP stdio server.
 
 Optional live checks, only with a local Matrix operator present:
 
@@ -37,9 +40,17 @@ npm run verify:live-audio
 - Update `CHANGELOG.md` with date, package name, and operator-facing changes.
 - Confirm `docs/client-config.md` still matches the published CLI/package command.
 - Confirm `npm run doctor` reports no failed static checks after `npm run build`.
+- Confirm `npm run package:smoke` passes and does not start a persistent MCP session.
 - Confirm `npm run pack:check` includes `dist`, `server.json`, README, changelog, docs, examples, and skills needed by users.
 - Request explicit operator approval before `npm publish`.
 - Request explicit operator approval before creating a GitHub release or pushing tags.
+
+## Automation Gates
+
+- CI may run linting, typechecking, tests, builds, `package:smoke`, and dry-run package inspection on supported Node/OS combinations.
+- Release automation must stay manual and dry-run only unless an operator explicitly approves publishing in the current release session.
+- Do not configure workflows to publish to npm, create GitHub releases, push tags, or run live VB-Audio validation by default.
+- Live VB-Audio checks remain opt-in/manual because they depend on local Matrix state and operator supervision.
 
 ## Publishing Commands
 

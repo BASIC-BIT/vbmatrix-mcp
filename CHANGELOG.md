@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added CI package smoke verification for dry-run package contents and CLI bin metadata.
 - Added a Matrix provider boundary and `vbmatrix_get_capabilities` read tool for future product adapters.
 - Added fixed read-only `npm run diagnostics:vban` scenarios for VBAN setup troubleshooting.
 - Added deterministic mocked UDP coverage for VBAN negative packet and timeout scenarios, plus error taxonomy compatibility notes.
