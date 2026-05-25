@@ -79,6 +79,17 @@ describe('Matrix file path policy', () => {
     expect(() =>
       validateMatrixFilePath({ kind: 'presetPatch', operation: 'load', filePath }, policies)
     ).toThrow(/outside allowed roots/);
+
+    expect(() =>
+      validateMatrixFilePath(
+        {
+          kind: 'presetPatch',
+          operation: 'load',
+          filePath: 'D:\\MatrixState\\Presets\\..\\Other\\Scene.vbm-preset',
+        },
+        policies
+      )
+    ).toThrow(/outside allowed roots/);
   });
 
   test('rejects UNC candidates and roots', () => {
@@ -109,5 +120,21 @@ describe('Matrix file path policy', () => {
     expect(() => validateMatrixFilePath({ kind: 'project', operation: 'load', filePath }, policies)).toThrow(
       /No Matrix file path policy configured/
     );
+  });
+
+  test('rejects policies with empty roots or extensions', () => {
+    const filePath = path.win32.join(root, 'Scene.vbm-preset');
+
+    expect(() =>
+      validateMatrixFilePath({ kind: 'presetPatch', operation: 'load', filePath }, [
+        { kind: 'presetPatch', allowedRoots: [], allowedExtensions: ['.vbm-preset'] },
+      ])
+    ).toThrow(/No allowed Matrix file roots/);
+
+    expect(() =>
+      validateMatrixFilePath({ kind: 'presetPatch', operation: 'load', filePath }, [
+        { kind: 'presetPatch', allowedRoots: [root], allowedExtensions: [] },
+      ])
+    ).toThrow(/No allowed Matrix file extensions/);
   });
 });

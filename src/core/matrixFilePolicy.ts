@@ -68,8 +68,9 @@ export function validateMatrixFilePath(
 
   const policy = policies.find((candidate) => candidate.kind === request.kind);
   if (policy === undefined) throw new Error(`No Matrix file path policy configured for ${request.kind}`);
-  if (policy.allowedRoots.length === 0)
+  if (policy.allowedRoots.length === 0) {
     throw new Error(`No allowed Matrix file roots configured for ${request.kind}`);
+  }
   if (policy.allowedExtensions.length === 0) {
     throw new Error(`No allowed Matrix file extensions configured for ${request.kind}`);
   }
