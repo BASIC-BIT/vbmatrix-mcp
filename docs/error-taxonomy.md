@@ -28,3 +28,4 @@ This project keeps MCP stdout reserved for protocol traffic. Diagnostics, script
 
 - Error strings may change as messages become more actionable. Prefer stable `SafetyError.code`, timeout diagnostic classifications, and structured tool payload fields over matching prose.
 - Write tools are available by default so the MCP harness can enforce operator approval. Hardened deployments should set `VBMATRIX_MCP_ALLOW_WRITES=false`, `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` as appropriate.
+- See `docs/api-compatibility.md` for the broader tool name, input schema, response shape, and breaking-change policy.
