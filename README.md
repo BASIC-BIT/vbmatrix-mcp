@@ -66,7 +66,7 @@ Matrix query replies are expected as VBAN SERVICE packets on stream `Request Rep
 
 `vbmatrix_vban_diagnostics` reports observed packet reasons such as wrong stream, unsupported protocol, or malformed packet data. If no UDP packets arrive before timeout, it reports `no_packets_observed` as indeterminate because UDP cannot reliably prove whether the cause is no listener, no command-stream reply, disabled stream, firewall/network block, wrong host/port, or Matrix not running.
 
-See `docs/error-taxonomy.md` for compatibility notes on timeout classifications, Matrix `Err` replies, safety errors, and protocol-safe diagnostics.
+See `docs/error-taxonomy.md` for compatibility notes on timeout classifications, Matrix `Err` replies, safety errors, and protocol-safe diagnostics. See `docs/matrix-validation-evidence.md` for live-tested, mocked-tested, docs-only, and deferred Matrix validation evidence.
 
 Manual live audio verification harness:
 
@@ -102,7 +102,7 @@ The tool surface is intentionally layered:
 - Grouped operation tools should coordinate several primitives for one explicit, typed task and include preview/dry-run support before broad writes.
 - Workflow tools should be rare; prefer skills or playbooks when the task needs human judgment or fuzzy intent interpretation.
 
-See `docs/matrix-command-coverage.md` for the source-linked Matrix command coverage registry, including implemented, partial, deferred, unsafe/destructive/file-affecting, and unknown command families.
+See `docs/matrix-command-coverage.md` for the source-linked Matrix command coverage registry, including implemented, partial, deferred, unsafe/destructive/file-affecting, and unknown command families. See `docs/matrix-validation-evidence.md` for current validation evidence levels and the live evidence capture template.
 
 Current primitive read tools:
 
