@@ -100,6 +100,8 @@ The tool surface is intentionally layered:
 - Grouped operation tools should coordinate several primitives for one explicit, typed task and include preview/dry-run support before broad writes.
 - Workflow tools should be rare; prefer skills or playbooks when the task needs human judgment or fuzzy intent interpretation.
 
+See `docs/matrix-command-coverage.md` for the source-linked Matrix command coverage registry, including implemented, partial, deferred, unsafe/destructive/file-affecting, and unknown command families.
+
 Current primitive read tools:
 
 - `vbmatrix_get_capabilities`
