@@ -1,10 +1,38 @@
 import { z } from 'zod';
 import { MAX_GAIN_DB, MAX_MATRIX_CHANNEL, MIN_GAIN_DB, MIN_MATRIX_CHANNEL } from '../core/commands.js';
+import {
+  MAX_ROUTE_INSPECTION_POINTS,
+  MAX_SLOT_INSPECTION_SLOTS,
+  MAX_SLOT_LABEL_CHANNELS_PER_SIDE,
+} from '../core/observability.js';
 
 export const EmptySchema = z.object({});
 
 export const SlotInputSchema = z.object({
   suid: z.string().min(1).describe('VBMatrix slot unique identifier, for example VASIO8, VAIO1, or ASIO128.'),
+});
+
+export const InspectSlotTargetSchema = SlotInputSchema.extend({
+  inputChannels: z
+    .array(z.number().int().min(MIN_MATRIX_CHANNEL).max(MAX_MATRIX_CHANNEL))
+    .max(MAX_SLOT_LABEL_CHANNELS_PER_SIDE)
+    .default([])
+    .describe('Input-side channels whose labels should be queried for this slot.'),
+  outputChannels: z
+    .array(z.number().int().min(MIN_MATRIX_CHANNEL).max(MAX_MATRIX_CHANNEL))
+    .max(MAX_SLOT_LABEL_CHANNELS_PER_SIDE)
+    .default([])
+    .describe('Output-side channels whose labels should be queried for this slot.'),
+});
+
+export const InspectSlotsSchema = z.object({
+  slots: z
+    .array(InspectSlotTargetSchema)
+    .min(1)
+    .max(MAX_SLOT_INSPECTION_SLOTS)
+    .describe('Explicit slots to inspect. No full Matrix device scan is performed.'),
+  includeSlotState: z.boolean().default(true).describe('Query slot info, online, running status, master, and device.'),
+  includeLabels: z.boolean().default(true).describe('Query requested input/output channel labels.'),
 });
 
 export const PresetPatchIndexSchema = z.object({
@@ -26,6 +54,17 @@ export const PointTargetSchema = z.object({
     .min(MIN_MATRIX_CHANNEL)
     .max(MAX_MATRIX_CHANNEL)
     .describe('Output channel number. VBMatrix command syntax is documented as 1-based.'),
+});
+
+export const InspectRoutesSchema = z.object({
+  points: z
+    .array(PointTargetSchema)
+    .min(1)
+    .max(MAX_ROUTE_INSPECTION_POINTS)
+    .describe('Explicit routing points to inspect. No broad Matrix scan is performed.'),
+  includeSystem: z.boolean().default(true).describe('Query Command.Engine and Command.Master.'),
+  includeSlots: z.boolean().default(true).describe('Query unique input/output slot states for the selected points.'),
+  includeLabels: z.boolean().default(true).describe('Query input/output channel labels for the selected points.'),
 });
 
 export const ChannelRangeSchema = z

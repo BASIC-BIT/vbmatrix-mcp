@@ -109,6 +109,8 @@ Current primitive read tools:
 - `vbmatrix_get_capabilities`
 - `vbmatrix_ping`
 - `vbmatrix_vban_diagnostics`
+- `vbmatrix_inspect_routes`
+- `vbmatrix_inspect_slots`
 - `vbmatrix_get_engine`
 - `vbmatrix_get_master`
 - `vbmatrix_get_slot_info`

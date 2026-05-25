@@ -1,5 +1,6 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { registerChannelTools } from '../tools/channels.js';
+import { registerObservabilityTools } from '../tools/observability.js';
 import { registerPointTools } from '../tools/points.js';
 import { registerPresetPatchTools } from '../tools/presetPatches.js';
 import { registerSafeRoutingTools } from '../tools/safeRouting.js';
@@ -13,6 +14,7 @@ import type { ProductProvider } from './types.js';
 
 function registerMatrixTools(server: McpServer): void {
   registerStatusTools(server);
+  registerObservabilityTools(server);
   registerPointTools(server);
   registerZoneTools(server);
   registerChannelTools(server);

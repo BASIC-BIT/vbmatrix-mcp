@@ -6,6 +6,8 @@ export const matrixProviderMetadata = {
   capabilities: [
     'status',
     'vbanDiagnostics',
+    'routeInspection',
+    'slotInspection',
     'points',
     'pointRanges',
     'zones',

@@ -158,6 +158,8 @@ After client discovery succeeds, start with read-only tools:
 ```text
 vbmatrix_ping
 vbmatrix_vban_diagnostics
+vbmatrix_inspect_routes
+vbmatrix_inspect_slots
 vbmatrix_get_engine
 ```
 
