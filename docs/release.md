@@ -48,7 +48,7 @@ npm run verify:live-audio
 ## Automation Gates
 
 - CI may run linting, typechecking, tests, builds, `package:smoke`, and dry-run package inspection on supported Node/OS combinations.
-- The `Release Dry Run` workflow is manual-only through `workflow_dispatch`, uses read-only repository permissions, and uploads only local `npm pack` artifacts for operator inspection.
+- The `Release Dry Run` workflow is manual-only through `workflow_dispatch`, uses read-only repository permissions, pins GitHub Actions to immutable SHAs, and uploads only local `npm pack` artifacts for operator inspection.
 - Release automation must stay manual and dry-run only unless an operator explicitly approves publishing in the current release session.
 - Do not configure workflows to publish to npm, create GitHub releases, push tags, or run live VB-Audio validation by default.
 - Live VB-Audio checks remain opt-in/manual because they depend on local Matrix state and operator supervision.
