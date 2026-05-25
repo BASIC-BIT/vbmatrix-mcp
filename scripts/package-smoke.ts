@@ -50,7 +50,7 @@ expectFile('dist/scripts/doctor.js');
 
 const cliEntry = readFileSync(resolve(root, 'dist/bin/cli.js'), 'utf8');
 if (!cliEntry.startsWith('#!/usr/bin/env node')) fail('dist/bin/cli.js must keep its node shebang');
-if (!cliEntry.includes("import '../src/index.js';"))
+if (!/import ['"]\.\.\/src\/index\.js['"];/.test(cliEntry))
   fail('dist/bin/cli.js must import the MCP server entry point');
 
 const npmExecPath = process.env.npm_execpath;
@@ -65,7 +65,12 @@ const packJson = npmExecPath
       encoding: 'utf8',
       windowsHide: true,
     });
-const packResults = JSON.parse(packJson) as NpmPackResult[];
+let packResults: NpmPackResult[];
+try {
+  packResults = JSON.parse(packJson) as NpmPackResult[];
+} catch {
+  fail(`npm pack --dry-run --json produced non-JSON output:\n${packJson}`);
+}
 const packResult = packResults[0];
 if (!packResult) fail('npm pack dry-run returned no package metadata');
 if (packResult.name !== packageJson.name || packResult.version !== packageJson.version) {
