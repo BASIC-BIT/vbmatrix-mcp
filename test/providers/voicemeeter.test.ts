@@ -3,6 +3,7 @@ import { productProviders } from '../../src/providers/index.js';
 import {
   getVoicemeeterStatus,
   parseVoicemeeterHelperResponse,
+  runVoicemeeterHelper,
   voicemeeterEditionMetadata,
   type VoicemeeterHelperCommand,
 } from '../../src/providers/voicemeeterHelper.js';
@@ -27,7 +28,11 @@ describe('Voicemeeter product provider metadata', () => {
       ok: true,
       helperBoundary: {
         nativeDllsLoadedInMcpProcess: false,
-        configuredBy: ['VOICEMEETER_HELPER_COMMAND', 'VOICEMEETER_HELPER_ARGS'],
+        configuredBy: [
+          'VOICEMEETER_HELPER_COMMAND',
+          'VOICEMEETER_HELPER_ARGS',
+          'VOICEMEETER_HELPER_TIMEOUT_MS',
+        ],
       },
       compatibility: {
         matrixToolPrefixStable: true,
@@ -85,6 +90,35 @@ describe('Voicemeeter helper discovery', () => {
       availability: 'missing_install',
       running: false,
       error: 'Voicemeeter Remote DLL not found.',
+    });
+  });
+
+  test('classifies missing helper executable as helper failure', async () => {
+    const status = await runVoicemeeterHelper({
+      command: '__vbmatrix_missing_helper_executable__',
+      args: [],
+      timeoutMs: 1000,
+    });
+
+    expect(status).toMatchObject({
+      ok: false,
+      availability: 'helper_failed',
+      running: false,
+    });
+  });
+
+  test('caps helper stdout before parsing', async () => {
+    const status = await runVoicemeeterHelper({
+      command: process.execPath,
+      args: ['-e', 'process.stdout.write("x".repeat(70000)); setTimeout(() => {}, 5000);'],
+      timeoutMs: 1000,
+    });
+
+    expect(status).toMatchObject({
+      ok: false,
+      availability: 'helper_failed',
+      running: false,
+      error: 'Voicemeeter helper stdout exceeded 65536 bytes.',
     });
   });
 

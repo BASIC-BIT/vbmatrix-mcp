@@ -15,7 +15,11 @@ export function voicemeeterCapabilitiesPayload(): Record<string, unknown> {
     helperBoundary: {
       nativeDllsLoadedInMcpProcess: false,
       protocol: 'spawn an external helper process and parse one JSON status response from stdout',
-      configuredBy: ['VOICEMEETER_HELPER_COMMAND', 'VOICEMEETER_HELPER_ARGS'],
+      configuredBy: [
+        'VOICEMEETER_HELPER_COMMAND',
+        'VOICEMEETER_HELPER_ARGS',
+        'VOICEMEETER_HELPER_TIMEOUT_MS',
+      ],
       allowedRemoteApiCalls: [
         'VBVMR_Login',
         'VBVMR_GetVoicemeeterType',

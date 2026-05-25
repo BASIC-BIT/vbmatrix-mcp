@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 
 const DEFAULT_TIMEOUT_MS = 3000;
+const MAX_HELPER_OUTPUT_BYTES = 64 * 1024;
 
 export type VoicemeeterAvailability =
   | 'available'
@@ -122,33 +123,50 @@ export async function runVoicemeeterHelper(command: VoicemeeterHelperCommand): P
   return new Promise((resolve) => {
     let stdout = '';
     let stderr = '';
+    let stdoutBytes = 0;
+    let stderrBytes = 0;
     let settled = false;
     const child = spawn(command.command, command.args, {
       stdio: ['ignore', 'pipe', 'pipe'],
       windowsHide: true,
     });
 
-    const timeout = setTimeout(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    const failHelper = (error: string) => {
       if (settled) return;
       settled = true;
+      clearTimeout(timeout);
       child.kill();
       resolve({
         ok: false,
         availability: 'helper_failed',
         running: false,
         helper: { configured: true, command: command.command },
-        error: `Voicemeeter helper timed out after ${command.timeoutMs}ms.`,
+        error,
       });
+    };
+
+    timeout = setTimeout(() => {
+      failHelper(`Voicemeeter helper timed out after ${command.timeoutMs}ms.`);
     }, command.timeoutMs);
 
     child.stdout?.setEncoding('utf8');
     child.stdout?.on('data', (chunk: string) => {
+      stdoutBytes += Buffer.byteLength(chunk, 'utf8');
+      if (stdoutBytes > MAX_HELPER_OUTPUT_BYTES) {
+        failHelper(`Voicemeeter helper stdout exceeded ${MAX_HELPER_OUTPUT_BYTES} bytes.`);
+        return;
+      }
       stdout += chunk;
     });
     child.stderr?.setEncoding('utf8');
     child.stderr?.on('data', (chunk: string) => {
-      stderr += chunk;
+      stderrBytes += Buffer.byteLength(chunk, 'utf8');
+      if (stderrBytes <= MAX_HELPER_OUTPUT_BYTES) stderr += chunk;
       process.stderr.write(chunk);
+      if (stderrBytes > MAX_HELPER_OUTPUT_BYTES) {
+        failHelper(`Voicemeeter helper stderr exceeded ${MAX_HELPER_OUTPUT_BYTES} bytes.`);
+      }
     });
     child.on('error', (err) => {
       if (settled) return;
@@ -156,7 +174,7 @@ export async function runVoicemeeterHelper(command: VoicemeeterHelperCommand): P
       clearTimeout(timeout);
       resolve({
         ok: false,
-        availability: err.message.includes('ENOENT') ? 'missing_install' : 'helper_failed',
+        availability: 'helper_failed',
         running: false,
         helper: { configured: true, command: command.command },
         error: err.message,
