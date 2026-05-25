@@ -246,7 +246,8 @@ function parseAvailability(availability: unknown, running: unknown): Voicemeeter
     availability === 'not_running' ||
     availability === 'missing_install' ||
     availability === 'helper_failed' ||
-    availability === 'unsupported_platform'
+    availability === 'unsupported_platform' ||
+    availability === 'unknown'
   ) {
     return availability;
   }

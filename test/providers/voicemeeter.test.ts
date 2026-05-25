@@ -121,6 +121,22 @@ describe('Voicemeeter helper discovery', () => {
     });
   });
 
+  test('preserves explicit unknown helper availability', () => {
+    expect(
+      parseVoicemeeterHelperResponse(
+        JSON.stringify({ ok: false, availability: 'unknown', running: false, error: 'Indeterminate state.' }),
+        command.command,
+        0,
+        null
+      )
+    ).toMatchObject({
+      ok: false,
+      availability: 'unknown',
+      running: false,
+      error: 'Indeterminate state.',
+    });
+  });
+
   test('keeps unknown SDK type explicit', () => {
     expect(voicemeeterEditionMetadata(99)).toEqual({ type: 99, name: 'unknown', strips: 0, buses: 0 });
   });
