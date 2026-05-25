@@ -3,8 +3,8 @@ import { productProviders } from '../../src/providers/index.js';
 import { matrixCapabilitiesPayload, matrixProviderMetadata } from '../../src/providers/matrixMetadata.js';
 
 describe('Matrix product provider metadata', () => {
-  test('registers Matrix as the only current provider', () => {
-    expect(productProviders.map((provider) => provider.id)).toEqual(['matrix']);
+  test('keeps Matrix first in the product provider registry', () => {
+    expect(productProviders.map((provider) => provider.id)).toEqual(['matrix', 'voicemeeter']);
     expect(productProviders[0]).toMatchObject({
       displayName: 'VB-Audio Matrix',
       toolPrefix: 'vbmatrix',

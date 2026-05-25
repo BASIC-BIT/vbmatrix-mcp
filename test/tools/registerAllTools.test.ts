@@ -43,6 +43,8 @@ describe('tool registration', () => {
       'vbmatrix_diff_snapshots',
       'vbmatrix_restore_snapshot',
       'vbmatrix_restart_engine',
+      'voicemeeter_get_capabilities',
+      'voicemeeter_get_status',
     ]);
   });
 });

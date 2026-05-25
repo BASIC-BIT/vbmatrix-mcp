@@ -188,3 +188,25 @@ Write responses should include:
 ## Provider Migration Note
 
 Existing `vbmatrix_*` tool names are stable. The current provider boundary registers Matrix as the only product provider and reports Matrix capability groups through `vbmatrix_get_capabilities`. Future Voicemeeter work should add explicit `voicemeeter_*` tools behind a product-specific provider first. Product-neutral `vbaudio_*` tools should remain deferred until both providers have shipped and a compatibility layer can be documented without changing existing Matrix behavior.
+
+## Voicemeeter Helper Boundary
+
+The first Voicemeeter provider slice is read-only discovery/status only. It registers explicit `voicemeeter_*` tools and keeps the existing `vbmatrix_*` Matrix namespace unchanged.
+
+The MCP server must not load native Voicemeeter Remote API DLLs in-process. Instead, `voicemeeter_get_status` optionally spawns an external helper process configured by `VOICEMEETER_HELPER_COMMAND` and `VOICEMEETER_HELPER_ARGS`. The parent captures one JSON response from helper stdout and forwards helper stderr to server stderr for diagnostics.
+
+The helper protocol is intentionally narrow:
+
+```json
+{
+  "ok": true,
+  "availability": "available",
+  "running": true,
+  "type": 2,
+  "version": "3.1.1.1"
+}
+```
+
+Allowed helper-side Remote API calls for this slice are `VBVMR_Login`, `VBVMR_GetVoicemeeterType`, `VBVMR_GetVoicemeeterVersion`, and `VBVMR_Logout`. The helper must not call `VBVMR_RunVoicemeeter`, set parameters, set scripts, mutate MacroButtons, enumerate or change devices, or start audio callbacks.
+
+Unavailable states are first-class tool results rather than crashes: `helper_not_configured`, `unsupported_platform`, `missing_install`, `not_running`, `helper_failed`, and `unknown`. Edition metadata maps Remote API type `1` to Standard, `2` to Banana, and `3` to Potato.

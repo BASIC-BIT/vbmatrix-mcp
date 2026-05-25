@@ -13,7 +13,7 @@ Recommended direction:
 - Prototype Voicemeeter as a provider adapter behind explicit product-prefixed tools, or as a sibling package, before renaming to a unified VB-Audio MCP.
 - Prefer the official Voicemeeter Remote API SDK for local Voicemeeter control. Treat VBAN-TEXT as a narrower remote/macro transport until its query semantics are verified against Voicemeeter.
 
-Do not add broad `voicemeeter_*` tools yet. The next implementation step should be a narrow discovery/status spike with explicit edition detection and read-only parameters.
+Do not add broad `voicemeeter_*` tools yet. The first implementation slice is a narrow discovery/status helper boundary with explicit edition detection and no writes, raw parameters, scripts, or in-process native DLL loading.
 
 ## Sources
 
