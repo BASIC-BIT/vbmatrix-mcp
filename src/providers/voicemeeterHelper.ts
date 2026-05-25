@@ -70,30 +70,52 @@ export function voicemeeterHelperCommandFromEnv(
 }
 
 export async function getVoicemeeterStatus(
-  command = voicemeeterHelperCommandFromEnv(),
-  runHelper: RunVoicemeeterHelper = runVoicemeeterHelper
+  command?: VoicemeeterHelperCommand,
+  runHelper: RunVoicemeeterHelper = runVoicemeeterHelper,
+  platform: typeof process.platform = process.platform,
+  env: Record<string, string | undefined> = process.env
 ): Promise<VoicemeeterStatus> {
-  if (!command) {
+  const envHelperConfigured = Boolean(env.VOICEMEETER_HELPER_COMMAND?.trim());
+  if (platform !== 'win32') {
+    return {
+      ok: false,
+      availability: 'unsupported_platform',
+      running: false,
+      helper: {
+        configured: command !== undefined || envHelperConfigured,
+        ...(command ? { command: command.command } : {}),
+      },
+      error: 'Voicemeeter Remote API discovery is Windows-only.',
+    };
+  }
+
+  let resolvedCommand = command;
+  if (!resolvedCommand) {
+    try {
+      resolvedCommand = voicemeeterHelperCommandFromEnv(env);
+    } catch (err) {
+      return {
+        ok: false,
+        availability: 'helper_failed',
+        running: false,
+        helper: { configured: envHelperConfigured },
+        error: err instanceof Error ? err.message : 'Voicemeeter helper environment is invalid.',
+      };
+    }
+  }
+
+  if (!resolvedCommand) {
     return {
       ok: false,
       availability: 'helper_not_configured',
       running: false,
       helper: { configured: false },
-      error: 'Set VOICEMEETER_HELPER_COMMAND to a read-only helper executable to enable Voicemeeter discovery.',
+      error:
+        'Set VOICEMEETER_HELPER_COMMAND to a read-only helper executable to enable Voicemeeter discovery.',
     };
   }
 
-  if (process.platform !== 'win32') {
-    return {
-      ok: false,
-      availability: 'unsupported_platform',
-      running: false,
-      helper: { configured: true, command: command.command },
-      error: 'Voicemeeter Remote API discovery is Windows-only.',
-    };
-  }
-
-  return runHelper(command);
+  return runHelper(resolvedCommand);
 }
 
 export async function runVoicemeeterHelper(command: VoicemeeterHelperCommand): Promise<VoicemeeterStatus> {
@@ -101,7 +123,10 @@ export async function runVoicemeeterHelper(command: VoicemeeterHelperCommand): P
     let stdout = '';
     let stderr = '';
     let settled = false;
-    const child = spawn(command.command, command.args, { stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true });
+    const child = spawn(command.command, command.args, {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      windowsHide: true,
+    });
 
     const timeout = setTimeout(() => {
       if (settled) return;

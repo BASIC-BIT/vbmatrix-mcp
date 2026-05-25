@@ -6,7 +6,10 @@ import {
   voicemeeterEditionMetadata,
   type VoicemeeterHelperCommand,
 } from '../../src/providers/voicemeeterHelper.js';
-import { voicemeeterCapabilitiesPayload, voicemeeterProviderMetadata } from '../../src/providers/voicemeeterMetadata.js';
+import {
+  voicemeeterCapabilitiesPayload,
+  voicemeeterProviderMetadata,
+} from '../../src/providers/voicemeeterMetadata.js';
 
 describe('Voicemeeter product provider metadata', () => {
   test('registers a separate Voicemeeter provider namespace', () => {
@@ -36,12 +39,35 @@ describe('Voicemeeter product provider metadata', () => {
 describe('Voicemeeter helper discovery', () => {
   const command: VoicemeeterHelperCommand = { command: 'helper.exe', args: [], timeoutMs: 1000 };
 
-  test('reports unavailable when no helper is configured', async () => {
-    await expect(getVoicemeeterStatus(undefined)).resolves.toMatchObject({
+  test('reports unavailable when no helper is configured on Windows', async () => {
+    await expect(getVoicemeeterStatus(undefined, undefined, 'win32', {})).resolves.toMatchObject({
       ok: false,
       availability: 'helper_not_configured',
       running: false,
       helper: { configured: false },
+    });
+  });
+
+  test('reports unsupported platforms before helper configuration advice', async () => {
+    await expect(getVoicemeeterStatus(undefined, undefined, 'linux', {})).resolves.toMatchObject({
+      ok: false,
+      availability: 'unsupported_platform',
+      running: false,
+      helper: { configured: false },
+    });
+  });
+
+  test('returns malformed helper args as a structured unavailable state', async () => {
+    await expect(
+      getVoicemeeterStatus(undefined, undefined, 'win32', {
+        VOICEMEETER_HELPER_COMMAND: 'helper.exe',
+        VOICEMEETER_HELPER_ARGS: '--json',
+      })
+    ).resolves.toMatchObject({
+      ok: false,
+      availability: 'helper_failed',
+      running: false,
+      helper: { configured: true },
     });
   });
 
@@ -54,7 +80,7 @@ describe('Voicemeeter helper discovery', () => {
       error: 'Voicemeeter Remote DLL not found.',
     });
 
-    await expect(getVoicemeeterStatus(command, runHelper)).resolves.toMatchObject({
+    await expect(getVoicemeeterStatus(command, runHelper, 'win32')).resolves.toMatchObject({
       ok: false,
       availability: 'missing_install',
       running: false,
