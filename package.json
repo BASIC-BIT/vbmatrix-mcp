@@ -48,6 +48,7 @@
     "preverify:live-audio": "npm run build",
     "prepack": "npm run build",
     "pack:check": "npm pack --dry-run",
+    "package:smoke": "tsx scripts/package-smoke.ts",
     "doctor": "tsx scripts/doctor.ts",
     "smoke:vban": "tsx scripts/vban-smoke.ts",
     "diagnostics:vban": "tsx scripts/vban-diagnostics-scenarios.ts",

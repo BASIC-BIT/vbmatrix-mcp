@@ -5,6 +5,7 @@
 - [ ] `npm run check`
 - [ ] `npm run build`
 - [ ] `npm run doctor`
+- [ ] `npm run package:smoke`
 - [ ] `npm run pack:check`
 
 ## Live Validation

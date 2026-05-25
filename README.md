@@ -286,6 +286,7 @@ npm run lint
 npm run typecheck
 npm test
 npm run check
+npm run package:smoke
 npm run pack:check
 ```
 
