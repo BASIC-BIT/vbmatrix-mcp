@@ -23,6 +23,7 @@
     "docs/live-audio-verification.md",
     "docs/matrix-file-state-safety.md",
     "docs/matrix-command-coverage.md",
+    "docs/matrix-validation-evidence.md",
     "docs/client-config.md",
     "docs/release.md",
     "docs/research.md",
