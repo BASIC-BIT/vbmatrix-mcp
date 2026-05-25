@@ -25,7 +25,7 @@ Before opening or updating a PR:
 
 - Run `npm run check` after code changes.
 - Run `npm run format:check` or inspect Markdown manually after docs-only changes.
-- Run `npm run package:smoke` when package metadata, bin entries, release docs, or packaged docs change.
+- Run `npm run build` before `npm run package:smoke` when package metadata, bin entries, release docs, or packaged docs change.
 - Run `npm run pack:check` when package metadata or packaged docs change.
 - Add or update tests for command construction, parsing, safety gates, snapshots, or write behavior.
 - Keep stdout clean for MCP protocol messages; diagnostics belong on stderr.
