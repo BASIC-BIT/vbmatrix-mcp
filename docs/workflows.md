@@ -141,6 +141,7 @@ vbmatrix_get_point({
 - `muted`: route mute state.
 - `phaseReversed`: polarity inversion state.
 - Include engine/master/slot anomalies before recommending writes.
+- Matrix `Err` values in otherwise successful query observations mean Matrix answered the typed query but the specific property or point was unavailable; ask the operator to verify the SUID/channel in the UI instead of treating it as a transport failure.
 
 ## Route Apply And Cleanup
 
