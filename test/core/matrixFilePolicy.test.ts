@@ -53,6 +53,27 @@ describe('Matrix file path policy', () => {
     ).toThrow(/absolute/);
   });
 
+  test('rejects drive-relative and rooted-but-drive-implicit paths', () => {
+    for (const filePath of ['D:Scene.vbm-preset', '\\MatrixState\\Presets\\Scene.vbm-preset']) {
+      expect(() =>
+        validateMatrixFilePath({ kind: 'presetPatch', operation: 'load', filePath }, policies)
+      ).toThrow(/drive-qualified/);
+    }
+
+    expect(() =>
+      validateMatrixFilePath(
+        { kind: 'presetPatch', operation: 'load', filePath: 'D:/MatrixState/Presets/Scene.vbm-preset' },
+        [
+          {
+            kind: 'presetPatch',
+            allowedRoots: ['\\MatrixState\\Presets'],
+            allowedExtensions: ['.vbm-preset'],
+          },
+        ]
+      )
+    ).toThrow(/drive-qualified/);
+  });
+
   test('rejects paths outside configured roots after resolution', () => {
     const filePath = path.win32.join(root, '..', 'Other', 'Scene.vbm-preset');
     expect(() =>

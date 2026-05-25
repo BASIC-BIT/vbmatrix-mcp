@@ -35,14 +35,16 @@ function normalizeExtension(extension: string): string {
 
 function resolveRoot(root: string): string {
   if (isUncPath(root)) throw new Error(`Matrix file roots must not be UNC paths: ${root}`);
-  if (!matrixPath.isAbsolute(root))
-    throw new Error(`Matrix file roots must be absolute Windows paths: ${root}`);
+  if (!isDriveAbsolutePath(root))
+    throw new Error(`Matrix file roots must be absolute drive-qualified Windows paths: ${root}`);
   return matrixPath.resolve(root);
 }
 
 function assertAbsoluteCandidate(filePath: string): void {
   if (isUncPath(filePath)) throw new Error('Matrix file paths must not be UNC paths');
-  if (!matrixPath.isAbsolute(filePath)) throw new Error('Matrix file paths must be absolute Windows paths');
+  if (!isDriveAbsolutePath(filePath)) {
+    throw new Error('Matrix file paths must be absolute drive-qualified Windows paths');
+  }
 }
 
 function isPathInsideRoot(resolvedPath: string, root: string): boolean {
@@ -52,6 +54,10 @@ function isPathInsideRoot(resolvedPath: string, root: string): boolean {
 
 function isUncPath(value: string): boolean {
   return value.replaceAll('/', '\\').startsWith('\\\\');
+}
+
+function isDriveAbsolutePath(value: string): boolean {
+  return /^[a-zA-Z]:[\\/]/.test(value);
 }
 
 export function validateMatrixFilePath(
