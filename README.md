@@ -66,7 +66,7 @@ Matrix query replies are expected as VBAN SERVICE packets on stream `Request Rep
 
 `vbmatrix_vban_diagnostics` reports observed packet reasons such as wrong stream, unsupported protocol, or malformed packet data. If no UDP packets arrive before timeout, it reports `no_packets_observed` as indeterminate because UDP cannot reliably prove whether the cause is no listener, no command-stream reply, disabled stream, firewall/network block, wrong host/port, or Matrix not running.
 
-See `docs/error-taxonomy.md` for compatibility notes on timeout classifications, Matrix `Err` replies, safety errors, and protocol-safe diagnostics. See `docs/api-compatibility.md` for tool/schema/response compatibility policy and breaking-change guidance.
+See `docs/error-taxonomy.md` for compatibility notes on timeout classifications, Matrix `Err` replies, safety errors, and protocol-safe diagnostics. See `docs/api-compatibility.md` for tool/schema/response compatibility policy and breaking-change guidance. See `docs/matrix-validation-evidence.md` for live-tested, mocked-tested, docs-only, and deferred Matrix validation evidence.
 
 Manual live audio verification harness:
 
@@ -102,7 +102,7 @@ The tool surface is intentionally layered:
 - Grouped operation tools should coordinate several primitives for one explicit, typed task and include preview/dry-run support before broad writes.
 - Workflow tools should be rare; prefer skills or playbooks when the task needs human judgment or fuzzy intent interpretation.
 
-See `docs/matrix-command-coverage.md` for the source-linked Matrix command coverage registry, including implemented, partial, deferred, unsafe/destructive/file-affecting, and unknown command families.
+See `docs/matrix-command-coverage.md` for the source-linked Matrix command coverage registry, including implemented, partial, deferred, unsafe/destructive/file-affecting, and unknown command families. See `docs/matrix-validation-evidence.md` for current validation evidence levels and the live evidence capture template. See `docs/matrix-file-state-safety.md` for the guardrails required before any preset/project/grid file load or save tools are added.
 
 Current primitive read tools:
 
@@ -178,7 +178,7 @@ Execute only after reviewing the dry-run command and confirming the target patch
 
 `vbmatrix_apply_zone` uses the documented `Zone(SUID.IN[n], SUID.OUT[j]: SUID.IN[k], SUID.OUT[l])` VBAN-TEXT grammar from VB-Audio's forum. It dry-runs by default, requires `confirmApply: true` when `dryRun: false`, and reports that zone aggregate before/after state queries are not documented.
 
-Preset patch writes query patch state before and after when Matrix replies to the documented status requests. Use `vbmatrix_capture_snapshot` before broad scene changes when you need a point-level rollback artifact. Preset patch load/save/save-as are deferred until file path safety is designed.
+Preset patch writes query patch state before and after when Matrix replies to the documented status requests. Use `vbmatrix_capture_snapshot` before broad scene changes when you need a point-level rollback artifact. Preset patch load/save/save-as are deferred until the path roots, extension allowlists, dry-run, overwrite, and confirmation rules in `docs/matrix-file-state-safety.md` are implemented.
 
 ## Label And Reset Recipes
 
@@ -298,7 +298,7 @@ npm run pack:check
 
 `npm run security:audit` is opt-in because it may contact the npm registry. It is intentionally not part of `npm run check` or default CI.
 
-See `docs/architecture.md`, `docs/api-compatibility.md`, `docs/client-config.md`, `docs/design.md`, `docs/safety.md`, `docs/live-audio-verification.md`, `docs/release.md`, `docs/skills.md`, `docs/workflows.md`, `docs/agentic-workflow.md`, and `docs/improvement-log.md` for design, compatibility, client onboarding, verification, release, applied workflows, and lightweight maintainer loops.
+See `docs/architecture.md`, `docs/api-compatibility.md`, `docs/client-config.md`, `docs/design.md`, `docs/safety.md`, `docs/matrix-file-state-safety.md`, `docs/live-audio-verification.md`, `docs/release.md`, `docs/skills.md`, `docs/workflows.md`, `docs/agentic-workflow.md`, and `docs/improvement-log.md` for design, compatibility, client onboarding, file-state guardrails, verification, release, applied workflows, and lightweight maintainer loops.
 
 Repo-local OpenCode skills:
 
