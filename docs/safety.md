@@ -55,6 +55,10 @@ Primitive single-target setters do not need a separate preview mode when they al
 
 Large snapshots are stored under `.vbmatrix-snapshots/`, which is gitignored. Snapshot file inputs are restricted to that directory so diff/restore tools do not become arbitrary local file readers.
 
+## Matrix file state
+
+Preset patch, project, and grid load/save tools remain deferred. Future file-affecting tools must follow `docs/matrix-file-state-safety.md`: explicit operator-configured roots, per-kind extension allowlists, dry-run by default, no implicit overwrite, operation-specific confirmations, and write/destructive gates before any Matrix command is sent.
+
 ## Network trust
 
 The VBMatrix manual says TEXT command streams can receive messages from anywhere. Use this server on trusted local networks only, keep MCP local over stdio, and use OS/firewall controls for VBAN UDP exposure.

@@ -102,7 +102,7 @@ The tool surface is intentionally layered:
 - Grouped operation tools should coordinate several primitives for one explicit, typed task and include preview/dry-run support before broad writes.
 - Workflow tools should be rare; prefer skills or playbooks when the task needs human judgment or fuzzy intent interpretation.
 
-See `docs/matrix-command-coverage.md` for the source-linked Matrix command coverage registry, including implemented, partial, deferred, unsafe/destructive/file-affecting, and unknown command families. See `docs/matrix-validation-evidence.md` for current validation evidence levels and the live evidence capture template.
+See `docs/matrix-command-coverage.md` for the source-linked Matrix command coverage registry, including implemented, partial, deferred, unsafe/destructive/file-affecting, and unknown command families. See `docs/matrix-validation-evidence.md` for current validation evidence levels and the live evidence capture template. See `docs/matrix-file-state-safety.md` for the guardrails required before any preset/project/grid file load or save tools are added.
 
 Current primitive read tools:
 
@@ -178,7 +178,7 @@ Execute only after reviewing the dry-run command and confirming the target patch
 
 `vbmatrix_apply_zone` uses the documented `Zone(SUID.IN[n], SUID.OUT[j]: SUID.IN[k], SUID.OUT[l])` VBAN-TEXT grammar from VB-Audio's forum. It dry-runs by default, requires `confirmApply: true` when `dryRun: false`, and reports that zone aggregate before/after state queries are not documented.
 
-Preset patch writes query patch state before and after when Matrix replies to the documented status requests. Use `vbmatrix_capture_snapshot` before broad scene changes when you need a point-level rollback artifact. Preset patch load/save/save-as are deferred until file path safety is designed.
+Preset patch writes query patch state before and after when Matrix replies to the documented status requests. Use `vbmatrix_capture_snapshot` before broad scene changes when you need a point-level rollback artifact. Preset patch load/save/save-as are deferred until the path roots, extension allowlists, dry-run, overwrite, and confirmation rules in `docs/matrix-file-state-safety.md` are implemented.
 
 ## Label And Reset Recipes
 
@@ -295,7 +295,7 @@ npm run package:smoke
 npm run pack:check
 ```
 
-See `docs/architecture.md`, `docs/client-config.md`, `docs/design.md`, `docs/safety.md`, `docs/live-audio-verification.md`, `docs/release.md`, `docs/skills.md`, `docs/workflows.md`, `docs/agentic-workflow.md`, and `docs/improvement-log.md` for design, client onboarding, verification, release, applied workflows, and lightweight maintainer loops.
+See `docs/architecture.md`, `docs/client-config.md`, `docs/design.md`, `docs/safety.md`, `docs/matrix-file-state-safety.md`, `docs/live-audio-verification.md`, `docs/release.md`, `docs/skills.md`, `docs/workflows.md`, `docs/agentic-workflow.md`, and `docs/improvement-log.md` for design, client onboarding, file-state guardrails, verification, release, applied workflows, and lightweight maintainer loops.
 
 Repo-local OpenCode skills:
 
