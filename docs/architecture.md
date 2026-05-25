@@ -42,6 +42,7 @@ VBMatrix MCP is organized around explicit, testable layers. The MCP layer should
 ## Tests
 
 - `test/core` focuses on deterministic command strings, packet generation, parsing, and safety behavior.
+- `docs/error-taxonomy.md` records the compatibility boundary for timeout classifications, Matrix `Err` replies, and safety error codes.
 - Live VBMatrix/audio tests are intentionally not part of CI. `scripts/live-audio-verify.ts` is a manual, gated harness backed by deterministic WAV measurement helpers in `src/core/audioMeasurement.ts` and planning/evaluation helpers in `src/core/liveAudioVerification.ts`.
 
 ## Setup automation
