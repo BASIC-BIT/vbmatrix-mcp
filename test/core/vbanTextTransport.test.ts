@@ -58,6 +58,7 @@ afterEach(() => {
 
 describe('VBAN-TEXT UDP exchange diagnostics', () => {
   test('ignores malformed packets and wrong streams before accepting Matrix Request Reply service packets', async () => {
+    vi.useFakeTimers();
     const socket = new MockUdpSocket();
     const module = await loadWithMockSocket(socket);
     const exchange = module.sendVbanTextCommandWithDiagnostics('Command.Version=?;', {
@@ -94,6 +95,7 @@ describe('VBAN-TEXT UDP exchange diagnostics', () => {
   });
 
   test('returns Matrix Err service replies as payloads for callers to classify', async () => {
+    vi.useFakeTimers();
     const socket = new MockUdpSocket();
     const module = await loadWithMockSocket(socket);
     const exchange = module.sendVbanTextCommandWithDiagnostics('Point(VAIO1.IN[1],VAIO1.OUT[1]).dBGain=?;', {
@@ -122,6 +124,7 @@ describe('VBAN-TEXT UDP exchange diagnostics', () => {
         ignoredPackets: [],
       },
     });
+    expect(socket.close).toHaveBeenCalledTimes(1);
   });
 
   test('times out with wrong-stream diagnostics when only non-matching packets arrive', async () => {
@@ -186,5 +189,6 @@ describe('VBAN-TEXT UDP exchange diagnostics', () => {
 
     await vi.advanceTimersByTimeAsync(50);
     await rejection;
+    expect(socket.close).toHaveBeenCalledTimes(1);
   });
 });
