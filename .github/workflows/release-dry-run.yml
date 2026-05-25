@@ -1,0 +1,32 @@
+name: Release Dry Run
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dry-run:
+    name: Build and pack dry-run artifact
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - run: npm run package:smoke
+      - run: npm run pack:check
+      - name: Create local package artifact
+        run: |
+          mkdir -p artifacts
+          npm pack --pack-destination artifacts --json > artifacts/npm-pack.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vbmatrix-mcp-release-dry-run
+          path: artifacts/
+          if-no-files-found: error

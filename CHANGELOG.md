@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added a manual read-only release dry-run workflow that builds, checks, package-smokes, packs a local tarball, and uploads inspection artifacts without publishing.
 - Added CI package smoke verification for dry-run package contents and CLI bin metadata.
 - Added a Matrix provider boundary and `vbmatrix_get_capabilities` read tool for future product adapters.
 - Added fixed read-only `npm run diagnostics:vban` scenarios for VBAN setup troubleshooting.
