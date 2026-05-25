@@ -66,6 +66,8 @@ Matrix query replies are expected as VBAN SERVICE packets on stream `Request Rep
 
 `vbmatrix_vban_diagnostics` reports observed packet reasons such as wrong stream, unsupported protocol, or malformed packet data. If no UDP packets arrive before timeout, it reports `no_packets_observed` as indeterminate because UDP cannot reliably prove whether the cause is no listener, no command-stream reply, disabled stream, firewall/network block, wrong host/port, or Matrix not running.
 
+See `docs/error-taxonomy.md` for compatibility notes on timeout classifications, Matrix `Err` replies, safety errors, and protocol-safe diagnostics.
+
 Manual live audio verification harness:
 
 ```bash

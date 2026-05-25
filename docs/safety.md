@@ -64,3 +64,5 @@ The VBMatrix manual says TEXT command streams can receive messages from anywhere
 Live tests must be opt-in and must require a gitignored fixture with safe SUIDs/channels. They should never infer safe channels from defaults.
 
 `scripts/live-audio-verify.ts` is the manual live audio harness. It never writes Matrix routes unless both `--run` and `VBMATRIX_LIVE_VERIFY=I_UNDERSTAND_THIS_CHANGES_AUDIO` are provided, and it restores the queried point state in a `finally` block where possible.
+
+See `docs/error-taxonomy.md` for the stable safety error codes and VBAN timeout classifications exposed by diagnostics.
