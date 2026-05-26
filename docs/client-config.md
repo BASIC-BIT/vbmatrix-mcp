@@ -48,13 +48,14 @@ Common environment values:
   "VBMATRIX_MCP_DISABLE_RAW_COMMANDS": "true",
   "VOICEMEETER_MCP_DISABLE_WRITES": "true",
   "VOICEMEETER_MCP_DISABLE_DESTRUCTIVE": "true",
-  "VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API": "true"
+  "VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API": "true",
+  "VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT": "true"
 }
 ```
 
 Set writes, destructive tools, or raw escape hatches to enabled only when the client provides approval controls and the operator understands the Matrix routes, Matrix files, or Voicemeeter parameters being changed.
 
-Matrix and Voicemeeter must not share a VBAN UDP port when both applications are open. Matrix defaults to `VBMATRIX_PORT=6980`. Future Voicemeeter VBAN-TEXT smoke/tooling should use a separate product-specific variable such as `VOICEMEETER_VBAN_PORT=6982`; the current helper-backed `voicemeeter_*` tools do not use UDP.
+Matrix and Voicemeeter must not share a VBAN UDP port when both applications are open. Matrix defaults to `VBMATRIX_PORT=6980`. Raw Voicemeeter VBAN-TEXT uses separate `VOICEMEETER_VBAN_*` settings and defaults to `VOICEMEETER_VBAN_PORT=6982`; helper-backed `voicemeeter_*` tools other than `voicemeeter_raw_vban_text` do not use UDP.
 
 ## OpenCode
 
@@ -71,7 +72,8 @@ Matrix and Voicemeeter must not share a VBAN UDP port when both applications are
         "VBMATRIX_MCP_ALLOW_DESTRUCTIVE": "false",
         "VOICEMEETER_MCP_DISABLE_WRITES": "true",
         "VOICEMEETER_MCP_DISABLE_DESTRUCTIVE": "true",
-        "VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API": "true"
+        "VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API": "true",
+        "VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT": "true"
       }
     }
   },

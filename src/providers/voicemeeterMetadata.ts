@@ -2,7 +2,7 @@ export const voicemeeterProviderMetadata = {
   id: 'voicemeeter',
   displayName: 'VB-Audio Voicemeeter',
   toolPrefix: 'voicemeeter',
-  transport: 'remote-api-helper-process',
+  transport: 'remote-api-helper-process-and-vban-text',
   capabilities: [
     'discovery',
     'status',
@@ -14,6 +14,7 @@ export const voicemeeterProviderMetadata = {
     'typedWrites',
     'macroButtons',
     'rawRemoteApi',
+    'rawVbanText',
   ],
 } as const;
 
@@ -34,6 +35,13 @@ export function voicemeeterCapabilitiesPayload(): Record<string, unknown> {
         'VOICEMEETER_MCP_DISABLE_BUNDLED_HELPER',
         'VOICEMEETER_REMOTE_DLL',
       ],
+      vbanTextConfiguredBy: [
+        'VOICEMEETER_VBAN_HOST',
+        'VOICEMEETER_VBAN_PORT',
+        'VOICEMEETER_VBAN_STREAM',
+        'VOICEMEETER_VBAN_TIMEOUT_MS',
+        'VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT',
+      ],
       allowedRemoteApiCalls: [
         'VBVMR_Login',
         'VBVMR_GetVoicemeeterType',
@@ -52,14 +60,12 @@ export function voicemeeterCapabilitiesPayload(): Record<string, unknown> {
         'VBVMR_MacroButton_SetStatus',
         'VBVMR_Logout',
       ],
-      excludedRemoteApiCalls: [
-        'VBVMR_RunVoicemeeter',
-        'audio callbacks',
-      ],
+      excludedRemoteApiCalls: ['VBVMR_RunVoicemeeter', 'audio callbacks'],
       safetyGates: [
         'VOICEMEETER_MCP_DISABLE_WRITES',
         'VOICEMEETER_MCP_DISABLE_DESTRUCTIVE',
         'VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API',
+        'VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT',
       ],
     },
     compatibility: {

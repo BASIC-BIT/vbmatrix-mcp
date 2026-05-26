@@ -1,4 +1,4 @@
-import type { VbMatrixConfig } from '../config/index.js';
+import type { VbMatrixConfig, VoicemeeterVbanTextConfig } from '../config/index.js';
 import {
   validateChannelRangeTargetSyntax,
   validateChannelTargetSyntax,
@@ -98,14 +98,20 @@ export function assertSlotDestructiveAllowed(config: VbMatrixConfig, suid: strin
   }
 }
 
-export function assertChannelWriteAllowed(config: VbMatrixConfig, target: ChannelTarget | ChannelRangeTarget): void {
+export function assertChannelWriteAllowed(
+  config: VbMatrixConfig,
+  target: ChannelTarget | ChannelRangeTarget
+): void {
   if ('channel' in target) validateChannelTargetSyntax(target);
   else validateChannelRangeTargetSyntax(target);
   assertWritesAllowed(config);
   assertSuidAllowed(config, target.suid);
 }
 
-export function assertChannelResetAllowed(config: VbMatrixConfig, target: ChannelTarget | ChannelRangeTarget): void {
+export function assertChannelResetAllowed(
+  config: VbMatrixConfig,
+  target: ChannelTarget | ChannelRangeTarget
+): void {
   assertChannelWriteAllowed(config, target);
   assertDestructiveAllowed(config);
 }
@@ -122,9 +128,23 @@ export function assertPresetPatchDestructiveAllowed(config: VbMatrixConfig, inde
 
 export function assertRawVbanTextAllowed(config: VbMatrixConfig): void {
   if (config.rawCommands.disabled) {
-    throw new SafetyError('raw_commands_disabled', 'Raw VBAN-TEXT commands are disabled by VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true', {
-      disableRawCommands: config.rawCommands.disabled,
-    });
+    throw new SafetyError(
+      'raw_commands_disabled',
+      'Raw VBAN-TEXT commands are disabled by VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true',
+      {
+        disableRawCommands: config.rawCommands.disabled,
+      }
+    );
+  }
+}
+
+export function assertVoicemeeterRawVbanTextAllowed(config: VoicemeeterVbanTextConfig): void {
+  if (config.rawVbanText.disabled) {
+    throw new SafetyError(
+      'voicemeeter_raw_vban_text_disabled',
+      'Raw Voicemeeter VBAN-TEXT commands are disabled by VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT=true',
+      { disableRawVbanText: config.rawVbanText.disabled }
+    );
   }
 }
 

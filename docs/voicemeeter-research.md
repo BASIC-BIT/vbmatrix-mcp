@@ -124,13 +124,13 @@ Port convention when Matrix and Voicemeeter are both running:
 
 Recommendation:
 
-- Reuse `buildVbanTextPacket` only after the target stream, command grammar, and response behavior are verified for Voicemeeter.
-- Do not expose raw Voicemeeter VBAN-TEXT script execution until query/reply behavior is live-proven. The current raw escape hatch uses the local Remote API helper, not Voicemeeter VBAN-TEXT.
+- Reuse `buildVbanTextPacket` for exact raw Voicemeeter VBAN-TEXT packets, but do not build typed Voicemeeter VBAN tools on top of command grammar or reply behavior until those are live-verified.
+- Raw Voicemeeter VBAN-TEXT is now exposed as a default-available local power-user escape hatch, matching the Matrix raw-command policy. It remains exact-command only, is separate from typed tools, reports query/reply behavior as unverified, uses `VOICEMEETER_VBAN_*` connection settings, and can be disabled with `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT=true`.
 
 Operator-approved smoke design for [#22](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/22):
 
 - The current receive filters accept VBAN-TEXT protocol `0x40` on the configured stream or VBAN service protocol `0x60` on stream `Request Reply`; Matrix live behavior observed by this repo uses SERVICE `0x60` on `Request Reply`.
-- Voicemeeter VBAN-TEXT query behavior still needs a live, operator-approved smoke using one fixed read-only query candidate. The existing `smoke:vban` script is Matrix-specific and must not be generalized into raw command execution.
+- Voicemeeter VBAN-TEXT query behavior still needs a live, operator-approved smoke using one fixed read-only query candidate. The existing `smoke:vban` script remains Matrix-specific; `voicemeeter_raw_vban_text` is the power-user path for exact Voicemeeter VBAN-TEXT commands while query behavior is being proven.
 - Capture exact evidence from the smoke: sent stream name, observed reply protocol, observed reply stream, payload bytes/text, timeout duration, and any ignored packet reasons from receive filtering.
 - Existing `vbanText` receive filters can observe TEXT `0x40` replies and SERVICE `0x60` `Request Reply` packets. Add a narrow helper only if Voicemeeter replies on a different protocol or stream.
 
