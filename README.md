@@ -112,6 +112,8 @@ Voicemeeter configuration:
 | `VOICEMEETER_MCP_DISABLE_DESTRUCTIVE`     | `false`        | Disable Voicemeeter device changes and MacroButtons mutation.                                |
 | `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API`  | `false`        | Disable the advanced raw Voicemeeter Remote API escape hatch.                                |
 
+The current `voicemeeter_*` tools use the local Remote API helper and do not use UDP. If you enable future Voicemeeter VBAN-TEXT smoke/tooling while Matrix is also running, keep product UDP base ports separate: Matrix uses `VBMATRIX_PORT=6980` by default, and the local Voicemeeter convention is `VOICEMEETER_VBAN_PORT=6982`. Do not point both applications at the same VBAN UDP port. Some VB-Audio companion/control ports may be derived by the application from its base port; configure and document the product base ports separately.
+
 ## Tools
 
 The tool surface is intentionally layered:

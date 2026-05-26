@@ -116,6 +116,12 @@ Open questions:
 - Matrix queries in this repo require handling VBAN service protocol `0x60` reply packets on stream `Request Reply`. The researched official Voicemeeter pages confirm VBAN-TEXT input streams, but they do not establish that Voicemeeter replies to `...?;` queries using the same Matrix service-reply behavior.
 - Voicemeeter command grammar over VBAN-TEXT needs a source-linked parameter table or live verification before typed MCP tools rely on it.
 
+Port convention when Matrix and Voicemeeter are both running:
+
+- Keep product UDP base ports separate. Matrix defaults to `VBMATRIX_PORT=6980`; local Voicemeeter VBAN-TEXT smoke/tooling should use a separate `VOICEMEETER_VBAN_PORT=6982` convention.
+- Do not reuse one `VBMATRIX_PORT` value for both products.
+- Some VB-Audio companion/control ports may be derived by the application from the configured base port. Track the product base ports explicitly and avoid assuming one global VBAN port across Matrix and Voicemeeter.
+
 Recommendation:
 
 - Reuse `buildVbanTextPacket` only after the target stream, command grammar, and response behavior are verified for Voicemeeter.
