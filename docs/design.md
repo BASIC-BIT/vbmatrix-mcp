@@ -180,21 +180,21 @@ Write responses should include:
 
 - Raw free-form command execution as a typed/validated substitute for explicit tools.
 - Full-matrix scans by default.
-- Preset patch load/save/save-as until file path safety is designed.
-- Preset grid file save/load commands until file path safety is designed.
+- Additional preset patch file commands such as `PresetPatch[n].Save` until live behavior is proven. Use `vbmatrix_preset_patch_file` for the implemented load/save-as slice.
+- Project/grid file save/load execution until live behavior, path rules, and confirmation semantics are proven.
 - Broad `Remove`, `Reset`, `ResetGrid`, or `Shutdown` tools.
 - VBAN SERVICE subscriptions or meter streaming.
 - VBAN service/stream configuration writes. No source-linked Matrix command surface is currently documented for this; use the Matrix UI with an operator in the loop.
 
 ## Provider Migration Note
 
-Existing `vbmatrix_*` tool names are stable. The current provider boundary registers Matrix as the only product provider and reports Matrix capability groups through `vbmatrix_get_capabilities`. Future Voicemeeter work should add explicit `voicemeeter_*` tools behind a product-specific provider first. Product-neutral `vbaudio_*` tools should remain deferred until both providers have shipped and a compatibility layer can be documented without changing existing Matrix behavior.
+Existing `vbmatrix_*` tool names are stable. The provider registry now registers Matrix and Voicemeeter as product-specific providers. Product-neutral `vbaudio_*` tools remain deferred until both providers have enough compatible behavior to document a stable shared abstraction without changing existing Matrix semantics.
 
 ## Voicemeeter Helper Boundary
 
-The first Voicemeeter provider slice is read-only discovery/status only. It registers explicit `voicemeeter_*` tools and keeps the existing `vbmatrix_*` Matrix namespace unchanged.
+The Voicemeeter provider registers explicit `voicemeeter_*` tools and keeps the existing `vbmatrix_*` Matrix namespace unchanged.
 
-The MCP server must not load native Voicemeeter Remote API DLLs in-process. Instead, `voicemeeter_get_status` optionally spawns an external helper process configured by `VOICEMEETER_HELPER_COMMAND` and `VOICEMEETER_HELPER_ARGS`. The parent captures one JSON response from helper stdout and forwards helper stderr to server stderr for diagnostics.
+The MCP server must not load native Voicemeeter Remote API DLLs in-process. Instead, Voicemeeter tools spawn an external helper process. A custom helper can be configured with `VOICEMEETER_HELPER_COMMAND` and `VOICEMEETER_HELPER_ARGS`; otherwise the bundled Windows PowerShell helper is used unless `VOICEMEETER_MCP_DISABLE_BUNDLED_HELPER=true`. The parent captures one JSON response from helper stdout and forwards helper stderr to server stderr for diagnostics.
 
 The helper protocol is intentionally narrow:
 
@@ -208,6 +208,8 @@ The helper protocol is intentionally narrow:
 }
 ```
 
-Allowed helper-side Remote API calls for this slice are `VBVMR_Login`, `VBVMR_GetVoicemeeterType`, `VBVMR_GetVoicemeeterVersion`, and `VBVMR_Logout`. The helper must not call `VBVMR_RunVoicemeeter`, set parameters, set scripts, mutate MacroButtons, enumerate or change devices, or start audio callbacks.
+Allowed helper-side Remote API calls are limited to login/logout, type/version, parameter get/set, `SetParameters` for the raw escape hatch, level reads, input/output device enumeration, and MacroButtons get/set. The helper must not call `VBVMR_RunVoicemeeter`, start audio callbacks, or perform fuzzy lookup. Typed write tools use explicit strip/bus indexes, property names, and query-before-write where practical.
 
 Unavailable states are first-class tool results rather than crashes: `helper_not_configured`, `unsupported_platform`, `missing_install`, `not_running`, `helper_failed`, and `unknown`. Edition metadata maps Remote API type `1` to Standard, `2` to Banana, and `3` to Potato.
+
+Voicemeeter writes are available by default for local power users and can be narrowed with inverse disable gates: `VOICEMEETER_MCP_DISABLE_WRITES`, `VOICEMEETER_MCP_DISABLE_DESTRUCTIVE`, and `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API`. Raw Remote API access should be described as an advanced escape hatch; typed tools remain preferred.

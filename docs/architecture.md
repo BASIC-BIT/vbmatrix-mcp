@@ -23,12 +23,14 @@ VBMatrix MCP is organized around explicit, testable layers. The MCP layer should
 ## Tool registration (`src/tools/`)
 
 - `registerAllTools.ts` is the public wiring point and delegates to registered product providers.
-- `src/providers/` defines the current Matrix provider boundary. Matrix is the only registered provider today; future Voicemeeter work should add a product-specific provider instead of mixing Voicemeeter conditionals into Matrix tools.
+- `src/providers/` defines product-specific provider boundaries. Matrix and Voicemeeter are registered separately so Voicemeeter helper logic does not mix into Matrix tools.
 - `status.ts` contains read-only status and slot tools.
 - `points.ts` contains routing point read/write tools.
 - `zones.ts` contains dry-run-first typed Matrix zone operations.
 - `snapshots.ts` contains targeted snapshot capture, diff, and guarded restore tools.
 - `system.ts` contains destructive/system operations, currently only engine restart.
+- `matrixFiles.ts` contains read-only Matrix file-state queries and guarded preset patch `.xml` load/save-as tools.
+- `src/providers/voicemeeter*.ts` contains Voicemeeter provider metadata, helper-process orchestration, and `voicemeeter_*` tool runners.
 - New Matrix primitive tools should live beside the VBMatrix concept they expose and should register through the Matrix provider path without changing existing tool names.
 - Future grouped-operation tools should use shared command builders, schemas, and safety helpers from the primitive layer instead of introducing a second command syntax path.
 - Workflow automation should usually live in `.opencode/skills/` or docs unless it has deterministic typed inputs, bounded effects, and a preview path suitable for an MCP tool.

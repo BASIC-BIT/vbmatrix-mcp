@@ -1,6 +1,6 @@
 # VBMatrix MCP
 
-Local [Model Context Protocol](https://modelcontextprotocol.io/) tools for controlling and inspecting [VB-Audio Matrix](https://vb-audio.com/Matrix/) through VBAN-TEXT.
+Local [Model Context Protocol](https://modelcontextprotocol.io/) tools for controlling and inspecting [VB-Audio Matrix](https://vb-audio.com/Matrix/) through VBAN-TEXT, plus an explicit helper-process provider for [VB-Audio Voicemeeter](https://vb-audio.com/Voicemeeter/).
 
 This project is an early design + scaffold. It is unofficial and is not affiliated with VB-Audio Software.
 
@@ -20,6 +20,7 @@ MVP goals:
 - Expose channel route resets and engine restart by default, with server-side opt-out available.
 - Capture, diff, and plan/restore targeted Matrix snapshots for explicit slots and points.
 - Run a minimal safe routing workflow for explicit point audition, cleanup, and emergency mute with dry-run and rollback data.
+- Read current Matrix project/grid file state and load/save-as explicit preset patch XML files under configured roots.
 
 ## Install From Source
 
@@ -27,6 +28,7 @@ Requirements:
 
 - Node.js 24.15.0 or newer.
 - VB-Audio Matrix with VBAN service and the TEXT command stream enabled.
+- Windows and a local Voicemeeter install for `voicemeeter_*` tools.
 - An MCP client that can run local stdio servers.
 
 ```bash
@@ -93,7 +95,22 @@ See `docs/client-config.md` for OpenCode, Claude Desktop, Cursor, VS Code, Codex
 | `VBMATRIX_MCP_ALLOW_ALL_SUIDS`   | `true`      | Allow writes to all SUIDs when writes are enabled.                                                        |
 | `VBMATRIX_MCP_ALLOW_DESTRUCTIVE` | `true`      | Allow destructive/system actions such as engine restart. Set to `false` to block them.                    |
 | `VBMATRIX_MCP_DISABLE_RAW_COMMANDS` | `false`  | Disable the advanced raw VBAN-TEXT escape hatch.                                                          |
+| `VBMATRIX_MCP_PRESET_PATCH_ROOTS` | empty      | Semicolon-separated absolute Windows roots allowed for `vbmatrix_preset_patch_file`, e.g. `C:\Users\you\Documents\VBAudioMatrix\PresetPatch`. |
 | `VBMATRIX_MCP_LOG_LEVEL`         | `info`      | `debug`, `info`, `warn`, or `error`.                                                                      |
+
+Voicemeeter configuration:
+
+| Variable                                  | Default        | Use                                                                                         |
+| ----------------------------------------- | -------------- | ------------------------------------------------------------------------------------------- |
+| `VOICEMEETER_HELPER_COMMAND`              | empty          | Optional custom helper executable. If unset, the bundled PowerShell helper is used on Windows. |
+| `VOICEMEETER_HELPER_ARGS`                 | `[]`           | JSON string array of base args for a custom helper command.                                  |
+| `VOICEMEETER_HELPER_TIMEOUT_MS`           | `3000`         | Helper process timeout.                                                                      |
+| `VOICEMEETER_HELPER_POWERSHELL_COMMAND`   | `powershell.exe` | PowerShell executable for the bundled helper.                                                |
+| `VOICEMEETER_REMOTE_DLL`                  | auto-detect    | Optional explicit path to `VoicemeeterRemote64.dll` or `VoicemeeterRemote.dll`.              |
+| `VOICEMEETER_MCP_DISABLE_BUNDLED_HELPER`  | `false`        | Disable the bundled helper and require `VOICEMEETER_HELPER_COMMAND`.                         |
+| `VOICEMEETER_MCP_DISABLE_WRITES`          | `false`        | Disable typed Voicemeeter write tools.                                                       |
+| `VOICEMEETER_MCP_DISABLE_DESTRUCTIVE`     | `false`        | Disable Voicemeeter device changes and MacroButtons mutation.                                |
+| `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API`  | `false`        | Disable the advanced raw Voicemeeter Remote API escape hatch.                                |
 
 ## Tools
 
@@ -103,7 +120,7 @@ The tool surface is intentionally layered:
 - Grouped operation tools should coordinate several primitives for one explicit, typed task and include preview/dry-run support before broad writes.
 - Workflow tools should be rare; prefer skills or playbooks when the task needs human judgment or fuzzy intent interpretation.
 
-See `docs/matrix-command-coverage.md` for the source-linked Matrix command coverage registry, including implemented, partial, deferred, unsafe/destructive/file-affecting, and unknown command families. See `docs/matrix-validation-evidence.md` for current validation evidence levels and the live evidence capture template. See `docs/matrix-file-state-safety.md` for the guardrails required before any preset/project/grid file load or save tools are added.
+See `docs/matrix-command-coverage.md` for the source-linked Matrix command coverage registry, including implemented, partial, deferred, unsafe/destructive/file-affecting, and unknown command families. See `docs/matrix-validation-evidence.md` for current validation evidence levels and the live evidence capture template. See `docs/matrix-file-state-safety.md` for Matrix preset/project/grid file-state guardrails and the currently implemented preset patch XML slice.
 
 Current primitive read tools:
 
@@ -118,6 +135,7 @@ Current primitive read tools:
 - `vbmatrix_get_point`
 - `vbmatrix_get_channel_label`
 - `vbmatrix_get_preset_patch`
+- `vbmatrix_get_file_state`
 - `vbmatrix_capture_snapshot`
 - `vbmatrix_diff_snapshots`
 
@@ -139,6 +157,7 @@ Current primitive write/destructive tools:
 - `vbmatrix_remove_channel_label`
 - `vbmatrix_reset_channel_routes` (requires `confirm: "RESET_CHANNEL_ROUTES"`)
 - `vbmatrix_preset_patch` (dry-runs by default; supports documented preset patch apply, recall, copy, paste, delete, gain, mute, phase, resetZone, update, name, and comment operations.)
+- `vbmatrix_preset_patch_file` (dry-runs by default; supports live-tested `PresetPatch[n].Load` and `PresetPatch[n].SaveAs` for `.xml` files under `VBMATRIX_MCP_PRESET_PATCH_ROOTS`.)
 - `vbmatrix_restore_snapshot` (dry-run by default; execution requires `confirmRestore: "RESTORE_SNAPSHOT"`, and broad plans require `confirmBroadRestore: true`.)
 - `vbmatrix_restart_engine`
 
@@ -146,7 +165,22 @@ Current grouped workflow tools:
 
 - `vbmatrix_safe_route_workflow` supports only explicit point targets and three deterministic operations: `auditionRoute`, `cleanupRoutes`, and `emergencyMute`. It snapshots selected points, dry-runs by default, returns exact planned commands plus rollback commands, and executes only with `confirmApply: "SAFE_ROUTE_APPLY"`.
 
-Write tools and the raw VBAN-TEXT escape hatch are available by default so the user's MCP harness can decide what should be called. Set `VBMATRIX_MCP_ALLOW_WRITES=false`, `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false`, or `VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true` for narrower deployments. Slot reset, device changes, and raw commands should be operator-in-the-loop actions; use typed tools first when they exist and query current state before disruptive changes.
+Current Voicemeeter tools:
+
+- `voicemeeter_get_capabilities`
+- `voicemeeter_get_status`
+- `voicemeeter_get_devices`
+- `voicemeeter_get_strip`
+- `voicemeeter_get_bus`
+- `voicemeeter_get_levels`
+- `voicemeeter_set_strip_parameter`
+- `voicemeeter_set_bus_parameter`
+- `voicemeeter_set_device` (`confirm: true` required; destructive gate)
+- `voicemeeter_get_macro_button`
+- `voicemeeter_set_macro_button` (`confirm: true` required; destructive gate)
+- `voicemeeter_raw_remote_api` (advanced escape hatch; prefer typed tools where possible; disable with `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API=true`.)
+
+Write tools and raw escape hatches are available by default so the user's MCP harness can decide what should be called. Set Matrix and Voicemeeter disable environment variables for narrower deployments. Slot reset, device changes, MacroButtons writes, file-state writes, and raw commands should be operator-in-the-loop actions; use typed tools first when they exist and query current state before disruptive changes.
 
 Future tools should keep natural-language interpretation in the agent layer. MCP schemas should use explicit SUIDs, channels, enum-like values, booleans, and bounded numbers instead of free-form routing goals.
 
@@ -182,7 +216,29 @@ Execute only after reviewing the dry-run command and confirming the target patch
 
 `vbmatrix_apply_zone` uses the documented `Zone(SUID.IN[n], SUID.OUT[j]: SUID.IN[k], SUID.OUT[l])` VBAN-TEXT grammar from VB-Audio's forum. It dry-runs by default, requires `confirmApply: true` when `dryRun: false`, and reports that zone aggregate before/after state queries are not documented.
 
-Preset patch writes query patch state before and after when Matrix replies to the documented status requests. Use `vbmatrix_capture_snapshot` before broad scene changes when you need a point-level rollback artifact. Preset patch load/save/save-as are deferred until the path roots, extension allowlists, dry-run, overwrite, and confirmation rules in `docs/matrix-file-state-safety.md` are implemented.
+Preset patch writes query patch state before and after when Matrix replies to the documented status requests. Use `vbmatrix_capture_snapshot` before broad scene changes when you need a point-level rollback artifact. Preset patch file load/save-as is exposed separately through `vbmatrix_preset_patch_file` so path roots, extension allowlists, dry-run, overwrite review, and confirmation stay explicit.
+
+Dry-run saving a preset patch XML file after setting `VBMATRIX_MCP_PRESET_PATCH_ROOTS`:
+
+```json
+{
+  "index": 1,
+  "operation": "saveAs",
+  "filePath": "C:\\Users\\you\\Documents\\VBAudioMatrix\\PresetPatch\\Scene.xml"
+}
+```
+
+Execute only after reviewing the dry-run response and confirming the resolved path:
+
+```json
+{
+  "index": 1,
+  "operation": "saveAs",
+  "filePath": "C:\\Users\\you\\Documents\\VBAudioMatrix\\PresetPatch\\Scene.xml",
+  "dryRun": false,
+  "confirmOperation": "MATRIX_PRESET_FILE_WRITE"
+}
+```
 
 ## Label And Reset Recipes
 

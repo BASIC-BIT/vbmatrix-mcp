@@ -6,25 +6,36 @@ VBMatrix can route live audio. The server exposes useful write tools by default 
 
 Write gates:
 
-- `VBMATRIX_MCP_ALLOW_WRITES=false` disables point, zone, channel label/reset, preset patch execution, snapshot restore execution, and slot writes.
+- `VBMATRIX_MCP_ALLOW_WRITES=false` disables point, zone, channel label/reset, preset patch execution, preset patch file execution, snapshot restore execution, and slot writes.
 - `VBMATRIX_MCP_ALLOW_ALL_SUIDS=true` allows all SUIDs by default.
 - Set `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false` and list SUIDs in `VBMATRIX_MCP_ALLOWED_SUIDS` for a server-side allowlist.
 - Channels must be integers in the supported 1-based Matrix/Coconut channel range.
 
 Destructive gate:
 
-- `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` disables `vbmatrix_restart_engine`, `vbmatrix_reset_channel_routes`, zone reset, disruptive preset patch operations, slot reset, slot device assignment/removal, and any future destructive/system tools.
+- `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` disables `vbmatrix_restart_engine`, `vbmatrix_reset_channel_routes`, zone reset, disruptive preset patch operations, preset patch file loads/overwrites, slot reset, slot device assignment/removal, and any future destructive/system tools.
 
 Raw command gate:
 
 - `VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true` disables `vbmatrix_raw_vban_text`.
 - Raw VBAN-TEXT is a power-user escape hatch and is available by default. Prefer typed tools where possible because raw commands do not get typed Matrix validation, SUID allowlists, dry-runs, or query-before-write safety beyond the command's own response behavior.
 
+Voicemeeter gates:
+
+- `VOICEMEETER_MCP_DISABLE_WRITES=true` disables typed `voicemeeter_set_strip_parameter` and `voicemeeter_set_bus_parameter` writes.
+- `VOICEMEETER_MCP_DISABLE_DESTRUCTIVE=true` disables `voicemeeter_set_device` and `voicemeeter_set_macro_button`.
+- `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API=true` disables `voicemeeter_raw_remote_api`.
+- Voicemeeter tools use an external helper process. The MCP server does not load Voicemeeter Remote API DLLs in-process.
+- The bundled helper is enabled by default on Windows and can be disabled with `VOICEMEETER_MCP_DISABLE_BUNDLED_HELPER=true`.
+- `voicemeeter_raw_remote_api` is a power-user escape hatch for exact Remote API parameter paths or scripts. Prefer typed `voicemeeter_*` tools where possible.
+
 Slot device assignment/removal and slot reset also require `confirm=true` in the tool input. These tools are operator-in-the-loop actions because they can interrupt live audio devices even though they target one slot.
 
 Broad point range and zone tools also require command-level confirmation when executing. `vbmatrix_apply_point_range` and `vbmatrix_apply_zone` dry-run by default and require `confirmApply=true` with `dryRun=false` before sending a command. `vbmatrix_remove_point` requires `confirmRemove=true` for single-point removal. Zone reset and `gainDb: "-inf"` also require the destructive gate because they build `Zone(...).Reset;`.
 
 Preset patch scene operations also dry-run by default. `vbmatrix_preset_patch` requires `confirmOperation="PRESET_PATCH_WRITE"` with `dryRun=false` before sending any preset patch write. Apply, recall, copy, paste, delete, resetZone, and update also require the destructive gate because they can affect live scene state or stored patch contents.
+
+Preset patch file operations are separate from scene operations. `vbmatrix_preset_patch_file` supports live-tested `PresetPatch[n].Load` and `PresetPatch[n].SaveAs` for `.xml` files under `VBMATRIX_MCP_PRESET_PATCH_ROOTS`. It dry-runs by default, rejects paths outside configured roots, rejects implicit overwrite, and requires `confirmOperation="MATRIX_PRESET_FILE_WRITE"` with `dryRun=false`. Loads and overwrite-capable saves also require the destructive gate.
 
 ## Commands intentionally not exposed
 
@@ -33,7 +44,7 @@ Do not expose these as normal typed tools; use `vbmatrix_raw_vban_text` only whe
 - `Command.Shutdown`
 - `Command.Reset`
 - `Command.ResetGrid`
-- `PresetPatch[n].Load`, `PresetPatch[n].Save`, `PresetPatch[n].SaveAs`, `Command.Save`, `Command.Load`, `Command.SaveGrid`, and `Command.LoadGrid` until file path safety is designed
+- `PresetPatch[n].Save`, `Command.Save`, `Command.Load`, `Command.SaveGrid`, and `Command.LoadGrid` until file path safety and live behavior are proven. Use `vbmatrix_preset_patch_file` for typed `PresetPatch[n].Load` and `PresetPatch[n].SaveAs`.
 - broad `Zone(...).Reset` without dry-run, confirmation, write gate, and destructive gate
 - broad slot-wide `Input(...).Reset` or `Output(...).Reset` beyond explicit channel/range targets
 - raw free-form VBAN-TEXT command execution as a typed/validated substitute for explicit tools
@@ -62,7 +73,9 @@ Large snapshots are stored under `.vbmatrix-snapshots/`, which is gitignored. Sn
 
 ## Matrix file state
 
-Preset patch, project, and grid load/save typed tools remain deferred. Future file-affecting typed tools must follow `docs/matrix-file-state-safety.md`: explicit operator-configured roots, per-kind extension allowlists, dry-run by default, no implicit overwrite, operation-specific confirmations, and write/destructive gates before any Matrix command is sent. Raw VBAN-TEXT can still send file-affecting Matrix commands when not disabled; callers are responsible for exact command semantics and path consequences.
+`vbmatrix_get_file_state` reads current Matrix project/grid file state with `Command.Load=?;` and `Command.LoadGrid=?;`.
+
+`vbmatrix_preset_patch_file` is the first typed file-affecting slice. It is limited to live-tested `PresetPatch[n].Load` and `PresetPatch[n].SaveAs` with `.xml` paths under operator-configured roots. Project/grid load/save and `PresetPatch[n].Save` remain deferred until source-linked syntax, live behavior, path/extension rules, and confirmation semantics are proven. Raw VBAN-TEXT can still send file-affecting Matrix commands when not disabled; callers are responsible for exact command semantics and path consequences.
 
 ## Network trust
 

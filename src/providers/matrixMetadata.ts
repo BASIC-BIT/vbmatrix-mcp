@@ -9,6 +9,7 @@ export const matrixProviderMetadata = {
     'rawVbanText',
     'routeInspection',
     'slotInspection',
+    'fileState',
     'points',
     'pointRanges',
     'zones',

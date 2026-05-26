@@ -1,9 +1,12 @@
 import { describe, expect, test, vi } from 'vitest';
 import { productProviders } from '../../src/providers/index.js';
 import {
+  bundledVoicemeeterHelperCommand,
   getVoicemeeterStatus,
   parseVoicemeeterHelperResponse,
+  runVoicemeeterOperation,
   runVoicemeeterHelper,
+  voicemeeterOperationCommand,
   voicemeeterEditionMetadata,
   type VoicemeeterHelperCommand,
 } from '../../src/providers/voicemeeterHelper.js';
@@ -23,7 +26,7 @@ describe('Voicemeeter product provider metadata', () => {
     expect(voicemeeterProviderMetadata.capabilities).toContain('readOnlyHelperBoundary');
   });
 
-  test('documents the read-only out-of-process helper boundary', () => {
+  test('documents the out-of-process helper boundary', () => {
     expect(voicemeeterCapabilitiesPayload()).toMatchObject({
       ok: true,
       helperBoundary: {
@@ -32,6 +35,9 @@ describe('Voicemeeter product provider metadata', () => {
           'VOICEMEETER_HELPER_COMMAND',
           'VOICEMEETER_HELPER_ARGS',
           'VOICEMEETER_HELPER_TIMEOUT_MS',
+          'VOICEMEETER_HELPER_POWERSHELL_COMMAND',
+          'VOICEMEETER_MCP_DISABLE_BUNDLED_HELPER',
+          'VOICEMEETER_REMOTE_DLL',
         ],
       },
       compatibility: {
@@ -45,11 +51,42 @@ describe('Voicemeeter helper discovery', () => {
   const command: VoicemeeterHelperCommand = { command: 'helper.exe', args: [], timeoutMs: 1000 };
 
   test('reports unavailable when no helper is configured on Windows', async () => {
-    await expect(getVoicemeeterStatus(undefined, undefined, 'win32', {})).resolves.toMatchObject({
+    await expect(
+      getVoicemeeterStatus(undefined, undefined, 'win32', { VOICEMEETER_MCP_DISABLE_BUNDLED_HELPER: 'true' })
+    ).resolves.toMatchObject({
       ok: false,
       availability: 'helper_not_configured',
       running: false,
       helper: { configured: false },
+    });
+  });
+
+  test('builds the bundled helper command when available', () => {
+    const command = bundledVoicemeeterHelperCommand('status', {}, {});
+    expect(command?.command).toBe('powershell.exe');
+    expect(command?.args).toContain('-File');
+    expect(command?.args).toContain('-Operation');
+    expect(command?.args).toContain('status');
+  });
+
+  test('adds operation payloads to custom helper commands', () => {
+    const command = voicemeeterOperationCommand(
+      'get-parameters',
+      { parameters: [{ name: 'Strip[0].gain', kind: 'float' }] },
+      { VOICEMEETER_HELPER_COMMAND: 'helper.exe', VOICEMEETER_HELPER_ARGS: '["--json"]' }
+    );
+
+    expect(command).toMatchObject({ command: 'helper.exe' });
+    expect(command?.args).toContain('--json');
+    expect(command?.args).toContain('--operation');
+    expect(command?.args).toContain('get-parameters');
+    expect(command?.args).toContain('--payload-base64');
+  });
+
+  test('reports operation helpers as unsupported off Windows', async () => {
+    await expect(runVoicemeeterOperation('devices', {}, undefined, undefined, 'linux')).resolves.toMatchObject({
+      ok: false,
+      availability: 'unsupported_platform',
     });
   });
 

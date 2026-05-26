@@ -64,6 +64,14 @@ describe('safety gates', () => {
     expect(() => assertPointWriteAllowed(config, target)).not.toThrow();
   });
 
+  test('trims and deduplicates Matrix file roots from semicolon-separated env values', () => {
+    const config = loadConfig({
+      VBMATRIX_MCP_PRESET_PATCH_ROOTS: ' C:\\PresetPatch ; D:\\Scenes ; C:\\PresetPatch ; ',
+    });
+
+    expect(config.matrixFiles?.presetPatchRoots).toEqual(['C:\\PresetPatch', 'D:\\Scenes']);
+  });
+
   test('allows point writes by default', () => {
     const config = loadConfig({});
     expect(() => assertPointWriteAllowed(config, target)).not.toThrow();
