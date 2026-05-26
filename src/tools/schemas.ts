@@ -8,6 +8,18 @@ import {
 
 export const EmptySchema = z.object({});
 
+export const RawVbanTextSchema = z.object({
+  command: z
+    .string()
+    .min(1)
+    .max(48 * 1024)
+    .describe('Exact VBAN-TEXT command to send. Prefer typed vbmatrix_* tools when one exists.'),
+  waitForResponse: z
+    .boolean()
+    .optional()
+    .describe('When omitted, query-looking commands ending in ? or ?; wait for a reply and other commands fire-and-forget.'),
+});
+
 export const SlotInputSchema = z.object({
   suid: z.string().min(1).describe('VBMatrix slot unique identifier, for example VASIO8, VAIO1, or ASIO128.'),
 });

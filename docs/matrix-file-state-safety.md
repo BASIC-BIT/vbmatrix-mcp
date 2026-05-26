@@ -10,7 +10,7 @@ This policy applies to future typed tools for:
 - Matrix project files: `Command.Load`, `Command.Save`, and related project-level commands if source-linked syntax is added.
 - Matrix grid files: `Command.LoadGrid`, `Command.SaveGrid`, and related grid-level commands if source-linked syntax is added.
 
-It does not authorize raw VBAN-TEXT command execution, generic script commands, arbitrary filesystem browsing, or broad import/export tools.
+It does not turn file-affecting commands into typed tools, generic script commands, arbitrary filesystem browsing, or broad import/export tools. Advanced users can still send exact file-affecting commands through `vbmatrix_raw_vban_text` when raw commands are not disabled; that escape hatch does not provide this policy's path validation.
 
 ## Path Roots
 

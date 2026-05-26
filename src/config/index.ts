@@ -12,6 +12,9 @@ export interface VbMatrixConfig {
     allowedSuids: string[];
     allowDestructive: boolean;
   };
+  rawCommands: {
+    disabled: boolean;
+  };
 }
 
 type Env = Record<string, string | undefined>;
@@ -74,6 +77,9 @@ export function loadConfig(env: Env = process.env): VbMatrixConfig {
       allowAllSuids: readBoolean(env, 'VBMATRIX_MCP_ALLOW_ALL_SUIDS', true),
       allowedSuids: readSuidList(env),
       allowDestructive: readBoolean(env, 'VBMATRIX_MCP_ALLOW_DESTRUCTIVE', true),
+    },
+    rawCommands: {
+      disabled: readBoolean(env, 'VBMATRIX_MCP_DISABLE_RAW_COMMANDS', false),
     },
   };
 }

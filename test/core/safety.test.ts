@@ -7,6 +7,7 @@ import {
   assertPointWriteAllowed,
   assertPresetPatchDestructiveAllowed,
   assertPresetPatchWriteAllowed,
+  assertRawVbanTextAllowed,
   assertSlotDestructiveAllowed,
   assertSlotWriteAllowed,
   assertZoneResetAllowed,
@@ -47,6 +48,9 @@ describe('safety gates', () => {
     );
     expect(() => loadConfig({ VBMATRIX_MCP_ALLOW_DESTRUCTIVE: 'maybe' })).toThrow(
       /VBMATRIX_MCP_ALLOW_DESTRUCTIVE must be a boolean value/
+    );
+    expect(() => loadConfig({ VBMATRIX_MCP_DISABLE_RAW_COMMANDS: 'maybe' })).toThrow(
+      /VBMATRIX_MCP_DISABLE_RAW_COMMANDS must be a boolean value/
     );
   });
 
@@ -92,6 +96,13 @@ describe('safety gates', () => {
     expect(() => assertDestructiveAllowed(loadConfig({}))).not.toThrow();
     expect(() => assertDestructiveAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_DESTRUCTIVE: 'false' }))).toThrow(
       /ALLOW_DESTRUCTIVE/
+    );
+  });
+
+  test('allows raw VBAN-TEXT by default but supports opt-out', () => {
+    expect(() => assertRawVbanTextAllowed(loadConfig({}))).not.toThrow();
+    expect(() => assertRawVbanTextAllowed(loadConfig({ VBMATRIX_MCP_DISABLE_RAW_COMMANDS: 'true' }))).toThrow(
+      /DISABLE_RAW_COMMANDS/
     );
   });
 

@@ -33,7 +33,7 @@ These require a changelog entry and a deliberate versioning decision:
 - Changing a default that can expand writes, destructive behavior, network scope, or snapshot file access.
 - Removing response fields that clients can use for follow-up tool calls or safety review.
 - Replacing stable safety or diagnostic codes with different names.
-- Adding raw free-form VBAN-TEXT command execution or any new write surface without the safety model in `docs/safety.md`.
+- Changing the default availability of `vbmatrix_raw_vban_text` or adding any new write surface without the safety model in `docs/safety.md`.
 
 When a breaking change is unavoidable, prefer adding a replacement tool first, documenting migration notes, and keeping the old tool until the next intentional breaking release.
 

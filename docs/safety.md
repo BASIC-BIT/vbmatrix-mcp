@@ -15,6 +15,11 @@ Destructive gate:
 
 - `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` disables `vbmatrix_restart_engine`, `vbmatrix_reset_channel_routes`, zone reset, disruptive preset patch operations, slot reset, slot device assignment/removal, and any future destructive/system tools.
 
+Raw command gate:
+
+- `VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true` disables `vbmatrix_raw_vban_text`.
+- Raw VBAN-TEXT is a power-user escape hatch and is available by default. Prefer typed tools where possible because raw commands do not get typed Matrix validation, SUID allowlists, dry-runs, or query-before-write safety beyond the command's own response behavior.
+
 Slot device assignment/removal and slot reset also require `confirm=true` in the tool input. These tools are operator-in-the-loop actions because they can interrupt live audio devices even though they target one slot.
 
 Broad point range and zone tools also require command-level confirmation when executing. `vbmatrix_apply_point_range` and `vbmatrix_apply_zone` dry-run by default and require `confirmApply=true` with `dryRun=false` before sending a command. `vbmatrix_remove_point` requires `confirmRemove=true` for single-point removal. Zone reset and `gainDb: "-inf"` also require the destructive gate because they build `Zone(...).Reset;`.
@@ -23,7 +28,7 @@ Preset patch scene operations also dry-run by default. `vbmatrix_preset_patch` r
 
 ## Commands intentionally not exposed
 
-Do not expose these as normal tools:
+Do not expose these as normal typed tools; use `vbmatrix_raw_vban_text` only when the operator intentionally needs an advanced escape hatch:
 
 - `Command.Shutdown`
 - `Command.Reset`
@@ -31,7 +36,7 @@ Do not expose these as normal tools:
 - `PresetPatch[n].Load`, `PresetPatch[n].Save`, `PresetPatch[n].SaveAs`, `Command.Save`, `Command.Load`, `Command.SaveGrid`, and `Command.LoadGrid` until file path safety is designed
 - broad `Zone(...).Reset` without dry-run, confirmation, write gate, and destructive gate
 - broad slot-wide `Input(...).Reset` or `Output(...).Reset` beyond explicit channel/range targets
-- raw free-form VBAN-TEXT command execution
+- raw free-form VBAN-TEXT command execution as a typed/validated substitute for explicit tools
 
 Slot-level `Slot(SUID).Reset` is exposed only as `vbmatrix_reset_slot`, with a SUID allowlist check, the destructive gate, explicit confirmation, and before/after slot-state queries.
 
@@ -57,7 +62,7 @@ Large snapshots are stored under `.vbmatrix-snapshots/`, which is gitignored. Sn
 
 ## Matrix file state
 
-Preset patch, project, and grid load/save tools remain deferred. Future file-affecting tools must follow `docs/matrix-file-state-safety.md`: explicit operator-configured roots, per-kind extension allowlists, dry-run by default, no implicit overwrite, operation-specific confirmations, and write/destructive gates before any Matrix command is sent.
+Preset patch, project, and grid load/save typed tools remain deferred. Future file-affecting typed tools must follow `docs/matrix-file-state-safety.md`: explicit operator-configured roots, per-kind extension allowlists, dry-run by default, no implicit overwrite, operation-specific confirmations, and write/destructive gates before any Matrix command is sent. Raw VBAN-TEXT can still send file-affecting Matrix commands when not disabled; callers are responsible for exact command semantics and path consequences.
 
 ## Network trust
 

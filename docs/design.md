@@ -90,6 +90,7 @@ Read tools are small and direct:
 - `vbmatrix_get_point` returns gain, mute, and phase for one point.
 - `vbmatrix_capture_snapshot` captures explicit selected slot metadata and point state.
 - `vbmatrix_diff_snapshots` compares two explicit Matrix snapshots.
+- `vbmatrix_raw_vban_text` sends an exact power-user VBAN-TEXT command string. Prefer typed tools when one exists; disable with `VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true`.
 
 Write tools are explicit and available by default. They can be narrowed with environment settings when server-side policy is useful:
 
@@ -177,7 +178,7 @@ Write responses should include:
 
 ## Not in MVP
 
-- Raw free-form command execution.
+- Raw free-form command execution as a typed/validated substitute for explicit tools.
 - Full-matrix scans by default.
 - Preset patch load/save/save-as until file path safety is designed.
 - Preset grid file save/load commands until file path safety is designed.

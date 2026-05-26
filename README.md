@@ -78,7 +78,7 @@ The live harness dry-runs by default. It only changes Matrix routes when `--run`
 
 ## MCP Client Config
 
-See `docs/client-config.md` for OpenCode, Claude Desktop, Cursor, VS Code, Codex CLI, and Copilot coding agent examples. Clients differ in approval policy; if your harness does not prompt before tool calls, set `VBMATRIX_MCP_ALLOW_WRITES=false` or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` until approval controls are configured.
+See `docs/client-config.md` for OpenCode, Claude Desktop, Cursor, VS Code, Codex CLI, and Copilot coding agent examples. Clients differ in approval policy; if your harness does not prompt before tool calls, set `VBMATRIX_MCP_ALLOW_WRITES=false`, `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false`, or `VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true` until approval controls are configured.
 
 ## Configuration
 
@@ -88,10 +88,11 @@ See `docs/client-config.md` for OpenCode, Claude Desktop, Cursor, VS Code, Codex
 | `VBMATRIX_PORT`                  | `6980`      | VBAN UDP port.                                                                                            |
 | `VBMATRIX_STREAM`                | `Command1`  | VBAN-TEXT stream name.                                                                                    |
 | `VBMATRIX_TIMEOUT_MS`            | `2000`      | Query response timeout.                                                                                   |
-| `VBMATRIX_MCP_ALLOW_WRITES`      | `true`      | Enable point write tools. Set to `false` for read-only mode.                                              |
+| `VBMATRIX_MCP_ALLOW_WRITES`      | `true`      | Enable typed write tools. Set to `false` to block typed writes.                                           |
 | `VBMATRIX_MCP_ALLOWED_SUIDS`     | empty       | Comma-separated SUID allowlist for writes when `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, e.g. `VASIO8,VAIO1`. |
 | `VBMATRIX_MCP_ALLOW_ALL_SUIDS`   | `true`      | Allow writes to all SUIDs when writes are enabled.                                                        |
 | `VBMATRIX_MCP_ALLOW_DESTRUCTIVE` | `true`      | Allow destructive/system actions such as engine restart. Set to `false` to block them.                    |
+| `VBMATRIX_MCP_DISABLE_RAW_COMMANDS` | `false`  | Disable the advanced raw VBAN-TEXT escape hatch.                                                          |
 | `VBMATRIX_MCP_LOG_LEVEL`         | `info`      | `debug`, `info`, `warn`, or `error`.                                                                      |
 
 ## Tools
@@ -122,6 +123,7 @@ Current primitive read tools:
 
 Current primitive write/destructive tools:
 
+- `vbmatrix_raw_vban_text` (advanced escape hatch; prefer typed tools where possible; disable with `VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true`.)
 - `vbmatrix_set_point_gain` (`gainDb: "-inf"` removes the point.)
 - `vbmatrix_set_point_mute`
 - `vbmatrix_set_point_phase`
@@ -144,7 +146,7 @@ Current grouped workflow tools:
 
 - `vbmatrix_safe_route_workflow` supports only explicit point targets and three deterministic operations: `auditionRoute`, `cleanupRoutes`, and `emergencyMute`. It snapshots selected points, dry-runs by default, returns exact planned commands plus rollback commands, and executes only with `confirmApply: "SAFE_ROUTE_APPLY"`.
 
-Write tools are available by default so the user's MCP harness can decide what should be called. Set `VBMATRIX_MCP_ALLOW_WRITES=false`, `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, or `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false` for narrower deployments. Slot reset and device changes should be operator-in-the-loop actions; use `vbmatrix_get_slot_info` first to copy current device strings and verify before/after state.
+Write tools and the raw VBAN-TEXT escape hatch are available by default so the user's MCP harness can decide what should be called. Set `VBMATRIX_MCP_ALLOW_WRITES=false`, `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false`, or `VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true` for narrower deployments. Slot reset, device changes, and raw commands should be operator-in-the-loop actions; use typed tools first when they exist and query current state before disruptive changes.
 
 Future tools should keep natural-language interpretation in the agent layer. MCP schemas should use explicit SUIDs, channels, enum-like values, booleans, and bounded numbers instead of free-form routing goals.
 

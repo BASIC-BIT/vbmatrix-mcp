@@ -12,7 +12,7 @@ Evidence levels:
 Safety notes:
 
 - High-volume scans remain opt-in and bounded; no full-matrix scan is implied by this document.
-- No raw/free-form VBAN command execution is exposed for validation.
+- Raw/free-form VBAN command execution is exposed as an advanced escape hatch; typed tools remain preferred for validation evidence.
 - Live validation should use fixed read-only diagnostics first, then explicit dry-run/confirmation workflows for writes.
 - Keep stdout reserved for MCP protocol; scripts that produce operator artifacts must not be treated as server stdout behavior.
 
@@ -36,7 +36,7 @@ Safety notes:
 | Snapshot capture/diff/restore                                                                   | Live-tested + mocked-tested            | `src/core/snapshots.ts`, `src/tools/snapshots.ts`, `test/core/snapshots.test.ts`, `test/tools/snapshots.test.ts`          | Live MCP stdio snapshot capture, same-snapshot diff, restore dry-run, and restore execution passed on an explicit point. Restore execution remains operator-approved only.                       |
 | Safe route workflow                                                                             | Live-tested + mocked-tested            | `src/core/safeRouting.ts`, `src/tools/safeRouting.ts`, `test/tools/safeRouting.test.ts`                                   | Live MCP stdio execution covered `auditionRoute`, `emergencyMute`, and `cleanupRoutes` on explicit points; snapshot restore returned tested routes to pre-state.                                 |
 | Fixed engine restart                                                                            | Live-tested + typed implementation     | `src/tools/system.ts`, `src/core/commands.ts`, `docs/matrix-command-coverage.md`                                          | Live MCP stdio execution of `Command.Restart;` succeeded with destructive tools enabled, then `vbmatrix_get_engine` and `vbmatrix_ping` succeeded afterward.                                     |
-| Raw/free-form VBAN-TEXT commands                                                                | Deferred                               | `docs/matrix-command-coverage.md`, `AGENTS.md`                                                                            | Not exposed; validation must use typed commands/tools.                                                                                                                                           |
+| Raw/free-form VBAN-TEXT commands                                                                | Live-tested + mocked-tested            | `src/tools/rawVbanText.ts`, `test/tools/rawVbanText.test.ts`, `docs/matrix-command-coverage.md`, `AGENTS.md`               | Exposed as `vbmatrix_raw_vban_text`, available by default, and disabled with `VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true`. Read-only live smoke sent `Command.Version=?;` through the raw tool and received Matrix 1.0.2.6; prefer typed tools for validated operations. |
 | Full-matrix scans, meter streaming, VBAN service/config writes, additional broad system actions | Deferred                               | `docs/matrix-command-coverage.md`                                                                                         | Fixed `vbmatrix_restart_engine` exists behind destructive gates; any additional broad/system action requires bounded scope, safety design, and source-linked command behavior.                   |
 
 ## Live Evidence Capture Template

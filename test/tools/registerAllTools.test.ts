@@ -20,6 +20,7 @@ describe('tool registration', () => {
       'vbmatrix_get_engine',
       'vbmatrix_get_master',
       'vbmatrix_get_slot_info',
+      'vbmatrix_raw_vban_text',
       'vbmatrix_inspect_routes',
       'vbmatrix_inspect_slots',
       'vbmatrix_get_point',
