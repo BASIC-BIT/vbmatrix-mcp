@@ -207,6 +207,37 @@ function coerceWriteValue(property: string, value: number | boolean | string): n
   return value;
 }
 
+function firstParameterResult(result: Record<string, unknown>, name: string): Record<string, unknown> | undefined {
+  const parameters = result.parameters;
+  if (!Array.isArray(parameters)) return undefined;
+  return parameters.find((parameter): parameter is Record<string, unknown> => {
+    if (typeof parameter !== 'object' || parameter === null) return false;
+    return (parameter as Record<string, unknown>).name === name;
+  });
+}
+
+function resultCodeOk(result: unknown): boolean {
+  return typeof result === 'number' ? result === 0 : result === undefined;
+}
+
+function parameterWriteAccepted(write: Record<string, unknown>, name: string): boolean {
+  const parameter = firstParameterResult(write, name);
+  return write.ok === true && parameter !== undefined && resultCodeOk(parameter.result);
+}
+
+function valuesMatch(left: unknown, right: unknown): boolean {
+  if (typeof left === 'number' && typeof right === 'number') return Math.abs(left - right) < 0.0001;
+  return Object.is(left, right);
+}
+
+function macroRequestedValue(value: number | boolean): number {
+  return typeof value === 'boolean' ? (value ? 1 : 0) : value;
+}
+
+function macroWriteAccepted(write: Record<string, unknown>): boolean {
+  return write.ok === true && resultCodeOk(write.result);
+}
+
 export async function runGetVoicemeeterDevices(runOperation: RunOperation = runVoicemeeterOperation): Promise<Record<string, unknown>> {
   return runOperation('devices');
 }
@@ -287,10 +318,40 @@ export async function runSetVoicemeeterDevice(
   validateIndex(input.index, input.target === 'strip' ? edition.strips : edition.buses, input.target);
   const prefix = input.target === 'strip' ? 'Strip' : 'Bus';
   const parameter = { name: `${prefix}[${input.index}].device.${input.driver}`, kind: 'string' as const };
-  const before = await getParameters([{ name: `${prefix}[${input.index}].device.name`, kind: 'string' }], runOperation);
+  const stateParameter = { name: `${prefix}[${input.index}].device.name`, kind: 'string' as const };
+  const before = await getParameters([stateParameter], runOperation);
   const write = await setParameters([{ ...parameter, value: input.deviceName }], runOperation);
-  const after = await getParameters([{ name: `${prefix}[${input.index}].device.name`, kind: 'string' }], runOperation);
-  return { ok: write.ok === true, target: input, parameter, before, write, after, safety: safetyPolicy(env) };
+  const after = await getParameters([stateParameter], runOperation);
+  const beforeObservation = firstParameterResult(before, stateParameter.name);
+  const afterObservation = firstParameterResult(after, stateParameter.name);
+  const beforeValue = beforeObservation?.value;
+  const afterValue = afterObservation?.value;
+  return {
+    ok: write.ok === true,
+    target: input,
+    parameter,
+    before,
+    write,
+    after,
+    confirmation: {
+      writeAccepted: parameterWriteAccepted(write, parameter.name),
+      stateQuery: stateParameter.name,
+      stateObserved:
+        before.ok === true &&
+        after.ok === true &&
+        beforeObservation !== undefined &&
+        afterObservation !== undefined &&
+        resultCodeOk(beforeObservation.result) &&
+        resultCodeOk(afterObservation.result),
+      observedBefore: beforeValue,
+      observedAfter: afterValue,
+      stateChanged: !valuesMatch(beforeValue, afterValue),
+      matchesRequestedDeviceName: valuesMatch(afterValue, input.deviceName),
+      note:
+        'Remote API result=0 confirms accepted device assignment/removal; device.name is the immediately observable post-state and may not prove durable UI mutation on every target.',
+    },
+    safety: safetyPolicy(env),
+  };
 }
 
 export async function runGetVoicemeeterMacroButton(
@@ -307,10 +368,37 @@ export async function runSetVoicemeeterMacroButton(
 ): Promise<Record<string, unknown>> {
   assertWritesAllowed(env);
   assertDestructiveAllowed(env);
-  const before = await runOperation('macro-status', { index: input.index, mode: macroModeNumber(input.mode) });
-  const write = await runOperation('macro-set', { index: input.index, mode: macroModeNumber(input.mode), value: typeof input.value === 'boolean' ? (input.value ? 1 : 0) : input.value });
-  const after = await runOperation('macro-status', { index: input.index, mode: macroModeNumber(input.mode) });
-  return { ok: write.ok === true, target: { index: input.index, mode: input.mode }, before, write, after, safety: safetyPolicy(env) };
+  const modeNumber = macroModeNumber(input.mode);
+  const requestedValue = macroRequestedValue(input.value);
+  const before = await runOperation('macro-status', { index: input.index, mode: modeNumber });
+  const write = await runOperation('macro-set', { index: input.index, mode: modeNumber, value: requestedValue });
+  const after = await runOperation('macro-status', { index: input.index, mode: modeNumber });
+  const beforeValue = before.value;
+  const afterValue = after.value;
+  const triggerMode = input.mode === 'trigger';
+  return {
+    ok: write.ok === true,
+    target: { index: input.index, mode: input.mode },
+    before,
+    write,
+    after,
+    confirmation: {
+      writeAccepted: macroWriteAccepted(write),
+      mode: input.mode,
+      modeNumber,
+      requestedValue,
+      stateObserved: before.ok === true && after.ok === true && resultCodeOk(before.result) && resultCodeOk(after.result),
+      observedBefore: beforeValue,
+      observedAfter: afterValue,
+      stateChanged: !valuesMatch(beforeValue, afterValue),
+      matchesRequestedValue: triggerMode ? null : valuesMatch(afterValue, requestedValue),
+      statePersistence: triggerMode ? 'trigger_pulse' : 'queryable_status',
+      note: triggerMode
+        ? 'Trigger mode may pulse or run a user-configured action and then immediately read as 0; result=0 confirms Remote API acceptance only.'
+        : 'For non-trigger modes, compare the queried after value with requestedValue to verify observable MacroButtons state.',
+    },
+    safety: safetyPolicy(env),
+  };
 }
 
 export async function runRawVoicemeeterRemoteApi(

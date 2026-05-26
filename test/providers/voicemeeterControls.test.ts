@@ -3,6 +3,8 @@ import {
   runGetVoicemeeterLevels,
   runGetVoicemeeterStrip,
   runRawVoicemeeterRemoteApi,
+  runSetVoicemeeterDevice,
+  runSetVoicemeeterMacroButton,
   runSetVoicemeeterStripParameter,
 } from '../../src/providers/voicemeeterControls.js';
 import type { VoicemeeterHelperOperation } from '../../src/providers/voicemeeterHelper.js';
@@ -67,6 +69,97 @@ describe('Voicemeeter control tool runners', () => {
     ]);
     expect(runOperation.mock.calls[2][1]).toMatchObject({
       parameters: [{ name: 'Strip[0].mute', kind: 'float', value: 1 }],
+    });
+  });
+
+  test('set device distinguishes accepted writes from observable state changes', async () => {
+    const runOperation = vi.fn<FakeRunOperation>((operation, payload) => {
+      if (operation === 'status') {
+        return Promise.resolve({ ok: true, availability: 'available', running: true, type: 2, version: '3.1.1.1' });
+      }
+      if (operation === 'set-parameters') return Promise.resolve({ ok: true, parameters: payload?.parameters ?? [] });
+      if (operation === 'get-parameters') {
+        return Promise.resolve({
+          ok: true,
+          parameters: [{ name: 'Strip[0].device.name', kind: 'string', result: 0, value: '' }],
+        });
+      }
+      return Promise.resolve({ ok: true });
+    });
+
+    await expect(
+      runSetVoicemeeterDevice(
+        { target: 'strip', index: 0, driver: 'asio', deviceName: 'Example ASIO', confirm: true },
+        runOperation
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      confirmation: {
+        writeAccepted: true,
+        stateQuery: 'Strip[0].device.name',
+        stateObserved: true,
+        observedBefore: '',
+        observedAfter: '',
+        stateChanged: false,
+        matchesRequestedDeviceName: false,
+      },
+    });
+  });
+
+  test('set macro button labels trigger writes as acceptance-only pulses', async () => {
+    const runOperation = vi.fn<FakeRunOperation>((operation, payload) => {
+      if (operation === 'macro-status') return Promise.resolve({ ok: true, value: 0, result: 0, ...payload });
+      if (operation === 'macro-set') return Promise.resolve({ ok: true, result: 0, ...payload });
+      return Promise.resolve({ ok: true });
+    });
+
+    await expect(
+      runSetVoicemeeterMacroButton({ index: 3, mode: 'trigger', value: true, confirm: true }, runOperation)
+    ).resolves.toMatchObject({
+      ok: true,
+      confirmation: {
+        writeAccepted: true,
+        mode: 'trigger',
+        modeNumber: 3,
+        requestedValue: 1,
+        stateObserved: true,
+        observedBefore: 0,
+        observedAfter: 0,
+        stateChanged: false,
+        matchesRequestedValue: null,
+        statePersistence: 'trigger_pulse',
+      },
+    });
+  });
+
+  test('set macro button reports observable persistent state matches', async () => {
+    let macroStatusCalls = 0;
+    const runOperation = vi.fn<FakeRunOperation>((operation, payload) => {
+      if (operation === 'macro-status') {
+        const value = macroStatusCalls === 0 ? 0 : 1;
+        macroStatusCalls += 1;
+        return Promise.resolve({ ok: true, value, result: 0, ...payload });
+      }
+      if (operation === 'macro-set') return Promise.resolve({ ok: true, result: 0, ...payload });
+      return Promise.resolve({ ok: true });
+    });
+
+    await expect(
+      runSetVoicemeeterMacroButton({ index: 3, mode: 'stateOnly', value: true, confirm: true }, runOperation)
+    ).resolves.toMatchObject({
+      ok: true,
+      confirmation: {
+        writeAccepted: true,
+        mode: 'stateOnly',
+        modeNumber: 2,
+        requestedValue: 1,
+        stateObserved: true,
+        observedBefore: 0,
+        observedAfter: 1,
+        stateChanged: true,
+        matchesRequestedValue: true,
+        statePersistence: 'queryable_status',
+      },
     });
   });
 

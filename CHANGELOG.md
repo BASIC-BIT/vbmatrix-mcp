@@ -6,6 +6,7 @@
 - Added default-available `vbmatrix_raw_vban_text` as an advanced power-user escape hatch, with `VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true` for deployments that want to hide it.
 - Added `vbmatrix_get_file_state` and live-tested `vbmatrix_preset_patch_file` for dry-run-first preset patch `.xml` load/save-as under `VBMATRIX_MCP_PRESET_PATCH_ROOTS`.
 - Added bundled helper-backed `voicemeeter_*` tools for status, devices, strips, buses, levels, typed writes, MacroButtons, and raw Remote API access with inverse disable gates.
+- Clarified `voicemeeter_set_device` and `voicemeeter_set_macro_button` responses so Remote API acceptance is reported separately from immediately observable post-state changes.
 - Added live Matrix validation evidence for remaining point range, zone, channel reset, preset patch, slot lifecycle/device, and destructive cleanup tool paths.
 - Fixed Matrix slot device parsing when `Slot(...).Device=?;` replies with a device-kind qualified key such as `Slot(ASIO128).Device.ASIO`.
 - Added a manual read-only release dry-run workflow that builds, checks, package-smokes, packs a local tarball, and uploads inspection artifacts without publishing.

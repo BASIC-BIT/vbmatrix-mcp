@@ -177,12 +177,12 @@ Current Voicemeeter tools:
 - `voicemeeter_get_levels`
 - `voicemeeter_set_strip_parameter`
 - `voicemeeter_set_bus_parameter`
-- `voicemeeter_set_device` (`confirm: true` required; destructive gate)
+- `voicemeeter_set_device` (`confirm: true` required; destructive gate; response separates Remote API acceptance from observed `device.name` state)
 - `voicemeeter_get_macro_button`
-- `voicemeeter_set_macro_button` (`confirm: true` required; destructive gate)
+- `voicemeeter_set_macro_button` (`confirm: true` required; destructive gate; trigger mode is reported as an acceptance-only pulse)
 - `voicemeeter_raw_remote_api` (advanced escape hatch; prefer typed tools where possible; disable with `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API=true`.)
 
-Write tools and raw escape hatches are available by default so the user's MCP harness can decide what should be called. Set Matrix and Voicemeeter disable environment variables for narrower deployments. Slot reset, device changes, MacroButtons writes, file-state writes, and raw commands should be operator-in-the-loop actions; use typed tools first when they exist and query current state before disruptive changes.
+Write tools and raw escape hatches are available by default so the user's MCP harness can decide what should be called. Set Matrix and Voicemeeter disable environment variables for narrower deployments. Slot reset, device changes, MacroButtons writes, file-state writes, and raw commands should be operator-in-the-loop actions; use typed tools first when they exist and query current state before disruptive changes. For Voicemeeter device and MacroButtons writes, treat `confirmation.writeAccepted` as Remote API acceptance and compare the returned observed state fields separately before claiming durable state changed.
 
 Future tools should keep natural-language interpretation in the agent layer. MCP schemas should use explicit SUIDs, channels, enum-like values, booleans, and bounded numbers instead of free-form routing goals.
 

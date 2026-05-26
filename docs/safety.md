@@ -28,6 +28,7 @@ Voicemeeter gates:
 - Voicemeeter tools use an external helper process. The MCP server does not load Voicemeeter Remote API DLLs in-process.
 - The bundled helper is enabled by default on Windows and can be disabled with `VOICEMEETER_MCP_DISABLE_BUNDLED_HELPER=true`.
 - `voicemeeter_raw_remote_api` is a power-user escape hatch for exact Remote API parameter paths or scripts. Prefer typed `voicemeeter_*` tools where possible.
+- `voicemeeter_set_device` and `voicemeeter_set_macro_button` report Remote API acceptance separately from immediate observable state. Do not claim a device or MacroButton state changed unless the `confirmation` block shows the relevant post-state evidence; MacroButton trigger mode may legitimately pulse and then read back as `0`.
 
 Slot device assignment/removal and slot reset also require `confirm=true` in the tool input. These tools are operator-in-the-loop actions because they can interrupt live audio devices even though they target one slot.
 
