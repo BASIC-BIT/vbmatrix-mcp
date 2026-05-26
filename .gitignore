@@ -11,3 +11,4 @@ coverage/
 live-audio-artifacts/
 live-audio-verify.local.json
 .vbmatrix-snapshots/
+AGENTS.local.md

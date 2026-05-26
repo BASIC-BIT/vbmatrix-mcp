@@ -2,6 +2,11 @@
 
 This repo uses linting, typechecking, and tests to validate changes.
 
+## Local Operator Context
+
+- If `AGENTS.local.md` exists in this repo, read it before live QA, smoke tests, or destructive/audio-affecting validation.
+- `AGENTS.local.md` is gitignored and may contain private operator approvals, local device assumptions, or machine-specific test policy. Do not commit it.
+
 Guidance for coding agents:
 
 - After significant code changes, run `npm run check`.
