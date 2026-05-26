@@ -435,6 +435,14 @@ function normalizeResponseKey(key: string): string {
   return key.replace(/\s+/g, '');
 }
 
+function responseKeyMatches(expectedKey: string, actualKey: string): boolean {
+  if (actualKey === expectedKey) return true;
+  if (!expectedKey.endsWith('.Device') || !actualKey.startsWith(`${expectedKey}.`)) return false;
+
+  const deviceKind = actualKey.slice(expectedKey.length + 1);
+  return SLOT_DEVICE_KINDS.includes(deviceKind as SlotDeviceKind);
+}
+
 export function parseQueryResponseValue(queryCommand: string, response: string): string {
   const expectedMatch = /^(.+?)\s*=\s*\?\s*;?$/.exec(queryCommand.trim());
   if (!expectedMatch) throw new Error(`Command is not a query: ${queryCommand}`);
@@ -444,7 +452,7 @@ export function parseQueryResponseValue(queryCommand: string, response: string):
 
   const expectedKey = normalizeResponseKey(expectedMatch[1]);
   const actualKey = normalizeResponseKey(responseMatch[1]);
-  if (actualKey !== expectedKey) {
+  if (!responseKeyMatches(expectedKey, actualKey)) {
     throw new Error(
       `Response key mismatch: expected ${expectedMatch[1].trim()}, got ${responseMatch[1].trim()}`
     );
