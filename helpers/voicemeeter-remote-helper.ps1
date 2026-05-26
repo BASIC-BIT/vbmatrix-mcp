@@ -45,7 +45,7 @@ function Convert-Version($Version) {
 }
 
 function Add-RemoteApiType($DllPath) {
-  $escaped = $DllPath.Replace("\", "\\")
+  $escaped = $DllPath.Replace("\", "\\").Replace('"', '\"')
   $source = @"
 using System;
 using System.Runtime.InteropServices;

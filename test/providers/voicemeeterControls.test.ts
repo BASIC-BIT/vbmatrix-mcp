@@ -87,6 +87,20 @@ describe('Voicemeeter control tool runners', () => {
         { VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API: 'true' }
       )
     ).rejects.toThrow(/DISABLE_RAW_REMOTE_API/);
+    await expect(
+      runRawVoicemeeterRemoteApi(
+        { operation: 'setFloat', parameter: 'Strip[0].gain', value: 0 },
+        runOperation,
+        { VOICEMEETER_MCP_DISABLE_WRITES: 'true' }
+      )
+    ).rejects.toThrow(/DISABLE_WRITES/);
+    await expect(
+      runRawVoicemeeterRemoteApi(
+        { operation: 'script', script: 'Strip[0].gain=0;' },
+        runOperation,
+        { VOICEMEETER_MCP_DISABLE_WRITES: 'true' }
+      )
+    ).rejects.toThrow(/DISABLE_WRITES/);
   });
 
   test('levels are bounded by detected edition channel limits', async () => {

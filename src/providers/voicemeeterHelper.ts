@@ -66,6 +66,13 @@ export interface VoicemeeterHelperResponse {
 export type RunVoicemeeterHelper = (command: VoicemeeterHelperCommand) => Promise<VoicemeeterStatus>;
 export type RunVoicemeeterOperationHelper = (command: VoicemeeterHelperCommand) => Promise<Record<string, unknown>>;
 
+interface HelperProcessFailure {
+  availability: VoicemeeterAvailability;
+  error: string;
+  exitCode?: number | null;
+  signal?: string | null;
+}
+
 export function voicemeeterEditionMetadata(type: number): VoicemeeterEditionMetadata {
   if (type === 1) return { type, name: 'standard', strips: 3, buses: 2 };
   if (type === 2) return { type, name: 'banana', strips: 5, buses: 5 };
@@ -212,6 +219,18 @@ export async function runVoicemeeterOperation(
 }
 
 export async function runVoicemeeterOperationHelper(command: VoicemeeterHelperCommand): Promise<Record<string, unknown>> {
+  return runHelperProcess(command, parseVoicemeeterOperationHelperResponse, operationHelperFailure);
+}
+
+export async function runVoicemeeterHelper(command: VoicemeeterHelperCommand): Promise<VoicemeeterStatus> {
+  return runHelperProcess(command, parseVoicemeeterHelperResponse, statusHelperFailure);
+}
+
+function runHelperProcess<T>(
+  command: VoicemeeterHelperCommand,
+  parseSuccess: (stdout: string, command: string, exitCode: number | null, signal: string | null) => T,
+  parseFailure: (command: string, failure: HelperProcessFailure) => T
+): Promise<T> {
   return new Promise((resolve) => {
     let stdout = '';
     let stderr = '';
@@ -229,7 +248,7 @@ export async function runVoicemeeterOperationHelper(command: VoicemeeterHelperCo
       settled = true;
       clearTimeout(timeout);
       child.kill();
-      resolve({ ok: false, availability: 'helper_failed', running: false, error });
+      resolve(parseFailure(command.command, { availability: 'helper_failed', error }));
     };
 
     timeout = setTimeout(() => {
@@ -258,129 +277,84 @@ export async function runVoicemeeterOperationHelper(command: VoicemeeterHelperCo
       if (settled) return;
       settled = true;
       clearTimeout(timeout);
-      resolve({ ok: false, availability: 'helper_failed', running: false, error: err.message });
+      resolve(parseFailure(command.command, { availability: 'helper_failed', error: err.message }));
     });
     child.on('close', (exitCode, signal) => {
       if (settled) return;
       settled = true;
       clearTimeout(timeout);
       if (exitCode !== 0) {
-        resolve({
-          ok: false,
-          availability: classifyHelperFailure(stderr),
-          running: false,
-          helper: { configured: true, command: command.command, exitCode, signal },
-          error: stderr.trim() || `Voicemeeter helper exited with code ${exitCode ?? 'unknown'}.`,
-        });
+        resolve(
+          parseFailure(command.command, {
+            availability: classifyHelperFailure(stderr),
+            error: stderr.trim() || `Voicemeeter helper exited with code ${exitCode ?? 'unknown'}.`,
+            exitCode,
+            signal,
+          })
+        );
         return;
       }
-
-      const text = stdout.trim();
-      if (!text) {
-        resolve({
-          ok: false,
-          availability: 'helper_failed',
-          running: false,
-          helper: { configured: true, command: command.command, exitCode, signal },
-          error: 'Voicemeeter helper returned no JSON on stdout.',
-        });
-        return;
-      }
-
-      try {
-        const parsed = JSON.parse(text) as Record<string, unknown>;
-        resolve({ ...parsed, helper: { configured: true, command: command.command, exitCode, signal } });
-      } catch (err) {
-        resolve({
-          ok: false,
-          availability: 'helper_failed',
-          running: false,
-          helper: { configured: true, command: command.command, exitCode, signal },
-          error: err instanceof Error ? err.message : 'Voicemeeter helper returned invalid JSON.',
-        });
-      }
+      resolve(parseSuccess(stdout, command.command, exitCode, signal));
     });
   });
 }
 
-export async function runVoicemeeterHelper(command: VoicemeeterHelperCommand): Promise<VoicemeeterStatus> {
-  return new Promise((resolve) => {
-    let stdout = '';
-    let stderr = '';
-    let stdoutBytes = 0;
-    let stderrBytes = 0;
-    let settled = false;
-    const child = spawn(command.command, command.args, {
-      stdio: ['ignore', 'pipe', 'pipe'],
-      windowsHide: true,
-    });
+function helperMetadata(command: string, failure: HelperProcessFailure) {
+  return {
+    configured: true,
+    command,
+    ...('exitCode' in failure ? { exitCode: failure.exitCode } : {}),
+    ...('signal' in failure ? { signal: failure.signal } : {}),
+  };
+}
 
-    let timeout: ReturnType<typeof setTimeout>;
-    const failHelper = (error: string) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timeout);
-      child.kill();
-      resolve({
-        ok: false,
-        availability: 'helper_failed',
-        running: false,
-        helper: { configured: true, command: command.command },
-        error,
-      });
-    };
+function operationHelperFailure(command: string, failure: HelperProcessFailure): Record<string, unknown> {
+  return {
+    ok: false,
+    availability: failure.availability,
+    running: false,
+    helper: helperMetadata(command, failure),
+    error: failure.error,
+  };
+}
 
-    timeout = setTimeout(() => {
-      failHelper(`Voicemeeter helper timed out after ${command.timeoutMs}ms.`);
-    }, command.timeoutMs);
+function statusHelperFailure(command: string, failure: HelperProcessFailure): VoicemeeterStatus {
+  return {
+    ok: false,
+    availability: failure.availability,
+    running: false,
+    helper: helperMetadata(command, failure),
+    error: failure.error,
+  };
+}
 
-    child.stdout?.setEncoding('utf8');
-    child.stdout?.on('data', (chunk: string) => {
-      stdoutBytes += Buffer.byteLength(chunk, 'utf8');
-      if (stdoutBytes > MAX_HELPER_OUTPUT_BYTES) {
-        failHelper(`Voicemeeter helper stdout exceeded ${MAX_HELPER_OUTPUT_BYTES} bytes.`);
-        return;
-      }
-      stdout += chunk;
+function parseVoicemeeterOperationHelperResponse(
+  stdout: string,
+  command: string,
+  exitCode: number | null,
+  signal: string | null
+): Record<string, unknown> {
+  const text = stdout.trim();
+  if (!text) {
+    return operationHelperFailure(command, {
+      availability: 'helper_failed',
+      error: 'Voicemeeter helper returned no JSON on stdout.',
+      exitCode,
+      signal,
     });
-    child.stderr?.setEncoding('utf8');
-    child.stderr?.on('data', (chunk: string) => {
-      stderrBytes += Buffer.byteLength(chunk, 'utf8');
-      if (stderrBytes <= MAX_HELPER_OUTPUT_BYTES) stderr += chunk;
-      process.stderr.write(chunk);
-      if (stderrBytes > MAX_HELPER_OUTPUT_BYTES) {
-        failHelper(`Voicemeeter helper stderr exceeded ${MAX_HELPER_OUTPUT_BYTES} bytes.`);
-      }
+  }
+
+  try {
+    const parsed = JSON.parse(text) as Record<string, unknown>;
+    return { ...parsed, helper: { configured: true, command, exitCode, signal } };
+  } catch (err) {
+    return operationHelperFailure(command, {
+      availability: 'helper_failed',
+      error: err instanceof Error ? err.message : 'Voicemeeter helper returned invalid JSON.',
+      exitCode,
+      signal,
     });
-    child.on('error', (err) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timeout);
-      resolve({
-        ok: false,
-        availability: 'helper_failed',
-        running: false,
-        helper: { configured: true, command: command.command },
-        error: err.message,
-      });
-    });
-    child.on('close', (exitCode, signal) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timeout);
-      if (exitCode !== 0) {
-        resolve({
-          ok: false,
-          availability: classifyHelperFailure(stderr),
-          running: false,
-          helper: { configured: true, command: command.command, exitCode, signal },
-          error: stderr.trim() || `Voicemeeter helper exited with code ${exitCode ?? 'unknown'}.`,
-        });
-        return;
-      }
-      resolve(parseVoicemeeterHelperResponse(stdout, command.command, exitCode, signal));
-    });
-  });
+  }
 }
 
 export function parseVoicemeeterHelperResponse(

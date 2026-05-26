@@ -320,6 +320,7 @@ export async function runRawVoicemeeterRemoteApi(
 ): Promise<Record<string, unknown>> {
   assertRawAllowed(env);
   if (input.operation === 'script') {
+    assertWritesAllowed(env);
     if (typeof input.script !== 'string') throw new Error('script is required for script operations');
     return { ...(await runOperation('raw-script', { script: input.script })), rawPolicy: { disableRawRemoteApi: false, preferTypedTools: true } };
   }
@@ -327,9 +328,11 @@ export async function runRawVoicemeeterRemoteApi(
   if (input.operation === 'getFloat') return getParameters([{ name: input.parameter, kind: 'float' }], runOperation);
   if (input.operation === 'getString') return getParameters([{ name: input.parameter, kind: 'string' }], runOperation);
   if (input.operation === 'setFloat') {
+    assertWritesAllowed(env);
     if (typeof input.value !== 'number') throw new Error('numeric value is required for setFloat');
     return setParameters([{ name: input.parameter, kind: 'float', value: input.value }], runOperation);
   }
+  assertWritesAllowed(env);
   if (typeof input.value !== 'string') throw new Error('string value is required for setString');
   return setParameters([{ name: input.parameter, kind: 'string', value: input.value }], runOperation);
 }
