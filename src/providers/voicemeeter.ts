@@ -3,6 +3,7 @@ import { EmptySchema } from '../tools/schemas.js';
 import { readOnlyToolAnnotations } from '../utils/toolAnnotations.js';
 import { jsonResponse } from '../utils/toolResponses.js';
 import type { ProductProvider } from './types.js';
+import { registerVoicemeeterControlTools } from './voicemeeterControls.js';
 import { getVoicemeeterStatus } from './voicemeeterHelper.js';
 import { voicemeeterCapabilitiesPayload, voicemeeterProviderMetadata } from './voicemeeterMetadata.js';
 
@@ -28,6 +29,8 @@ function registerVoicemeeterTools(server: McpServer): void {
     },
     async () => jsonResponse({ ...(await getVoicemeeterStatus()) })
   );
+
+  registerVoicemeeterControlTools(server);
 }
 
 export const voicemeeterProvider: ProductProvider = {

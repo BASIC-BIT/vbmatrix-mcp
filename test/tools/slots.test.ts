@@ -16,6 +16,7 @@ const config: VbMatrixConfig = {
     allowedSuids: ['VAIO1'],
     allowDestructive: true,
   },
+  rawCommands: { disabled: false },
 };
 
 const before: SlotState = {

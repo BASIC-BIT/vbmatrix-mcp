@@ -23,6 +23,7 @@ const config: VbMatrixConfig = {
     allowedSuids: [],
     allowDestructive: true,
   },
+  rawCommands: { disabled: false },
 };
 
 const before: PresetPatchState = {

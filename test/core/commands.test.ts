@@ -267,6 +267,9 @@ describe('VBMatrix command builders', () => {
     expect(parseQueryResponseValue('Command.Version=?;', 'Command.Version = VB-Audio Matrix 1.0.2.6;')).toBe(
       'VB-Audio Matrix 1.0.2.6'
     );
+    expect(parseQueryResponseValue('Slot(ASIO128).Device=?;', 'Slot(ASIO128).Device.ASIO = "Focusrite USB ASIO";')).toBe(
+      '"Focusrite USB ASIO"'
+    );
     expect(() => parseQueryResponseValue('Command.Version=?;', 'Command.Engine = 1;')).toThrow(
       /Response key mismatch/
     );

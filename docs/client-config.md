@@ -44,11 +44,17 @@ Common environment values:
   "VBMATRIX_PORT": "6980",
   "VBMATRIX_STREAM": "Command1",
   "VBMATRIX_MCP_ALLOW_WRITES": "false",
-  "VBMATRIX_MCP_ALLOW_DESTRUCTIVE": "false"
+  "VBMATRIX_MCP_ALLOW_DESTRUCTIVE": "false",
+  "VBMATRIX_MCP_DISABLE_RAW_COMMANDS": "true",
+  "VOICEMEETER_MCP_DISABLE_WRITES": "true",
+  "VOICEMEETER_MCP_DISABLE_DESTRUCTIVE": "true",
+  "VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API": "true"
 }
 ```
 
-Set writes or destructive tools to `true` only when the client provides approval controls and the operator understands the Matrix routes being changed.
+Set writes, destructive tools, or raw escape hatches to enabled only when the client provides approval controls and the operator understands the Matrix routes, Matrix files, or Voicemeeter parameters being changed.
+
+Matrix and Voicemeeter must not share a VBAN UDP port when both applications are open. Matrix defaults to `VBMATRIX_PORT=6980`. Future Voicemeeter VBAN-TEXT smoke/tooling should use a separate product-specific variable such as `VOICEMEETER_VBAN_PORT=6982`; the current helper-backed `voicemeeter_*` tools do not use UDP.
 
 ## OpenCode
 
@@ -62,12 +68,16 @@ Set writes or destructive tools to `true` only when the client provides approval
       "environment": {
         "VBMATRIX_HOST": "127.0.0.1",
         "VBMATRIX_MCP_ALLOW_WRITES": "false",
-        "VBMATRIX_MCP_ALLOW_DESTRUCTIVE": "false"
+        "VBMATRIX_MCP_ALLOW_DESTRUCTIVE": "false",
+        "VOICEMEETER_MCP_DISABLE_WRITES": "true",
+        "VOICEMEETER_MCP_DISABLE_DESTRUCTIVE": "true",
+        "VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API": "true"
       }
     }
   },
   "permission": {
-    "vbmatrix_*": "ask"
+    "vbmatrix_*": "ask",
+    "voicemeeter_*": "ask"
   }
 }
 ```
@@ -158,7 +168,10 @@ After client discovery succeeds, start with read-only tools:
 ```text
 vbmatrix_ping
 vbmatrix_vban_diagnostics
+vbmatrix_inspect_routes
+vbmatrix_inspect_slots
 vbmatrix_get_engine
+voicemeeter_get_status
 ```
 
 Use `vbmatrix_vban_diagnostics` before changing Matrix settings when query tools time out.

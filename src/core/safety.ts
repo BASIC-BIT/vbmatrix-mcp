@@ -120,6 +120,14 @@ export function assertPresetPatchDestructiveAllowed(config: VbMatrixConfig, inde
   assertDestructiveAllowed(config);
 }
 
+export function assertRawVbanTextAllowed(config: VbMatrixConfig): void {
+  if (config.rawCommands.disabled) {
+    throw new SafetyError('raw_commands_disabled', 'Raw VBAN-TEXT commands are disabled by VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true', {
+      disableRawCommands: config.rawCommands.disabled,
+    });
+  }
+}
+
 export function safetyDetails(config: VbMatrixConfig): Record<string, unknown> {
   return {
     allowWrites: config.writes.allow,

@@ -1,35 +1,46 @@
 # Matrix File State Safety
 
-Matrix file-affecting commands such as preset patch load/save, project load/save, and grid load/save are intentionally deferred until the server has a tested path policy and operator workflow. This document defines the safety contract future tools must satisfy before they can send any file-affecting VBAN-TEXT command.
+Matrix file-affecting commands can replace live Matrix state or write local state files. This document defines the safety contract for typed file tools and records the first implemented slice: `vbmatrix_preset_patch_file` for live-tested preset patch `.xml` load/save-as under configured roots.
 
 ## Scope
 
-This policy applies to future typed tools for:
+This policy applies to typed tools for:
 
 - Preset patch files: `PresetPatch[n].Load`, `PresetPatch[n].Save`, and `PresetPatch[n].SaveAs`.
 - Matrix project files: `Command.Load`, `Command.Save`, and related project-level commands if source-linked syntax is added.
 - Matrix grid files: `Command.LoadGrid`, `Command.SaveGrid`, and related grid-level commands if source-linked syntax is added.
 
-It does not authorize raw VBAN-TEXT command execution, generic script commands, arbitrary filesystem browsing, or broad import/export tools.
+It does not turn file-affecting commands into generic script commands, arbitrary filesystem browsing, or broad import/export tools. Advanced users can still send exact file-affecting commands through `vbmatrix_raw_vban_text` when raw commands are not disabled; that escape hatch does not provide this policy's path validation.
+
+Implemented now:
+
+- `vbmatrix_get_file_state` reads `Command.Load=?;` and `Command.LoadGrid=?;`.
+- `vbmatrix_preset_patch_file` supports `PresetPatch[n].Load="...";` and `PresetPatch[n].SaveAs="...";` only.
+
+Still deferred:
+
+- `PresetPatch[n].Save`.
+- `Command.Save`, `Command.Load`, `Command.SaveGrid`, and `Command.LoadGrid` execution.
+- Any project/grid path-based import/export surface.
 
 ## Path Roots
 
-Future file tools must require an explicit configured root for each file kind they support. A caller-provided path is valid only when its resolved absolute path is inside at least one allowed root for that same kind.
+File tools must require an explicit configured root for each file kind they support. A caller-provided path is valid only when its resolved absolute path is inside at least one allowed root for that same kind.
 
 Root rules:
 
-- Roots must be configured by the operator, not guessed from common Windows folders.
+- Roots must be configured by the operator, not guessed from common Windows folders. The current preset patch root variable is `VBMATRIX_MCP_PRESET_PATCH_ROOTS` with semicolon-separated absolute Windows paths.
 - Relative paths, drive-relative paths, UNC paths, and paths outside configured roots must be rejected.
 - Path traversal must be rejected by resolving the candidate path before comparison.
 - The tool response should include the matched root and resolved path during dry-run so the operator can verify the target.
 
 ## Extension Allowlists
 
-Future file tools must use per-kind extension allowlists. Extensions must be matched case-insensitively after path resolution.
+File tools must use per-kind extension allowlists. Extensions must be matched case-insensitively after path resolution.
 
-Recommended initial policy:
+Current policy:
 
-- Preset patch files should allow only documented Matrix preset patch extensions after they are verified against official docs or live Matrix behavior.
+- Preset patch files allow `.xml` only. The Matrix manual references `PresetPatch_01.xml`, and live Matrix 1.0.2.6 successfully wrote `AgentProof_PresetPatch_01.xml` through absolute-path `PresetPatch[1].SaveAs`.
 - Project files should allow only documented Matrix project extensions after they are verified.
 - Grid files should allow only documented Matrix grid extensions after they are verified.
 
@@ -43,19 +54,19 @@ File-affecting tools must dry-run by default. A dry-run response must show:
 - The resolved path and matched root.
 - The file kind and operation.
 - Whether the operation may overwrite an existing file.
-- The confirmation token required for execution.
+- The confirmation token required for execution. `vbmatrix_preset_patch_file` uses `MATRIX_PRESET_FILE_WRITE`.
 
-Save and save-as operations must not overwrite by implication. If overwrite support is added, the schema must require an explicit overwrite field and a separate confirmation token for overwrite-capable execution. Load operations must not create or modify local files.
+Save and save-as operations must not overwrite by implication. `vbmatrix_preset_patch_file` requires `allowOverwrite=true` before saving over an existing path, and overwrite execution also requires the destructive gate. Load operations must not create or modify local files.
 
 ## Confirmations And Gates
 
 Execution must require all relevant gates:
 
 - The write gate, because file tools change Matrix state or local files.
-- The destructive gate for project/grid loads, reset-like loads, overwrite-capable saves, and any operation that can disrupt live routing or replace durable state.
+- The destructive gate for preset patch loads, project/grid loads, reset-like loads, overwrite-capable saves, and any operation that can disrupt live routing or replace durable state.
 - A command-specific confirmation token after the caller reviews the dry-run.
 
-Confirmation tokens should be specific to the operation, for example `MATRIX_FILE_LOAD`, `MATRIX_FILE_SAVE`, or `MATRIX_FILE_OVERWRITE`. Avoid generic booleans for broad file state operations.
+Confirmation tokens should be specific to the operation or command family, for example `MATRIX_PRESET_FILE_WRITE`, `MATRIX_FILE_LOAD`, `MATRIX_FILE_SAVE`, or `MATRIX_FILE_OVERWRITE`. Avoid generic booleans for broad file state operations.
 
 ## Operator Responsibilities
 
@@ -68,6 +79,10 @@ The MCP server can validate paths and require confirmations, but the operator re
 
 ## Implementation Status
 
-The first implementation slice provides a pure path-policy helper in `src/core/matrixFilePolicy.ts` and tests in `test/core/matrixFilePolicy.test.ts`. It is not wired to any MCP tool and does not perform filesystem reads, writes, or Matrix commands.
+The first implementation slice provides:
 
-Future work may add typed file tools only after the command syntax, extensions, configured roots, dry-run output, overwrite behavior, and confirmation semantics are documented and tested.
+- A pure path-policy helper in `src/core/matrixFilePolicy.ts` with tests in `test/core/matrixFilePolicy.test.ts`.
+- `vbmatrix_get_file_state` for read-only project/grid file-state queries.
+- `vbmatrix_preset_patch_file` for dry-run-first `PresetPatch[n].Load` and `PresetPatch[n].SaveAs` against `.xml` paths under `VBMATRIX_MCP_PRESET_PATCH_ROOTS`.
+
+Future work may add more typed file tools only after the command syntax, extensions, configured roots, dry-run output, overwrite behavior, and confirmation semantics are documented and tested.

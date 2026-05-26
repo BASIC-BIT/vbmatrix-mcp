@@ -20,6 +20,11 @@ describe('tool registration', () => {
       'vbmatrix_get_engine',
       'vbmatrix_get_master',
       'vbmatrix_get_slot_info',
+      'vbmatrix_raw_vban_text',
+      'vbmatrix_inspect_routes',
+      'vbmatrix_inspect_slots',
+      'vbmatrix_get_file_state',
+      'vbmatrix_preset_patch_file',
       'vbmatrix_get_point',
       'vbmatrix_remove_point',
       'vbmatrix_apply_point_range',
@@ -45,6 +50,16 @@ describe('tool registration', () => {
       'vbmatrix_restart_engine',
       'voicemeeter_get_capabilities',
       'voicemeeter_get_status',
+      'voicemeeter_get_devices',
+      'voicemeeter_get_strip',
+      'voicemeeter_get_bus',
+      'voicemeeter_get_levels',
+      'voicemeeter_set_strip_parameter',
+      'voicemeeter_set_bus_parameter',
+      'voicemeeter_set_device',
+      'voicemeeter_get_macro_button',
+      'voicemeeter_set_macro_button',
+      'voicemeeter_raw_remote_api',
     ]);
   });
 });

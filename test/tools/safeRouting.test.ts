@@ -24,6 +24,7 @@ const config: VbMatrixConfig = {
     allowedSuids: [],
     allowDestructive: true,
   },
+  rawCommands: { disabled: false },
 };
 
 function fakeClient(states: PointState[], overrides: Partial<VbMatrixConfig['writes']> = {}) {

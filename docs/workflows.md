@@ -4,6 +4,8 @@ These recipes use the current MCP tool surface only:
 
 - `vbmatrix_ping`
 - `vbmatrix_vban_diagnostics`
+- `vbmatrix_inspect_routes`
+- `vbmatrix_inspect_slots`
 - `vbmatrix_get_engine`
 - `vbmatrix_get_master`
 - `vbmatrix_get_slot_info`
@@ -19,7 +21,7 @@ These recipes use the current MCP tool surface only:
 - `vbmatrix_preset_patch`
 - `vbmatrix_restart_engine`
 
-The MCP has no broad matrix scan, direct zone editor, undo stack, metering, or device-selection tools. Snapshot tools only capture explicit selected slots and points. Preset patch tools operate on explicit numeric patch indexes and dry-run by default. `vbmatrix_safe_route_workflow` groups a few explicit point operations with snapshot/rollback guardrails; it does not infer DJ intent, output groups, speakers, cue buses, or show-critical routes. Recipes that would benefit from broader tools are marked as future-tool placeholders.
+The MCP has no broad matrix scan, direct zone editor, undo stack, metering, or device-selection tools. `vbmatrix_inspect_slots` inspects only explicit candidate slots and selected channels, and `vbmatrix_inspect_routes` inspects only explicit selected points. Both are capped. Snapshot tools only capture explicit selected slots and points. Preset patch tools operate on explicit numeric patch indexes and dry-run by default. `vbmatrix_safe_route_workflow` groups a few explicit point operations with snapshot/rollback guardrails; it does not infer DJ intent, output groups, speakers, cue buses, or show-critical routes. Recipes that would benefit from broader tools are marked as future-tool placeholders.
 
 ## Tool Selection
 
@@ -89,23 +91,40 @@ Use this when the user asks what a route is doing or before any live change.
 - Required: input SUID, input channel, output SUID, output channel.
 - If the request is fuzzy, ask the operator to identify the input and output instead of guessing from names like cue, booth, stream, or main.
 
-2. Check control-plane health.
+If the operator only has candidate slots or channel labels, inspect those explicit candidates first:
+
+```text
+vbmatrix_inspect_slots({
+  "slots": [
+    { "suid": "VASIO8", "inputChannels": [1, 2] },
+    { "suid": "VAIO1", "outputChannels": [1, 2] }
+  ]
+})
+```
+
+2. Inspect the explicit candidate route in one bounded read-only call.
+
+```text
+vbmatrix_inspect_routes({
+  "points": [
+    {
+      "inputSuid": "VASIO8",
+      "inputChannel": 1,
+      "outputSuid": "VAIO1",
+      "outputChannel": 1
+    }
+  ]
+})
+```
+
+3. If the inspect call reports transport or packet problems, fall back to connection diagnostics.
 
 ```text
 vbmatrix_ping
 vbmatrix_vban_diagnostics
-vbmatrix_get_engine
-vbmatrix_get_master
 ```
 
-3. Check slot state for both SUIDs.
-
-```text
-vbmatrix_get_slot_info({ "suid": "VASIO8" })
-vbmatrix_get_slot_info({ "suid": "VAIO1" })
-```
-
-4. Query the exact point.
+4. Query one primitive directly only when you need to isolate a specific field.
 
 ```text
 vbmatrix_get_point({
@@ -122,6 +141,7 @@ vbmatrix_get_point({
 - `muted`: route mute state.
 - `phaseReversed`: polarity inversion state.
 - Include engine/master/slot anomalies before recommending writes.
+- Matrix `Err` values in otherwise successful query observations mean Matrix answered the typed query but the specific property or point was unavailable; ask the operator to verify the SUID/channel in the UI instead of treating it as a transport failure.
 
 ## Route Apply And Cleanup
 

@@ -8,12 +8,17 @@ Voicemeeter support should not be implemented as a broad extension of the curren
 
 Recommended direction:
 
-- Keep this repository named `vbmatrix-mcp` for the current Matrix-focused package until a second product backend exists.
+- Keep this repository named `vbmatrix-mcp` for now, but treat it as a Matrix-first package with an explicit Voicemeeter provider while product-neutral `vbaudio_*` compatibility remains deferred.
 - Extract a small shared VBAN packet layer only when a Voicemeeter feature directly needs it.
-- Prototype Voicemeeter as a provider adapter behind explicit product-prefixed tools, or as a sibling package, before renaming to a unified VB-Audio MCP.
+- Implement Voicemeeter behind explicit product-prefixed tools before renaming to a unified VB-Audio MCP.
 - Prefer the official Voicemeeter Remote API SDK for local Voicemeeter control. Treat VBAN-TEXT as a narrower remote/macro transport until its query semantics are verified against Voicemeeter.
 
-Do not add broad `voicemeeter_*` tools yet. The first implementation slice is a narrow discovery/status helper boundary with explicit edition detection and no writes, raw parameters, scripts, or in-process native DLL loading.
+Current implementation status:
+
+- The provider registers explicit `voicemeeter_*` tools for capabilities, status, devices, strip/bus reads, levels, typed strip/bus writes, device assignment/removal, MacroButtons read/write, and a raw Remote API escape hatch.
+- Voicemeeter control uses an external helper process; the MCP server does not load native Remote API DLLs in-process.
+- The bundled Windows PowerShell helper is enabled by default, can be replaced by `VOICEMEETER_HELPER_COMMAND`, and can be disabled with `VOICEMEETER_MCP_DISABLE_BUNDLED_HELPER=true`.
+- Writes, destructive actions, and raw Remote API access are default-available for local power users and can be disabled with `VOICEMEETER_MCP_DISABLE_WRITES`, `VOICEMEETER_MCP_DISABLE_DESTRUCTIVE`, and `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API`.
 
 ## Sources
 
@@ -31,14 +36,14 @@ Do not add broad `voicemeeter_*` tools yet. The first implementation slice is a 
 
 ## Current Repo Baseline
 
-The current implementation is Matrix-specific above the packet layer:
+The Matrix implementation remains product-specific above the packet layer:
 
 - `src/core/vbanText.ts` builds VBAN-TEXT packets and accepts Matrix query replies that arrive as VBAN service protocol `0x60` on stream `Request Reply`.
 - `src/core/commands.ts` builds Matrix expressions such as `Slot(SUID).Info=?;` and `Point(SUID.IN[i],SUID.OUT[j]).dBGain=?;`.
-- `src/tools/registerAllTools.ts` registers Matrix status, point, and system tools only.
+- `src/tools/registerAllTools.ts` registers Matrix tools through `matrixProvider` and Voicemeeter tools through `voicemeeterProvider`.
 - `docs/design.md` explicitly excludes raw command execution, full-matrix scans, preset patch editing, and VBAN service subscriptions from the MVP.
 
-That separation is useful: `vbanText.ts` is the only likely reusable layer. The Matrix SUID/slot/point command model should remain product-specific.
+That separation is useful: `vbanText.ts` is the only likely reusable Matrix/Voicemeeter VBAN layer. The Matrix SUID/slot/point command model remains product-specific, and Voicemeeter uses Remote API strip/bus/device parameter validators instead.
 
 ## Voicemeeter Editions
 
@@ -86,14 +91,14 @@ Risks:
 - The API allows generic parameter strings and scripts, which can become the same kind of raw command footgun this repo intentionally avoided for Matrix. Public MCP tools should expose typed operations first.
 - The SDK states only 4 client applications can be connected to remote Voicemeeter.
 
-Read-only discovery design for [#24](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/24):
+Helper-process design for [#24](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/24):
 
 - Use a helper process first, not in-process native FFI in the MCP server. The helper boundary keeps native crash, load-order, and ABI mismatch failures outside the long-lived MCP process.
-- The first helper should call only `VBVMR_Login`, `VBVMR_GetVoicemeeterType`, `VBVMR_GetVoicemeeterVersion`, and `VBVMR_Logout`.
-- Do not call `VBVMR_RunVoicemeeter`, set parameters, set scripts, mutate MacroButtons, enumerate or change devices, or start audio callbacks in the discovery helper.
+- The helper may call login/logout, type/version, parameter get/set, `SetParameters`, level reads, device enumeration, and MacroButtons get/set for explicit typed operations.
+- Do not call `VBVMR_RunVoicemeeter` or start audio callbacks in the helper.
 - Return structured edition metadata from SDK type values: type `1` Standard uses strips `0..2` and buses `0..1`; type `2` Banana uses strips `0..4` and buses `0..4`; type `3` Potato uses strips `0..7` and buses `0..7`.
 - Report failure modes explicitly: non-Windows host, DLL missing, architecture mismatch, login return codes, no running Voicemeeter server, unknown type value, helper timeout, and the SDK 4-client limit.
-- Keep any shipped Remote API helper out of the Matrix-focused MCP package unless [#16](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/16) deliberately turns this repository into a multi-product package. If native dependencies are needed for users, prefer a sibling `voicemeeter-mcp` package or future monorepo package so Matrix installs stay pure TypeScript and UDP-only.
+- Keep native loading out of the MCP process. The current bundled PowerShell helper keeps Matrix installs pure TypeScript/UDP-only at runtime unless a `voicemeeter_*` tool is called on Windows.
 
 ### VBAN-TEXT
 
@@ -111,10 +116,16 @@ Open questions:
 - Matrix queries in this repo require handling VBAN service protocol `0x60` reply packets on stream `Request Reply`. The researched official Voicemeeter pages confirm VBAN-TEXT input streams, but they do not establish that Voicemeeter replies to `...?;` queries using the same Matrix service-reply behavior.
 - Voicemeeter command grammar over VBAN-TEXT needs a source-linked parameter table or live verification before typed MCP tools rely on it.
 
+Port convention when Matrix and Voicemeeter are both running:
+
+- Keep product UDP base ports separate. Matrix defaults to `VBMATRIX_PORT=6980`; local Voicemeeter VBAN-TEXT smoke/tooling should use a separate `VOICEMEETER_VBAN_PORT=6982` convention.
+- Do not reuse one `VBMATRIX_PORT` value for both products.
+- Some VB-Audio companion/control ports may be derived by the application from the configured base port. Track the product base ports explicitly and avoid assuming one global VBAN port across Matrix and Voicemeeter.
+
 Recommendation:
 
 - Reuse `buildVbanTextPacket` only after the target stream, command grammar, and response behavior are verified for Voicemeeter.
-- Do not expose raw VBAN-TEXT script execution by default.
+- Do not expose raw Voicemeeter VBAN-TEXT script execution until query/reply behavior is live-proven. The current raw escape hatch uses the local Remote API helper, not Voicemeeter VBAN-TEXT.
 
 Operator-approved smoke design for [#22](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/22):
 
@@ -166,7 +177,7 @@ Recommendation:
 
 ### Keep `vbmatrix-mcp` For Now
 
-Renaming now would imply a supported unified surface before one exists. The package name, README, tool names, environment variables, and safety policy are all Matrix-specific. Keep them stable until there is at least one shipped Voicemeeter provider.
+Renaming now would imply a supported unified surface before one exists. The package remains Matrix-first, while Voicemeeter is exposed through explicit `voicemeeter_*` tools and `VOICEMEETER_*` environment variables. Keep product-specific names stable until a real shared abstraction is proven.
 
 ### Prefer Provider Boundaries Over Shared Semantics
 
@@ -196,23 +207,23 @@ Do not force Matrix slots/points and Voicemeeter strips/buses into a single gene
 Near term:
 
 - Keep existing `vbmatrix_*` tools unchanged.
-- If Voicemeeter is prototyped in this repo, use explicit `voicemeeter_*` tool names.
+- Use explicit `voicemeeter_*` tool names for the shipped Voicemeeter provider.
 - Avoid product-neutral names like `vbaudio_set_route` until behavior is consistent across providers.
 
 Long term:
 
 - If both providers ship in one package, consider renaming repo/package to `vbaudio-mcp` or creating a monorepo with packages such as `@basicbit/vbmatrix-mcp`, `@basicbit/voicemeeter-mcp`, and optionally `@basicbit/vbaudio-mcp` as a combined server.
-- If Voicemeeter support requires native dependencies, a sibling package may be cleaner than adding Windows-only FFI concerns to the Matrix package.
+- If Voicemeeter support later requires heavier native dependencies than the helper process, a sibling package may be cleaner than adding Windows-only FFI concerns to the Matrix package.
 
 ### Provider Surface And Safety
 
 Design closure for [#23](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/23):
 
-- The first Voicemeeter MCP surface should be read-only discovery/status: edition, version, helper health, and eventually explicit read-only status facts. Defer typed write tools until [#22](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/22) and [#24](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/24) establish the reliable transport/provider boundary.
 - Use `voicemeeter_*` tool names for Voicemeeter-specific tools and keep existing `vbmatrix_*` tools stable. Avoid `vbaudio_*` names until both providers ship with compatible behavior.
-- Represent strips and buses as numeric typed targets validated against detected edition metadata. Labels may be returned as facts, but exact-label selection should be a later lookup tool that rejects missing or ambiguous matches instead of fuzzy matching. Devices should start read-only and require a separate destructive/device-write design before assignment. Levels/meters should be read-only facts. Presets, MacroButtons, and scripts stay deferred; MacroButtons may later expose numbered read/trigger operations only after a separate safety design.
-- Future Voicemeeter write gates should be target-class-based, such as strips, buses, devices, MacroButtons, and destructive/system actions. Do not reuse the Matrix SUID allowlist as the Voicemeeter safety model.
-- Raw parameter/script tools remain excluded. If they are ever approved separately, they must be disabled by default, environment-gated, confirmation-gated, and documented as advanced escape hatches rather than normal MCP affordances.
+- Represent strips and buses as numeric typed targets validated against detected edition metadata. Labels are returned as facts; exact-label selection should remain a later lookup tool that rejects missing or ambiguous matches instead of fuzzy matching.
+- Device changes and MacroButtons writes are destructive-gated because they can disrupt live audio or trigger user-configured actions.
+- Voicemeeter write gates are target-class-based: typed writes, destructive/device/MacroButtons actions, and raw Remote API. Do not reuse the Matrix SUID allowlist as the Voicemeeter safety model.
+- Raw Remote API parameter/script access is approved as an advanced escape hatch for local power users. It is default-available, prefer typed tools where possible, and can be disabled with `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API=true`.
 - Feed provider-boundary inputs into [#16](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/16): product-specific adapters, stable Matrix naming, explicit capability reporting, edition-aware validators, and helper-process failure reporting.
 
 ## Follow-Up Issues
@@ -220,13 +231,13 @@ Design closure for [#23](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/23):
 This research supports expansion only through narrow, product-specific follow-up work. The implementation follow-ups are intentionally grouped into a small number of larger, agent-ready issues:
 
 1. [#24 Spike read-only Voicemeeter Remote API discovery](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/24)
-   Scope: implement the helper-process read-only discovery path documented above: login, get type, get version, logout, edition metadata, and explicit failure reporting. Do not add generic parameter strings, scripts, write tools, MacroButtons mutation, audio callbacks, `RunVoicemeeter`, or raw VBAN command execution.
+   Status: implemented and expanded through the helper-process provider. The remaining boundary is to keep native DLL loading out of the MCP process and avoid `RunVoicemeeter` or audio callbacks.
 
 2. [#22 Research Voicemeeter VBAN-TEXT query and reply behavior](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/22)
    Scope: with operator approval and a local install, send a read-only parameter query over the configured VBAN-TEXT stream and document whether replies use normal TEXT, SERVICE `Request Reply`, no reply, or another mechanism. This must land before any typed Voicemeeter VBAN tools rely on query/reply behavior.
 
 3. [#23 Design Voicemeeter provider capabilities and safety model](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/23)
-   Scope: provider design is documented above. Implementation follow-up should start with read-only `voicemeeter_*` discovery/status, keep `vbmatrix_*` stable, defer `vbaudio_*`, use target-class safety gates, and feed concrete provider-registry requirements into [#16](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/16).
+   Status: product-specific provider naming, capability reporting, edition-aware validators, helper-process failures, and inverse disable gates are implemented. Product-neutral `vbaudio_*` remains deferred.
 
 These issues capture initial boundaries for typed parameter validators, sibling-package evaluation, level/meter monitoring design, preset boundaries, and MacroButtons boundaries without splitting them into tiny chores.
 
@@ -234,4 +245,4 @@ These issues capture initial boundaries for typed parameter validators, sibling-
 
 - Does Voicemeeter respond to VBAN-TEXT parameter queries, and if so on which stream/protocol?
 - Which Remote API license constraints matter for bundling a TypeScript MCP package or helper binary?
-- If [#16](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/16) later chooses a multi-product package, what compatibility story should exist for the current Matrix-only package name and `vbmatrix_*` tool names?
+- If [#16](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/16) later chooses a multi-product package, what compatibility story should exist for the Matrix-first package name and `vbmatrix_*` tool names?

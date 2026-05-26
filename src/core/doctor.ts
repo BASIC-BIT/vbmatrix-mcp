@@ -138,6 +138,9 @@ function checkConfig(env: Record<string, string | undefined>): DoctorCheck {
       config.writes.allow && config.writes.allowDestructive
         ? 'Writes and destructive tools are enabled; ensure the MCP client has approval controls'
         : undefined,
+      !config.rawCommands.disabled
+        ? 'Raw VBAN-TEXT command tool is enabled; prefer typed tools and ensure MCP approval controls are configured'
+        : undefined,
     ].filter((warning): warning is string => Boolean(warning));
 
     if (warnings.length > 0) {

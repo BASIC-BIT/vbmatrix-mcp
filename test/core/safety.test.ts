@@ -7,6 +7,7 @@ import {
   assertPointWriteAllowed,
   assertPresetPatchDestructiveAllowed,
   assertPresetPatchWriteAllowed,
+  assertRawVbanTextAllowed,
   assertSlotDestructiveAllowed,
   assertSlotWriteAllowed,
   assertZoneResetAllowed,
@@ -48,6 +49,9 @@ describe('safety gates', () => {
     expect(() => loadConfig({ VBMATRIX_MCP_ALLOW_DESTRUCTIVE: 'maybe' })).toThrow(
       /VBMATRIX_MCP_ALLOW_DESTRUCTIVE must be a boolean value/
     );
+    expect(() => loadConfig({ VBMATRIX_MCP_DISABLE_RAW_COMMANDS: 'maybe' })).toThrow(
+      /VBMATRIX_MCP_DISABLE_RAW_COMMANDS must be a boolean value/
+    );
   });
 
   test('trims and deduplicates the SUID allowlist used for write gates', () => {
@@ -58,6 +62,14 @@ describe('safety gates', () => {
 
     expect(config.writes.allowedSuids).toEqual(['VASIO8', 'VAIO1']);
     expect(() => assertPointWriteAllowed(config, target)).not.toThrow();
+  });
+
+  test('trims and deduplicates Matrix file roots from semicolon-separated env values', () => {
+    const config = loadConfig({
+      VBMATRIX_MCP_PRESET_PATCH_ROOTS: ' C:\\PresetPatch ; D:\\Scenes ; C:\\PresetPatch ; ',
+    });
+
+    expect(config.matrixFiles?.presetPatchRoots).toEqual(['C:\\PresetPatch', 'D:\\Scenes']);
   });
 
   test('allows point writes by default', () => {
@@ -92,6 +104,13 @@ describe('safety gates', () => {
     expect(() => assertDestructiveAllowed(loadConfig({}))).not.toThrow();
     expect(() => assertDestructiveAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_DESTRUCTIVE: 'false' }))).toThrow(
       /ALLOW_DESTRUCTIVE/
+    );
+  });
+
+  test('allows raw VBAN-TEXT by default but supports opt-out', () => {
+    expect(() => assertRawVbanTextAllowed(loadConfig({}))).not.toThrow();
+    expect(() => assertRawVbanTextAllowed(loadConfig({ VBMATRIX_MCP_DISABLE_RAW_COMMANDS: 'true' }))).toThrow(
+      /DISABLE_RAW_COMMANDS/
     );
   });
 

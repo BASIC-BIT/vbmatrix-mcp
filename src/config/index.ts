@@ -12,6 +12,14 @@ export interface VbMatrixConfig {
     allowedSuids: string[];
     allowDestructive: boolean;
   };
+  rawCommands: {
+    disabled: boolean;
+  };
+  matrixFiles?: {
+    presetPatchRoots: string[];
+    projectRoots: string[];
+    gridRoots: string[];
+  };
 }
 
 type Env = Record<string, string | undefined>;
@@ -62,6 +70,12 @@ function readSuidList(env: Env): string[] {
   return [...new Set(raw.split(',').map((entry) => entry.trim()).filter(Boolean))];
 }
 
+function readPathList(env: Env, key: string): string[] {
+  const raw = env[key]?.trim();
+  if (!raw) return [];
+  return [...new Set(raw.split(';').map((entry) => entry.trim()).filter(Boolean))];
+}
+
 export function loadConfig(env: Env = process.env): VbMatrixConfig {
   return {
     host: readString(env, 'VBMATRIX_HOST', DEFAULT_HOST),
@@ -74,6 +88,14 @@ export function loadConfig(env: Env = process.env): VbMatrixConfig {
       allowAllSuids: readBoolean(env, 'VBMATRIX_MCP_ALLOW_ALL_SUIDS', true),
       allowedSuids: readSuidList(env),
       allowDestructive: readBoolean(env, 'VBMATRIX_MCP_ALLOW_DESTRUCTIVE', true),
+    },
+    rawCommands: {
+      disabled: readBoolean(env, 'VBMATRIX_MCP_DISABLE_RAW_COMMANDS', false),
+    },
+    matrixFiles: {
+      presetPatchRoots: readPathList(env, 'VBMATRIX_MCP_PRESET_PATCH_ROOTS'),
+      projectRoots: readPathList(env, 'VBMATRIX_MCP_PROJECT_ROOTS'),
+      gridRoots: readPathList(env, 'VBMATRIX_MCP_GRID_ROOTS'),
     },
   };
 }

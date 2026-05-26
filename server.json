@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.BASIC-BIT/vbmatrix-mcp",
   "title": "VBMatrix MCP",
-  "description": "MCP server for VB-Audio Matrix over VBAN-TEXT.",
+  "description": "MCP server for VB-Audio Matrix over VBAN-TEXT and Voicemeeter via helper process.",
   "repository": {
     "url": "https://github.com/BASIC-BIT/vbmatrix-mcp",
     "source": "github"
@@ -77,6 +77,66 @@
           "description": "Allow destructive/system operations such as engine restart. Defaults to true; set false to block them.",
           "format": "boolean",
           "default": "true",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VBMATRIX_MCP_DISABLE_RAW_COMMANDS",
+          "description": "Disable the advanced raw VBAN-TEXT escape hatch.",
+          "format": "boolean",
+          "default": "false",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VBMATRIX_MCP_PRESET_PATCH_ROOTS",
+          "description": "Semicolon-separated absolute Windows roots allowed for Matrix preset patch file load/save-as.",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VOICEMEETER_MCP_DISABLE_WRITES",
+          "description": "Disable typed Voicemeeter write tools.",
+          "format": "boolean",
+          "default": "false",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VOICEMEETER_MCP_DISABLE_DESTRUCTIVE",
+          "description": "Disable Voicemeeter destructive actions such as device changes and MacroButtons mutation.",
+          "format": "boolean",
+          "default": "false",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API",
+          "description": "Disable the advanced raw Voicemeeter Remote API escape hatch.",
+          "format": "boolean",
+          "default": "false",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VOICEMEETER_HELPER_COMMAND",
+          "description": "Optional custom Voicemeeter helper executable. If unset, the bundled Windows PowerShell helper is used when available.",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VOICEMEETER_HELPER_ARGS",
+          "description": "JSON array of base arguments for VOICEMEETER_HELPER_COMMAND.",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VOICEMEETER_REMOTE_DLL",
+          "description": "Optional explicit path to VoicemeeterRemote64.dll or VoicemeeterRemote.dll for the bundled helper.",
+          "format": "string",
           "isRequired": false,
           "isSecret": false
         },
