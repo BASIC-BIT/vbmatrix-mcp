@@ -34,6 +34,12 @@ npm run verify:live-audio
 
 `verify:live-audio` dry-runs by default. Running it with `--run` changes Matrix routes and requires `VBMATRIX_LIVE_VERIFY=I_UNDERSTAND_THIS_CHANGES_AUDIO`.
 
+Optional dependency check, only when network-dependent npm registry access is acceptable:
+
+```bash
+npm run security:audit
+```
+
 ## Checklist
 
 - Confirm `package.json`, `package-lock.json`, and `server.json` versions match.
@@ -42,6 +48,7 @@ npm run verify:live-audio
 - Confirm `npm run doctor` reports no failed static checks after `npm run build`.
 - Confirm `npm run package:smoke` passes and does not start a persistent MCP session.
 - Confirm `npm run pack:check` includes `dist`, `server.json`, README, changelog, docs, examples, and skills needed by users.
+- Review open Dependabot or security-audit findings and decide whether they block the release.
 - Request explicit operator approval before `npm publish`.
 - Request explicit operator approval before creating a GitHub release or pushing tags.
 

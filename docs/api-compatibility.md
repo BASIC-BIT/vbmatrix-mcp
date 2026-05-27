@@ -40,3 +40,5 @@ When a breaking change is unavoidable, prefer adding a replacement tool first, d
 ## Security Checks
 
 Default `npm run check` stays deterministic and offline-friendly. Dependency auditing is available as an explicit opt-in step with `npm run security:audit`; it may contact the npm registry and should not be added to default CI unless the repository explicitly accepts network-dependent checks.
+
+Dependabot watches npm dependencies and GitHub Actions weekly. Dependency PRs should still pass normal CI and should not change runtime safety defaults without an explicit compatibility review.
