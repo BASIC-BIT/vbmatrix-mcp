@@ -145,13 +145,31 @@ describe('VBAN-TEXT packet builder', () => {
     }
   });
 
-  test('classifies malformed header-shaped packets without throwing', () => {
+  test('classifies uniform-fill packets as bad magic without throwing', () => {
     for (let byte = 0; byte <= 0xff; byte += 1) {
       const candidate = Buffer.alloc(VBAN_HEADER_SIZE + 4, byte);
       const result = classifyVbanTextPacket(candidate, 'Command1');
 
       expect(result.accepted).toBe(false);
       expect(result.reason).toBe('bad_magic');
+    }
+  });
+
+  test('classifies valid-magic malformed headers without throwing', () => {
+    for (let byte = 0; byte <= 0xff; byte += 1) {
+      const candidate = Buffer.alloc(VBAN_HEADER_SIZE + 4, byte);
+      Buffer.from('VBAN', 'ascii').copy(candidate, 0);
+      const result = classifyVbanTextPacket(candidate, 'Command1');
+      const protocol = byte & 0xe0;
+
+      expect(result.accepted).toBe(false);
+      if (protocol === VBAN_TEXT_PROTOCOL) {
+        expect(result.reason).toBe('text_non_utf8');
+      } else if (protocol === VBAN_SERVICE_PROTOCOL) {
+        expect(result.reason).toBe('service_stream_mismatch');
+      } else {
+        expect(result.reason).toBe('unsupported_protocol');
+      }
     }
   });
 
