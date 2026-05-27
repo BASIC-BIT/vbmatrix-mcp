@@ -10,7 +10,9 @@ These recipes use the current MCP tool surface only:
 - `vbmatrix_get_master`
 - `vbmatrix_get_slot_info`
 - `vbmatrix_get_point`
+- `vbmatrix_get_channel_label`
 - `vbmatrix_get_preset_patch`
+- `vbmatrix_get_file_state`
 - `vbmatrix_capture_snapshot`
 - `vbmatrix_diff_snapshots`
 - `vbmatrix_restore_snapshot`
@@ -18,10 +20,20 @@ These recipes use the current MCP tool surface only:
 - `vbmatrix_set_point_gain`
 - `vbmatrix_set_point_mute`
 - `vbmatrix_set_point_phase`
+- `vbmatrix_apply_point_range`
+- `vbmatrix_apply_zone`
+- `vbmatrix_set_slot_online`
+- `vbmatrix_set_slot_master`
+- `vbmatrix_set_slot_device`
+- `vbmatrix_remove_slot_device`
+- `vbmatrix_set_channel_label`
+- `vbmatrix_remove_channel_label`
+- `vbmatrix_reset_channel_routes`
 - `vbmatrix_preset_patch`
+- `vbmatrix_preset_patch_file`
 - `vbmatrix_restart_engine`
 
-The MCP has no broad matrix scan, direct zone editor, undo stack, metering, or device-selection tools. `vbmatrix_inspect_slots` inspects only explicit candidate slots and selected channels, and `vbmatrix_inspect_routes` inspects only explicit selected points. Both are capped. Snapshot tools only capture explicit selected slots and points. Preset patch tools operate on explicit numeric patch indexes and dry-run by default. `vbmatrix_safe_route_workflow` groups a few explicit point operations with snapshot/rollback guardrails; it does not infer DJ intent, output groups, speakers, cue buses, or show-critical routes. Recipes that would benefit from broader tools are marked as future-tool placeholders.
+The MCP has no broad matrix scan, undo stack, metering subscription, or fuzzy device-selection workflow. `vbmatrix_inspect_slots` inspects only explicit candidate slots and selected channels, and `vbmatrix_inspect_routes` inspects only explicit selected points. Both are capped. Snapshot tools only capture explicit selected slots and points. Preset patch tools operate on explicit numeric patch indexes and dry-run by default. Slot device tools require exact device names plus confirmation. `vbmatrix_safe_route_workflow` groups a few explicit point operations with snapshot/rollback guardrails; it does not infer DJ intent, output groups, speakers, cue buses, or show-critical routes. Recipes that would benefit from broader tools are marked as future-tool placeholders.
 
 ## Tool Selection
 
@@ -256,7 +268,7 @@ Use this when the operator has already prepared a Matrix preset patch and wants 
 5. Execute only after operator approval with `dryRun: false` and `confirmOperation: "PRESET_PATCH_WRITE"`.
 6. Report the exact command and before/after preset patch state. If post-state query fails, report that the write was sent but verification failed.
 
-Load/save/save-as remain outside this workflow until file safety is designed.
+Preset patch XML load and save-as are available through `vbmatrix_preset_patch_file` when the path is under an allowed root and the operator approves execution. Project/grid load/save and implicit overwrite workflows remain outside this recipe until their file safety model is proven.
 
 ## Live-Show Rollback Snapshot
 

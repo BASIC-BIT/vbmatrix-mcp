@@ -68,7 +68,14 @@ Matrix query replies are expected as VBAN SERVICE packets on stream `Request Rep
 
 `vbmatrix_vban_diagnostics` reports observed packet reasons such as wrong stream, unsupported protocol, or malformed packet data. If no UDP packets arrive before timeout, it reports `no_packets_observed` as indeterminate because UDP cannot reliably prove whether the cause is no listener, no command-stream reply, disabled stream, firewall/network block, wrong host/port, or Matrix not running.
 
-See `docs/troubleshooting.md` for setup and support checklists, `docs/error-taxonomy.md` for compatibility notes on timeout classifications, Matrix `Err` replies, safety errors, and protocol-safe diagnostics, `docs/api-compatibility.md` for tool/schema/response compatibility policy and breaking-change guidance, and `docs/matrix-validation-evidence.md` for live-tested, mocked-tested, docs-only, and deferred Matrix validation evidence.
+Operator map:
+
+- `docs/troubleshooting.md`: setup and support checklists.
+- `docs/workflows.md`: safe Matrix operator workflow recipes.
+- `docs/voicemeeter-capability-map.md`: Voicemeeter tool safety, evidence, and useful next work.
+- `docs/error-taxonomy.md`: timeout classifications, Matrix `Err` replies, safety errors, and protocol-safe diagnostics.
+- `docs/api-compatibility.md`: tool/schema/response compatibility policy and breaking-change guidance.
+- `docs/matrix-validation-evidence.md`: live-tested, mocked-tested, docs-only, and deferred Matrix validation evidence.
 
 Manual live audio verification harness:
 
@@ -102,22 +109,22 @@ For setup failures or support reports, start with `docs/troubleshooting.md`. It 
 
 Voicemeeter configuration:
 
-| Variable                                 | Default          | Use                                                                                            |
-| ---------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------- |
-| `VOICEMEETER_HELPER_COMMAND`             | empty            | Optional custom helper executable. If unset, the bundled PowerShell helper is used on Windows. |
-| `VOICEMEETER_HELPER_ARGS`                | `[]`             | JSON string array of base args for a custom helper command.                                    |
-| `VOICEMEETER_HELPER_TIMEOUT_MS`          | `3000`           | Helper process timeout.                                                                        |
-| `VOICEMEETER_HELPER_POWERSHELL_COMMAND`  | `powershell.exe` | PowerShell executable for the bundled helper.                                                  |
-| `VOICEMEETER_REMOTE_DLL`                 | auto-detect      | Optional explicit path to `VoicemeeterRemote64.dll` or `VoicemeeterRemote.dll`.                |
-| `VOICEMEETER_MCP_DISABLE_BUNDLED_HELPER` | `false`          | Disable the bundled helper and require `VOICEMEETER_HELPER_COMMAND`.                           |
-| `VOICEMEETER_MCP_DISABLE_WRITES`         | `false`          | Disable typed Voicemeeter write tools.                                                         |
-| `VOICEMEETER_MCP_DISABLE_DESTRUCTIVE`    | `false`          | Disable Voicemeeter device changes and MacroButtons mutation.                                  |
-| `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API` | `false`          | Disable the advanced raw Voicemeeter Remote API escape hatch.                                  |
-| `VOICEMEETER_VBAN_HOST`                  | `127.0.0.1`      | Host/IP for raw Voicemeeter VBAN-TEXT commands.                                                |
-| `VOICEMEETER_VBAN_PORT`                  | `6982`           | UDP port for raw Voicemeeter VBAN-TEXT commands; keep separate from `VBMATRIX_PORT`.           |
-| `VOICEMEETER_VBAN_STREAM`                | `Command1`       | Incoming Voicemeeter VBAN-TEXT stream name.                                                    |
-| `VOICEMEETER_VBAN_TIMEOUT_MS`            | `2000`           | Query response timeout for raw Voicemeeter VBAN-TEXT commands.                                 |
-| `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT`  | `false`          | Disable Voicemeeter VBAN-TEXT diagnostics and the advanced raw escape hatch.                   |
+| Variable                                 | Default          | Use                                                                                                  |
+| ---------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------- |
+| `VOICEMEETER_HELPER_COMMAND`             | empty            | Optional custom helper executable. If unset, the bundled PowerShell helper is used on Windows.       |
+| `VOICEMEETER_HELPER_ARGS`                | `[]`             | JSON string array of base args for a custom helper command.                                          |
+| `VOICEMEETER_HELPER_TIMEOUT_MS`          | `3000`           | Helper process timeout.                                                                              |
+| `VOICEMEETER_HELPER_POWERSHELL_COMMAND`  | `powershell.exe` | PowerShell executable for the bundled helper.                                                        |
+| `VOICEMEETER_REMOTE_DLL`                 | auto-detect      | Optional explicit path to `VoicemeeterRemote64.dll` or `VoicemeeterRemote.dll`.                      |
+| `VOICEMEETER_MCP_DISABLE_BUNDLED_HELPER` | `false`          | Disable the bundled helper and require `VOICEMEETER_HELPER_COMMAND`.                                 |
+| `VOICEMEETER_MCP_DISABLE_WRITES`         | `false`          | Disable typed Voicemeeter write tools.                                                               |
+| `VOICEMEETER_MCP_DISABLE_DESTRUCTIVE`    | `false`          | Disable Voicemeeter device changes and MacroButtons mutation.                                        |
+| `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API` | `false`          | Disable the advanced raw Voicemeeter Remote API escape hatch.                                        |
+| `VOICEMEETER_VBAN_HOST`                  | `127.0.0.1`      | Host/IP for Voicemeeter VBAN-TEXT diagnostics and raw commands.                                      |
+| `VOICEMEETER_VBAN_PORT`                  | `6982`           | UDP port for Voicemeeter VBAN-TEXT diagnostics and raw commands; keep separate from `VBMATRIX_PORT`. |
+| `VOICEMEETER_VBAN_STREAM`                | `Command1`       | Incoming Voicemeeter VBAN-TEXT stream name.                                                          |
+| `VOICEMEETER_VBAN_TIMEOUT_MS`            | `2000`           | Query response timeout for Voicemeeter VBAN-TEXT diagnostics and raw commands.                       |
+| `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT`  | `false`          | Disable Voicemeeter VBAN-TEXT diagnostics and the advanced raw escape hatch.                         |
 
 Most current `voicemeeter_*` tools use the local Remote API helper. `voicemeeter_vban_diagnostics` and `voicemeeter_raw_vban_text` use UDP VBAN-TEXT for query/reply evidence and exact power-user commands. If Matrix and Voicemeeter are both running, keep product UDP base ports separate: Matrix uses `VBMATRIX_PORT=6980` by default, and Voicemeeter defaults here to `VOICEMEETER_VBAN_PORT=6982`. Do not point both applications at the same VBAN UDP port. Some VB-Audio companion/control ports may be derived by the application from its base port; configure and document the product base ports separately.
 
