@@ -68,7 +68,7 @@ Matrix query replies are expected as VBAN SERVICE packets on stream `Request Rep
 
 `vbmatrix_vban_diagnostics` reports observed packet reasons such as wrong stream, unsupported protocol, or malformed packet data. If no UDP packets arrive before timeout, it reports `no_packets_observed` as indeterminate because UDP cannot reliably prove whether the cause is no listener, no command-stream reply, disabled stream, firewall/network block, wrong host/port, or Matrix not running.
 
-See `docs/troubleshooting.md` for setup and support checklists, `docs/error-taxonomy.md` for compatibility notes on timeout classifications, Matrix `Err` replies, safety errors, and protocol-safe diagnostics, `docs/api-compatibility.md` for tool/schema/response compatibility policy and breaking-change guidance, and `docs/matrix-validation-evidence.md` for live-tested, mocked-tested, docs-only, and deferred Matrix validation evidence.
+See `docs/troubleshooting.md` for setup and support checklists, `docs/workflows.md` for applied Matrix and Voicemeeter operator recipes, `docs/error-taxonomy.md` for compatibility notes on timeout classifications, Matrix `Err` replies, safety errors, and protocol-safe diagnostics, `docs/api-compatibility.md` for tool/schema/response compatibility policy and breaking-change guidance, and `docs/matrix-validation-evidence.md` for live-tested, mocked-tested, docs-only, and deferred Matrix validation evidence.
 
 Manual live audio verification harness:
 
@@ -368,7 +368,7 @@ npm run pack:check
 
 `npm run security:audit` is opt-in because it may contact the npm registry. It is intentionally not part of `npm run check` or default CI.
 
-See `docs/architecture.md`, `docs/api-compatibility.md`, `docs/client-config.md`, `docs/design.md`, `docs/safety.md`, `docs/matrix-file-state-safety.md`, `docs/live-audio-verification.md`, `docs/release.md`, `docs/skills.md`, `docs/workflows.md`, `docs/agentic-workflow.md`, and `docs/improvement-log.md` for design, compatibility, client onboarding, file-state guardrails, verification, release, applied workflows, and lightweight maintainer loops.
+See `docs/architecture.md`, `docs/api-compatibility.md`, `docs/client-config.md`, `docs/design.md`, `docs/safety.md`, `docs/troubleshooting.md`, `docs/matrix-file-state-safety.md`, `docs/live-audio-verification.md`, `docs/release.md`, `docs/skills.md`, `docs/workflows.md`, `docs/agentic-workflow.md`, and `docs/improvement-log.md` for design, compatibility, client onboarding, troubleshooting, file-state guardrails, verification, release, applied workflows, and lightweight maintainer loops.
 
 Repo-local OpenCode skills:
 
