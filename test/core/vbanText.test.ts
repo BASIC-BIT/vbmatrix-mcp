@@ -100,7 +100,9 @@ describe('VBAN-TEXT packet builder', () => {
       accepted: false,
       reason: 'too_short',
     });
-    expect(classifyVbanTextPacket(Buffer.concat([Buffer.from('NOPE'), packet.subarray(4)]), 'Command1')).toMatchObject({
+    expect(
+      classifyVbanTextPacket(Buffer.concat([Buffer.from('NOPE'), packet.subarray(4)]), 'Command1')
+    ).toMatchObject({
       accepted: false,
       reason: 'bad_magic',
     });
@@ -134,7 +136,37 @@ describe('VBAN-TEXT packet builder', () => {
       observedPacketReasons: [],
     });
     expect(timeoutDiagnostic.likelyCauses).toContain('wrong host or UDP port');
-    expect(timeoutDiagnostic.likelyCauses).toContain('Matrix received the command but did not emit an observable reply');
+    expect(timeoutDiagnostic.likelyCauses).toContain(
+      'Matrix received the command but did not emit an observable reply'
+    );
+  });
+
+  test('uses product-specific timeout causes for non-Matrix diagnostics', () => {
+    const diagnostics: VbanTextExchangeDiagnostics = {
+      command: 'Strip[0].Gain=?;',
+      connection: {
+        host: '127.0.0.1',
+        port: 6982,
+        streamName: 'Command1',
+        timeoutMs: 10,
+        responseStreamName: VBAN_REQUEST_REPLY_STREAM,
+      },
+      sent: true,
+      receivedPackets: 0,
+      ignoredPackets: [],
+      likelySetupStages: [],
+      replyProductName: 'Voicemeeter',
+    };
+
+    const timeoutDiagnostic = buildTimeoutDiagnostic(diagnostics);
+
+    expect(timeoutDiagnostic.likelyCauses).toContain(
+      'incoming TEXT stream disabled or Voicemeeter not running'
+    );
+    expect(timeoutDiagnostic.likelyCauses).toContain(
+      'Voicemeeter received the command but did not emit an observable reply'
+    );
+    expect(JSON.stringify(timeoutDiagnostic)).not.toContain('Matrix');
   });
 
   test('shapes observed timeout packets without collapsing wrong stream and unsupported protocol cases', () => {

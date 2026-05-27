@@ -60,6 +60,7 @@ describe('tool registration', () => {
       'voicemeeter_get_macro_button',
       'voicemeeter_set_macro_button',
       'voicemeeter_raw_remote_api',
+      'voicemeeter_vban_diagnostics',
       'voicemeeter_raw_vban_text',
     ]);
   });

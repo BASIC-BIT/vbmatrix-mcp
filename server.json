@@ -121,7 +121,7 @@
         },
         {
           "name": "VOICEMEETER_VBAN_HOST",
-          "description": "Host or IP address for raw Voicemeeter VBAN-TEXT commands.",
+          "description": "Host or IP address for Voicemeeter VBAN-TEXT diagnostics and raw commands.",
           "format": "string",
           "default": "127.0.0.1",
           "isRequired": false,
@@ -129,7 +129,7 @@
         },
         {
           "name": "VOICEMEETER_VBAN_PORT",
-          "description": "UDP port for raw Voicemeeter VBAN-TEXT commands. Keep separate from VBMATRIX_PORT.",
+          "description": "UDP port for Voicemeeter VBAN-TEXT diagnostics and raw commands. Keep separate from VBMATRIX_PORT.",
           "format": "number",
           "default": "6982",
           "isRequired": false,
@@ -145,7 +145,7 @@
         },
         {
           "name": "VOICEMEETER_VBAN_TIMEOUT_MS",
-          "description": "Query response timeout for raw Voicemeeter VBAN-TEXT commands in milliseconds.",
+          "description": "Query response timeout for Voicemeeter VBAN-TEXT diagnostics and raw commands in milliseconds.",
           "format": "number",
           "default": "2000",
           "isRequired": false,

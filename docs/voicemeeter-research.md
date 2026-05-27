@@ -33,6 +33,8 @@ Current implementation status:
 - SDK README: https://raw.githubusercontent.com/vburel2018/Voicemeeter-SDK/main/README.md
 - SDK header: https://raw.githubusercontent.com/vburel2018/Voicemeeter-SDK/main/VoicemeeterRemote.h
 - Existing third-party Voicemeeter MCP prior art: https://github.com/rkzwei/voicemeeter-mcp-server
+- Onyx and Iris VBAN TEXT/SERVICE notes: https://blog.onyxandiris.online/the-vban-text-service-subprotocols
+- `vban-cmd-python` VBAN stream index source: https://github.com/onyx-and-iris/vban-cmd-python/blob/dev/vban_cmd/kinds.py and https://github.com/onyx-and-iris/vban-cmd-python/blob/dev/vban_cmd/vban.py
 
 ## Current Repo Baseline
 
@@ -130,9 +132,23 @@ Recommendation:
 Operator-approved smoke design for [#22](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/22):
 
 - The current receive filters accept VBAN-TEXT protocol `0x40` on the configured stream or VBAN service protocol `0x60` on stream `Request Reply`; Matrix live behavior observed by this repo uses SERVICE `0x60` on `Request Reply`.
-- Voicemeeter VBAN-TEXT query behavior still needs a live, operator-approved smoke using one fixed read-only query candidate. The existing `smoke:vban` script remains Matrix-specific; `voicemeeter_raw_vban_text` is the power-user path for exact Voicemeeter VBAN-TEXT commands while query behavior is being proven.
-- Capture exact evidence from the smoke: sent stream name, observed reply protocol, observed reply stream, payload bytes/text, timeout duration, and any ignored packet reasons from receive filtering.
+- Voicemeeter VBAN-TEXT query behavior is tested through one fixed read-only query candidate. The existing `smoke:vban` script remains Matrix-specific; `voicemeeter_vban_diagnostics` sends the fixed `Strip[0].Gain=?;` probe and reports packet evidence.
+- Capture exact evidence from future smokes: sent stream name, observed reply protocol, observed reply stream, payload bytes/text, timeout duration, and any ignored packet reasons from receive filtering.
 - Existing `vbanText` receive filters can observe TEXT `0x40` replies and SERVICE `0x60` `Request Reply` packets. Add a narrow helper only if Voicemeeter replies on a different protocol or stream.
+
+Live smoke result on 2026-05-27:
+
+- Environment: Voicemeeter Banana `2.1.1.9`, Remote API type `2`, Matrix simultaneously running on UDP `6980`, Voicemeeter running on UDP `6982`.
+- Source mapping: `vban-cmd-python` models Banana as 8 audio input streams, 1 MIDI input stream, and 1 TEXT input stream, so the TEXT input is `vban.instream[9]`.
+- Before the probe, Remote API showed `vban.Enable=1`, `vban.instream[9].on=0`, `vban.instream[9].name="Stream2"`, and `vban.instream[9].port=6982`.
+- For the probe only, `vban.instream[9]` was set to `port=6982`, `name="Command1"`, and `on=1`; after the probe it was restored to `on=0`, `name="Stream2"`, and `port=6982`.
+- `voicemeeter_vban_diagnostics` sent `Strip[0].Gain=?;` to `127.0.0.1:6982` stream `Command1` with a 5000 ms timeout. It observed `receivedPackets=0`, no ignored packets, and timeout classification `no_packets_observed`.
+- A separate full VBAN SERVICE `PING0` packet to `127.0.0.1:6982` did receive a 704-byte SERVICE response from `127.0.0.1:6982` on stream `VBAN Service` with protocol `0x60`, `nbs=0x80`, `nbc=0`, and Voicemeeter type word `32`. This proves the local Voicemeeter VBAN service was reachable even though the TEXT query emitted no observable reply.
+
+Recommendation from the live smoke:
+
+- Do not build typed read-only Voicemeeter VBAN tools on direct `...?;` string query/reply semantics. The local smoke proves VBAN service reachability, but did not observe a TEXT or SERVICE `Request Reply` response for a read-only parameter query.
+- Prefer the Remote API helper for typed local reads. If future Voicemeeter-over-VBAN reads are needed, model them as VBAN SERVICE/PING and RTPacket subscription parsing rather than reusing Matrix direct query behavior.
 
 ### MacroButtons
 
