@@ -2,7 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { loadVoicemeeterVbanTextConfig, type VoicemeeterVbanTextConfig } from '../config/index.js';
 import { assertVoicemeeterRawVbanTextAllowed } from '../core/safety.js';
-import { sendVbanTextCommand, type SendVbanTextOptions } from '../core/vbanText.js';
+import { sendVbanTextCommand, VbanTextTimeoutError, type SendVbanTextOptions } from '../core/vbanText.js';
 import { destructiveToolAnnotations } from '../utils/toolAnnotations.js';
 import { jsonResponse, toolError } from '../utils/toolResponses.js';
 
@@ -18,7 +18,7 @@ const RawVoicemeeterVbanTextSchema = z.object({
     .boolean()
     .optional()
     .describe(
-      'When omitted, query-looking commands ending in ? or ?; wait for a reply and other commands fire-and-forget.'
+      'When omitted, commands whose last non-whitespace character is ? are treated as queries and wait for a reply; all others fire-and-forget. Set explicitly to override the heuristic, e.g. for multi-statement commands or labels containing ?.'
     ),
 });
 
@@ -60,15 +60,35 @@ export async function runRawVoicemeeterVbanText(
     timeoutMs: config.timeoutMs,
     waitForResponse,
   };
-  const response = await sendCommand(input.command, options);
-  return {
-    ok: true,
-    command: input.command,
-    waitForResponse,
-    response: response?.trim() ?? null,
-    rawPolicy: rawPolicyDetails(config),
-    connection: connectionDetails(config),
-  };
+  try {
+    const response = await sendCommand(input.command, options);
+    const timedOut = waitForResponse && response === null;
+    return {
+      ok: !timedOut,
+      command: input.command,
+      waitForResponse,
+      response: response?.trim() ?? null,
+      timedOut,
+      rawPolicy: rawPolicyDetails(config),
+      connection: connectionDetails(config),
+    };
+  } catch (err) {
+    if (err instanceof VbanTextTimeoutError && waitForResponse) {
+      return {
+        ok: false,
+        command: input.command,
+        waitForResponse,
+        response: null,
+        timedOut: true,
+        error: err.message,
+        diagnostics: err.diagnostics,
+        rawPolicy: rawPolicyDetails(config),
+        connection: connectionDetails(config),
+      };
+    }
+
+    throw err;
+  }
 }
 
 export function registerVoicemeeterVbanTextTools(server: McpServer): void {
