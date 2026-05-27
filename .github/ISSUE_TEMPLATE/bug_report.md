@@ -13,6 +13,8 @@ labels: bug
 - Package version or commit:
 - MCP client:
 - VB-Audio Matrix version:
+- Voicemeeter edition/version, if relevant:
+- Relevant configured ports/streams: `VBMATRIX_PORT`, `VBMATRIX_STREAM`, `VOICEMEETER_VBAN_PORT`, `VOICEMEETER_VBAN_STREAM`
 
 ## Diagnostics
 
@@ -26,6 +28,14 @@ If VB-Audio Matrix is running and VBAN-TEXT is configured:
 npm run doctor -- --vban
 ```
 
+If this is a Matrix VBAN timeout or packet issue and you intentionally ran deeper read-only diagnostics:
+
+```text
+npm run diagnostics:vban
+```
+
+For Voicemeeter issues, paste the structured response from the relevant read-only tool first, usually `voicemeeter_get_status` or `voicemeeter_get_capabilities`.
+
 ## Expected Behavior
 
 ## Actual Behavior
@@ -35,3 +45,7 @@ npm run doctor -- --vban
 ## Safety Notes
 
 Did any command change Matrix routes, slots, devices, or engine state?
+
+Did any command change Voicemeeter devices, strip/bus parameters, MacroButtons, or raw VBAN-TEXT state?
+
+Redact private stream keys, remote endpoints, personal routing maps, local file paths that reveal private projects, and raw scripts unrelated to the bug.

@@ -45,6 +45,10 @@ function connectionDetails(config: VoicemeeterVbanTextConfig): Record<string, un
   };
 }
 
+function voicemeeterTimeoutMessage(command: string, config: VoicemeeterVbanTextConfig): string {
+  return `Timed out waiting for Voicemeeter VBAN-TEXT response to ${command}. Check Voicemeeter VBAN service, incoming TEXT stream '${config.streamName}', UDP ${config.host}:${config.port}, and whether this Voicemeeter edition replies to VBAN-TEXT queries.`;
+}
+
 export async function runRawVoicemeeterVbanText(
   input: { command: string; waitForResponse?: boolean },
   config: VoicemeeterVbanTextConfig = loadVoicemeeterVbanTextConfig(),
@@ -80,7 +84,7 @@ export async function runRawVoicemeeterVbanText(
         waitForResponse,
         response: null,
         timedOut: true,
-        error: err.message,
+        error: voicemeeterTimeoutMessage(input.command, config),
         diagnostics: err.diagnostics,
         rawPolicy: rawPolicyDetails(config),
         connection: connectionDetails(config),
