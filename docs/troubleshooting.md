@@ -63,14 +63,14 @@ Device changes and MacroButtons writes can disrupt live audio or trigger user-co
 
 ## Voicemeeter VBAN-TEXT
 
-`voicemeeter_raw_vban_text` is an exact-command power-user escape hatch. Prefer typed `voicemeeter_*` tools where possible.
+Start with `voicemeeter_vban_diagnostics` when collecting query/reply evidence. It sends only the fixed read-only `Strip[0].Gain=?;` probe. `voicemeeter_raw_vban_text` is an exact-command power-user escape hatch. Prefer typed `voicemeeter_*` tools where possible.
 
 Keep Matrix and Voicemeeter on separate VBAN UDP base ports when both applications are open. The repo defaults are:
 
 - Matrix: `VBMATRIX_PORT=6980`.
 - Voicemeeter raw VBAN-TEXT: `VOICEMEETER_VBAN_PORT=6982`.
 
-Voicemeeter VBAN-TEXT query/reply behavior is still unverified. A read-only query that returns `timedOut: true` means no accepted reply was observed within the configured timeout; it does not prove the command syntax is unsupported unless Voicemeeter was running, VBAN was enabled, the incoming TEXT stream name and port were verified, and packet evidence was captured.
+Voicemeeter VBAN-TEXT query replies are not a supported typed-read dependency. A read-only query that returns `timedOut: true` means no accepted reply was observed within the configured timeout; it does not prove the command syntax is unsupported unless Voicemeeter was running, VBAN was enabled, the incoming TEXT stream name and port were verified, and packet evidence was captured.
 
 ## Safe Support Data
 

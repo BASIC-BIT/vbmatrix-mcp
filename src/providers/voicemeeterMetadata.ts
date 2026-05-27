@@ -14,6 +14,7 @@ export const voicemeeterProviderMetadata = {
     'typedWrites',
     'macroButtons',
     'rawRemoteApi',
+    'vbanTextDiagnostics',
     'rawVbanText',
   ],
 } as const;

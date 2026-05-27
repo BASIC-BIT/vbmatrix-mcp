@@ -55,7 +55,7 @@ Common environment values:
 
 Set writes, destructive tools, or raw escape hatches to enabled only when the client provides approval controls and the operator understands the Matrix routes, Matrix files, or Voicemeeter parameters being changed.
 
-Matrix and Voicemeeter must not share a VBAN UDP port when both applications are open. Matrix defaults to `VBMATRIX_PORT=6980`. Raw Voicemeeter VBAN-TEXT uses separate `VOICEMEETER_VBAN_*` settings and defaults to `VOICEMEETER_VBAN_PORT=6982`; helper-backed `voicemeeter_*` tools other than `voicemeeter_raw_vban_text` do not use UDP.
+Matrix and Voicemeeter must not share a VBAN UDP port when both applications are open. Matrix defaults to `VBMATRIX_PORT=6980`. Voicemeeter VBAN-TEXT diagnostics and raw commands use separate `VOICEMEETER_VBAN_*` settings and default to `VOICEMEETER_VBAN_PORT=6982`; helper-backed `voicemeeter_*` tools other than `voicemeeter_vban_diagnostics` and `voicemeeter_raw_vban_text` do not use UDP.
 
 ## OpenCode
 

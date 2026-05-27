@@ -25,11 +25,11 @@ Voicemeeter gates:
 - `VOICEMEETER_MCP_DISABLE_WRITES=true` disables typed `voicemeeter_set_strip_parameter` and `voicemeeter_set_bus_parameter` writes.
 - `VOICEMEETER_MCP_DISABLE_DESTRUCTIVE=true` disables `voicemeeter_set_device` and `voicemeeter_set_macro_button`.
 - `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API=true` disables `voicemeeter_raw_remote_api`.
-- `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT=true` disables `voicemeeter_raw_vban_text`.
+- `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT=true` disables `voicemeeter_vban_diagnostics` and `voicemeeter_raw_vban_text`.
 - Voicemeeter tools use an external helper process. The MCP server does not load Voicemeeter Remote API DLLs in-process.
 - The bundled helper is enabled by default on Windows and can be disabled with `VOICEMEETER_MCP_DISABLE_BUNDLED_HELPER=true`.
 - `voicemeeter_raw_remote_api` is a power-user escape hatch for exact Remote API parameter paths or scripts. Prefer typed `voicemeeter_*` tools where possible.
-- `voicemeeter_raw_vban_text` is a power-user escape hatch for exact Voicemeeter VBAN-TEXT commands over `VOICEMEETER_VBAN_HOST`, `VOICEMEETER_VBAN_PORT`, and `VOICEMEETER_VBAN_STREAM`. It is available by default, separate from Matrix's `VBMATRIX_*` connection, and should not be treated as typed validation.
+- `voicemeeter_vban_diagnostics` and `voicemeeter_raw_vban_text` send Voicemeeter VBAN-TEXT packets over `VOICEMEETER_VBAN_HOST`, `VOICEMEETER_VBAN_PORT`, and `VOICEMEETER_VBAN_STREAM`. They are available by default, separate from Matrix's `VBMATRIX_*` connection, and should not be treated as typed validation.
 - `voicemeeter_set_device` and `voicemeeter_set_macro_button` report Remote API acceptance separately from immediate observable state. Do not claim a device or MacroButton state changed unless the `confirmation` block shows the relevant post-state evidence; MacroButton trigger mode may legitimately pulse and then read back as `0`.
 
 Slot device assignment/removal and slot reset also require `confirm=true` in the tool input. These tools are operator-in-the-loop actions because they can interrupt live audio devices even though they target one slot.

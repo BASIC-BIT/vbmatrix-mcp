@@ -3,9 +3,13 @@ import type { VoicemeeterVbanTextConfig } from '../../src/config/index.js';
 import {
   VBAN_REQUEST_REPLY_STREAM,
   VbanTextTimeoutError,
+  type SendVbanTextDiagnosticsResult,
   type SendVbanTextOptions,
 } from '../../src/core/vbanText.js';
-import { runRawVoicemeeterVbanText } from '../../src/providers/voicemeeterVbanText.js';
+import {
+  runRawVoicemeeterVbanText,
+  runVoicemeeterVbanDiagnostics,
+} from '../../src/providers/voicemeeterVbanText.js';
 
 const config: VoicemeeterVbanTextConfig = {
   host: '127.0.0.1',
@@ -19,6 +23,24 @@ function fakeSender(response: string | null = null) {
   return vi
     .fn<(command: string, options: SendVbanTextOptions) => Promise<string | null>>()
     .mockResolvedValue(response);
+}
+
+function timeoutError(command = 'Strip[0].Gain=?;') {
+  return new VbanTextTimeoutError(command, {
+    command,
+    connection: {
+      host: '127.0.0.1',
+      port: 6982,
+      streamName: 'Command1',
+      timeoutMs: 2000,
+      responseStreamName: VBAN_REQUEST_REPLY_STREAM,
+    },
+    sent: true,
+    receivedPackets: 0,
+    ignoredPackets: [],
+    likelySetupStages: ['No accepted Voicemeeter query reply was received.'],
+    replyProductName: 'Voicemeeter',
+  });
 }
 
 describe('Voicemeeter raw VBAN-TEXT runner', () => {
@@ -51,6 +73,7 @@ describe('Voicemeeter raw VBAN-TEXT runner', () => {
       streamName: 'Command1',
       timeoutMs: 2000,
       waitForResponse: true,
+      replyProductName: 'Voicemeeter',
     });
   });
 
@@ -68,7 +91,7 @@ describe('Voicemeeter raw VBAN-TEXT runner', () => {
     });
     expect(sendCommand).toHaveBeenCalledWith(
       'Strip[0].Gain=0;',
-      expect.objectContaining({ waitForResponse: false })
+      expect.objectContaining({ waitForResponse: false, replyProductName: 'Voicemeeter' })
     );
   });
 
@@ -87,20 +110,7 @@ describe('Voicemeeter raw VBAN-TEXT runner', () => {
   });
 
   test('returns timeout diagnostics from the VBAN-TEXT transport', async () => {
-    const timeout = new VbanTextTimeoutError('Strip[0].Gain=?;', {
-      command: 'Strip[0].Gain=?;',
-      connection: {
-        host: '127.0.0.1',
-        port: 6982,
-        streamName: 'Command1',
-        timeoutMs: 2000,
-        responseStreamName: VBAN_REQUEST_REPLY_STREAM,
-      },
-      sent: true,
-      receivedPackets: 0,
-      ignoredPackets: [],
-      likelySetupStages: [],
-    });
+    const timeout = timeoutError();
     const sendCommand = vi
       .fn<(command: string, options: SendVbanTextOptions) => Promise<string | null>>()
       .mockRejectedValue(timeout);
@@ -117,6 +127,7 @@ describe('Voicemeeter raw VBAN-TEXT runner', () => {
         command: 'Strip[0].Gain=?;',
         sent: true,
         receivedPackets: 0,
+        replyProductName: 'Voicemeeter',
       },
     });
     if (typeof result.error !== 'string') throw new Error('expected timeout error');
@@ -134,6 +145,89 @@ describe('Voicemeeter raw VBAN-TEXT runner', () => {
         { ...config, rawVbanText: { disabled: true } },
         sendCommand
       )
+    ).rejects.toThrow(/DISABLE_RAW_VBAN_TEXT/);
+    expect(sendCommand).not.toHaveBeenCalled();
+  });
+});
+
+describe('Voicemeeter VBAN-TEXT diagnostics runner', () => {
+  test('sends a fixed read-only query with Voicemeeter diagnostics context', async () => {
+    const sendCommand = vi
+      .fn<(command: string, options: SendVbanTextOptions) => Promise<SendVbanTextDiagnosticsResult>>()
+      .mockResolvedValue({
+        response: 'Strip[0].Gain = 0;',
+        diagnostics: {
+          command: 'Strip[0].Gain=?;',
+          connection: {
+            host: '127.0.0.1',
+            port: 6982,
+            streamName: 'Command1',
+            timeoutMs: 2000,
+            responseStreamName: VBAN_REQUEST_REPLY_STREAM,
+          },
+          sent: true,
+          receivedPackets: 1,
+          ignoredPackets: [],
+          likelySetupStages: [],
+          replyProductName: 'Voicemeeter',
+        },
+      });
+
+    await expect(runVoicemeeterVbanDiagnostics(config, sendCommand)).resolves.toMatchObject({
+      ok: true,
+      command: 'Strip[0].Gain=?;',
+      response: 'Strip[0].Gain = 0;',
+      timedOut: false,
+      queryReplyBehavior: 'unverified_for_voicemeeter',
+      diagnostics: {
+        sent: true,
+        receivedPackets: 1,
+        replyProductName: 'Voicemeeter',
+      },
+    });
+    expect(sendCommand).toHaveBeenCalledWith('Strip[0].Gain=?;', {
+      host: '127.0.0.1',
+      port: 6982,
+      streamName: 'Command1',
+      timeoutMs: 2000,
+      waitForResponse: true,
+      replyProductName: 'Voicemeeter',
+    });
+  });
+
+  test('returns Voicemeeter-specific timeout evidence for blocked query probes', async () => {
+    const sendCommand = vi
+      .fn<(command: string, options: SendVbanTextOptions) => Promise<SendVbanTextDiagnosticsResult>>()
+      .mockRejectedValue(timeoutError());
+
+    const result = await runVoicemeeterVbanDiagnostics(config, sendCommand);
+
+    expect(result).toMatchObject({
+      ok: false,
+      command: 'Strip[0].Gain=?;',
+      response: null,
+      timedOut: true,
+      queryReplyBehavior: 'unverified_for_voicemeeter',
+      diagnostics: {
+        sent: true,
+        receivedPackets: 0,
+        replyProductName: 'Voicemeeter',
+      },
+    });
+    if (typeof result.error !== 'string') throw new Error('expected timeout error');
+    expect(result.error).toContain('Voicemeeter VBAN-TEXT response');
+    expect(result.error).not.toContain('Matrix');
+    if (!Array.isArray(result.likelyFixes)) throw new Error('expected likelyFixes');
+    expect(result.likelyFixes).toContain('Confirm Voicemeeter is running and VBAN service is ON.');
+  });
+
+  test('is disabled by inverse raw VBAN-TEXT policy', async () => {
+    const sendCommand = vi
+      .fn<(command: string, options: SendVbanTextOptions) => Promise<SendVbanTextDiagnosticsResult>>()
+      .mockResolvedValue({ response: null, diagnostics: timeoutError().diagnostics });
+
+    await expect(
+      runVoicemeeterVbanDiagnostics({ ...config, rawVbanText: { disabled: true } }, sendCommand)
     ).rejects.toThrow(/DISABLE_RAW_VBAN_TEXT/);
     expect(sendCommand).not.toHaveBeenCalled();
   });

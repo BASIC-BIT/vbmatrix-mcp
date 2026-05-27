@@ -33,4 +33,4 @@ Guidance for coding agents:
 - `VBMATRIX_MCP_ALLOW_ALL_SUIDS` defaults to `true`; set it to `false` with `VBMATRIX_MCP_ALLOWED_SUIDS` for a narrower deployment.
 - `VBMATRIX_MCP_ALLOW_DESTRUCTIVE` defaults to `true`; set it to `false` to block engine restart and future destructive/system tools.
 - `VBMATRIX_MCP_DISABLE_RAW_COMMANDS` defaults to `false`; set it to `true` to disable the raw VBAN-TEXT escape hatch.
-- `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT` defaults to `false`; set it to `true` to disable the raw Voicemeeter VBAN-TEXT escape hatch.
+- `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT` defaults to `false`; set it to `true` to disable Voicemeeter VBAN-TEXT diagnostics and the raw escape hatch.
