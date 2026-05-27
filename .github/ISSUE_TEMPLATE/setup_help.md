@@ -13,6 +13,8 @@ labels: setup
 - Install method: source checkout or npm package
 - MCP client:
 - VB-Audio Matrix host/port/stream:
+- Voicemeeter helper or VBAN settings, if relevant:
+- Safety flags you intentionally set, e.g. write/destructive/raw disable variables:
 
 ## Doctor Output
 
@@ -31,3 +33,7 @@ npm run doctor -- --vban
 ## Client Configuration
 
 Paste the relevant MCP server entry with secrets removed.
+
+## Safe Redaction
+
+Remove private stream keys, remote endpoints, personal routing maps, and local file paths that reveal private projects. Keep tool names, sanitized environment variable names/values, and structured error JSON when possible.

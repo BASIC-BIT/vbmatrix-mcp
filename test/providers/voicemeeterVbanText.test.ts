@@ -120,7 +120,9 @@ describe('Voicemeeter raw VBAN-TEXT runner', () => {
       },
     });
     if (typeof result.error !== 'string') throw new Error('expected timeout error');
-    expect(result.error).toContain('Timed out waiting for VBAN-TEXT response');
+    expect(result.error).toContain('Timed out waiting for Voicemeeter VBAN-TEXT response');
+    expect(result.error).toContain("incoming TEXT stream 'Command1'");
+    expect(result.error).not.toContain('Matrix');
   });
 
   test('is disabled by inverse raw VBAN-TEXT policy', async () => {

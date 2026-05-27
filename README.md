@@ -68,7 +68,7 @@ Matrix query replies are expected as VBAN SERVICE packets on stream `Request Rep
 
 `vbmatrix_vban_diagnostics` reports observed packet reasons such as wrong stream, unsupported protocol, or malformed packet data. If no UDP packets arrive before timeout, it reports `no_packets_observed` as indeterminate because UDP cannot reliably prove whether the cause is no listener, no command-stream reply, disabled stream, firewall/network block, wrong host/port, or Matrix not running.
 
-See `docs/error-taxonomy.md` for compatibility notes on timeout classifications, Matrix `Err` replies, safety errors, and protocol-safe diagnostics. See `docs/api-compatibility.md` for tool/schema/response compatibility policy and breaking-change guidance. See `docs/matrix-validation-evidence.md` for live-tested, mocked-tested, docs-only, and deferred Matrix validation evidence.
+See `docs/troubleshooting.md` for setup and support checklists, `docs/error-taxonomy.md` for compatibility notes on timeout classifications, Matrix `Err` replies, safety errors, and protocol-safe diagnostics, `docs/api-compatibility.md` for tool/schema/response compatibility policy and breaking-change guidance, and `docs/matrix-validation-evidence.md` for live-tested, mocked-tested, docs-only, and deferred Matrix validation evidence.
 
 Manual live audio verification harness:
 
@@ -81,6 +81,8 @@ The live harness dry-runs by default. It only changes Matrix routes when `--run`
 ## MCP Client Config
 
 See `docs/client-config.md` for OpenCode, Claude Desktop, Cursor, VS Code, Codex CLI, and Copilot coding agent examples. Clients differ in approval policy; if your harness does not prompt before tool calls, set `VBMATRIX_MCP_ALLOW_WRITES=false`, `VBMATRIX_MCP_ALLOW_DESTRUCTIVE=false`, or `VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true` until approval controls are configured.
+
+For setup failures or support reports, start with `docs/troubleshooting.md`. It lists safe diagnostics to run and which local audio details should stay redacted.
 
 ## Configuration
 
