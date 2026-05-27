@@ -1,6 +1,6 @@
 # VBMatrix MCP
 
-Local [Model Context Protocol](https://modelcontextprotocol.io/) tools for controlling and inspecting [VB-Audio Matrix](https://vb-audio.com/Matrix/) through VBAN-TEXT, plus an explicit helper-process provider for [VB-Audio Voicemeeter](https://vb-audio.com/Voicemeeter/).
+Local [Model Context Protocol](https://modelcontextprotocol.io/) tools for controlling and inspecting [VB-Audio Matrix](https://vb-audio.com/Matrix/) through VBAN-TEXT, plus an explicit helper-process and raw VBAN-TEXT provider for [VB-Audio Voicemeeter](https://vb-audio.com/Voicemeeter/).
 
 This project is an early design + scaffold. It is unofficial and is not affiliated with VB-Audio Software.
 
@@ -84,35 +84,40 @@ See `docs/client-config.md` for OpenCode, Claude Desktop, Cursor, VS Code, Codex
 
 ## Configuration
 
-| Variable                         | Default     | Use                                                                                                       |
-| -------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------- |
-| `VBMATRIX_HOST`                  | `127.0.0.1` | VBMatrix host/IP.                                                                                         |
-| `VBMATRIX_PORT`                  | `6980`      | VBAN UDP port.                                                                                            |
-| `VBMATRIX_STREAM`                | `Command1`  | VBAN-TEXT stream name.                                                                                    |
-| `VBMATRIX_TIMEOUT_MS`            | `2000`      | Query response timeout.                                                                                   |
-| `VBMATRIX_MCP_ALLOW_WRITES`      | `true`      | Enable typed write tools. Set to `false` to block typed writes.                                           |
-| `VBMATRIX_MCP_ALLOWED_SUIDS`     | empty       | Comma-separated SUID allowlist for writes when `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, e.g. `VASIO8,VAIO1`. |
-| `VBMATRIX_MCP_ALLOW_ALL_SUIDS`   | `true`      | Allow writes to all SUIDs when writes are enabled.                                                        |
-| `VBMATRIX_MCP_ALLOW_DESTRUCTIVE` | `true`      | Allow destructive/system actions such as engine restart. Set to `false` to block them.                    |
-| `VBMATRIX_MCP_DISABLE_RAW_COMMANDS` | `false`  | Disable the advanced raw VBAN-TEXT escape hatch.                                                          |
-| `VBMATRIX_MCP_PRESET_PATCH_ROOTS` | empty      | Semicolon-separated absolute Windows roots allowed for `vbmatrix_preset_patch_file`, e.g. `C:\Users\you\Documents\VBAudioMatrix\PresetPatch`. |
-| `VBMATRIX_MCP_LOG_LEVEL`         | `info`      | `debug`, `info`, `warn`, or `error`.                                                                      |
+| Variable                            | Default     | Use                                                                                                                                           |
+| ----------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VBMATRIX_HOST`                     | `127.0.0.1` | VBMatrix host/IP.                                                                                                                             |
+| `VBMATRIX_PORT`                     | `6980`      | VBAN UDP port.                                                                                                                                |
+| `VBMATRIX_STREAM`                   | `Command1`  | VBAN-TEXT stream name.                                                                                                                        |
+| `VBMATRIX_TIMEOUT_MS`               | `2000`      | Query response timeout.                                                                                                                       |
+| `VBMATRIX_MCP_ALLOW_WRITES`         | `true`      | Enable typed write tools. Set to `false` to block typed writes.                                                                               |
+| `VBMATRIX_MCP_ALLOWED_SUIDS`        | empty       | Comma-separated SUID allowlist for writes when `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, e.g. `VASIO8,VAIO1`.                                     |
+| `VBMATRIX_MCP_ALLOW_ALL_SUIDS`      | `true`      | Allow writes to all SUIDs when writes are enabled.                                                                                            |
+| `VBMATRIX_MCP_ALLOW_DESTRUCTIVE`    | `true`      | Allow destructive/system actions such as engine restart. Set to `false` to block them.                                                        |
+| `VBMATRIX_MCP_DISABLE_RAW_COMMANDS` | `false`     | Disable the advanced raw VBAN-TEXT escape hatch.                                                                                              |
+| `VBMATRIX_MCP_PRESET_PATCH_ROOTS`   | empty       | Semicolon-separated absolute Windows roots allowed for `vbmatrix_preset_patch_file`, e.g. `C:\Users\you\Documents\VBAudioMatrix\PresetPatch`. |
+| `VBMATRIX_MCP_LOG_LEVEL`            | `info`      | `debug`, `info`, `warn`, or `error`.                                                                                                          |
 
 Voicemeeter configuration:
 
-| Variable                                  | Default        | Use                                                                                         |
-| ----------------------------------------- | -------------- | ------------------------------------------------------------------------------------------- |
-| `VOICEMEETER_HELPER_COMMAND`              | empty          | Optional custom helper executable. If unset, the bundled PowerShell helper is used on Windows. |
-| `VOICEMEETER_HELPER_ARGS`                 | `[]`           | JSON string array of base args for a custom helper command.                                  |
-| `VOICEMEETER_HELPER_TIMEOUT_MS`           | `3000`         | Helper process timeout.                                                                      |
-| `VOICEMEETER_HELPER_POWERSHELL_COMMAND`   | `powershell.exe` | PowerShell executable for the bundled helper.                                                |
-| `VOICEMEETER_REMOTE_DLL`                  | auto-detect    | Optional explicit path to `VoicemeeterRemote64.dll` or `VoicemeeterRemote.dll`.              |
-| `VOICEMEETER_MCP_DISABLE_BUNDLED_HELPER`  | `false`        | Disable the bundled helper and require `VOICEMEETER_HELPER_COMMAND`.                         |
-| `VOICEMEETER_MCP_DISABLE_WRITES`          | `false`        | Disable typed Voicemeeter write tools.                                                       |
-| `VOICEMEETER_MCP_DISABLE_DESTRUCTIVE`     | `false`        | Disable Voicemeeter device changes and MacroButtons mutation.                                |
-| `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API`  | `false`        | Disable the advanced raw Voicemeeter Remote API escape hatch.                                |
+| Variable                                 | Default          | Use                                                                                            |
+| ---------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------- |
+| `VOICEMEETER_HELPER_COMMAND`             | empty            | Optional custom helper executable. If unset, the bundled PowerShell helper is used on Windows. |
+| `VOICEMEETER_HELPER_ARGS`                | `[]`             | JSON string array of base args for a custom helper command.                                    |
+| `VOICEMEETER_HELPER_TIMEOUT_MS`          | `3000`           | Helper process timeout.                                                                        |
+| `VOICEMEETER_HELPER_POWERSHELL_COMMAND`  | `powershell.exe` | PowerShell executable for the bundled helper.                                                  |
+| `VOICEMEETER_REMOTE_DLL`                 | auto-detect      | Optional explicit path to `VoicemeeterRemote64.dll` or `VoicemeeterRemote.dll`.                |
+| `VOICEMEETER_MCP_DISABLE_BUNDLED_HELPER` | `false`          | Disable the bundled helper and require `VOICEMEETER_HELPER_COMMAND`.                           |
+| `VOICEMEETER_MCP_DISABLE_WRITES`         | `false`          | Disable typed Voicemeeter write tools.                                                         |
+| `VOICEMEETER_MCP_DISABLE_DESTRUCTIVE`    | `false`          | Disable Voicemeeter device changes and MacroButtons mutation.                                  |
+| `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API` | `false`          | Disable the advanced raw Voicemeeter Remote API escape hatch.                                  |
+| `VOICEMEETER_VBAN_HOST`                  | `127.0.0.1`      | Host/IP for raw Voicemeeter VBAN-TEXT commands.                                                |
+| `VOICEMEETER_VBAN_PORT`                  | `6982`           | UDP port for raw Voicemeeter VBAN-TEXT commands; keep separate from `VBMATRIX_PORT`.           |
+| `VOICEMEETER_VBAN_STREAM`                | `Command1`       | Incoming Voicemeeter VBAN-TEXT stream name.                                                    |
+| `VOICEMEETER_VBAN_TIMEOUT_MS`            | `2000`           | Query response timeout for raw Voicemeeter VBAN-TEXT commands.                                 |
+| `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT`  | `false`          | Disable the advanced raw Voicemeeter VBAN-TEXT escape hatch.                                   |
 
-The current `voicemeeter_*` tools use the local Remote API helper and do not use UDP. If you enable future Voicemeeter VBAN-TEXT smoke/tooling while Matrix is also running, keep product UDP base ports separate: Matrix uses `VBMATRIX_PORT=6980` by default, and the local Voicemeeter convention is `VOICEMEETER_VBAN_PORT=6982`. Do not point both applications at the same VBAN UDP port. Some VB-Audio companion/control ports may be derived by the application from its base port; configure and document the product base ports separately.
+Most current `voicemeeter_*` tools use the local Remote API helper. `voicemeeter_raw_vban_text` uses UDP VBAN-TEXT for exact power-user commands. If Matrix and Voicemeeter are both running, keep product UDP base ports separate: Matrix uses `VBMATRIX_PORT=6980` by default, and Voicemeeter defaults here to `VOICEMEETER_VBAN_PORT=6982`. Do not point both applications at the same VBAN UDP port. Some VB-Audio companion/control ports may be derived by the application from its base port; configure and document the product base ports separately.
 
 ## Tools
 
@@ -177,12 +182,13 @@ Current Voicemeeter tools:
 - `voicemeeter_get_levels`
 - `voicemeeter_set_strip_parameter`
 - `voicemeeter_set_bus_parameter`
-- `voicemeeter_set_device` (`confirm: true` required; destructive gate)
+- `voicemeeter_set_device` (`confirm: true` required; destructive gate; response separates Remote API acceptance from observed `device.name` state)
 - `voicemeeter_get_macro_button`
-- `voicemeeter_set_macro_button` (`confirm: true` required; destructive gate)
+- `voicemeeter_set_macro_button` (`confirm: true` required; destructive gate; trigger mode is reported as an acceptance-only pulse)
 - `voicemeeter_raw_remote_api` (advanced escape hatch; prefer typed tools where possible; disable with `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API=true`.)
+- `voicemeeter_raw_vban_text` (advanced exact VBAN-TEXT escape hatch over `VOICEMEETER_VBAN_*`; prefer typed tools where possible; disable with `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT=true`.)
 
-Write tools and raw escape hatches are available by default so the user's MCP harness can decide what should be called. Set Matrix and Voicemeeter disable environment variables for narrower deployments. Slot reset, device changes, MacroButtons writes, file-state writes, and raw commands should be operator-in-the-loop actions; use typed tools first when they exist and query current state before disruptive changes.
+Write tools and raw escape hatches are available by default so the user's MCP harness can decide what should be called. Set Matrix and Voicemeeter disable environment variables for narrower deployments. Slot reset, device changes, MacroButtons writes, file-state writes, and raw commands should be operator-in-the-loop actions; use typed tools first when they exist and query current state before disruptive changes. For Voicemeeter device and MacroButtons writes, treat `confirmation.writeAccepted` as Remote API acceptance and compare the returned observed state fields separately before claiming durable state changed. Voicemeeter VBAN-TEXT query/reply behavior is still marked as unverified in `voicemeeter_raw_vban_text` responses, so use `waitForResponse` deliberately and check `timedOut` while gathering evidence.
 
 Future tools should keep natural-language interpretation in the agent layer. MCP schemas should use explicit SUIDs, channels, enum-like values, booleans, and bounded numbers instead of free-form routing goals.
 

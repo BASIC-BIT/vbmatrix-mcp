@@ -22,10 +22,21 @@ export interface VbMatrixConfig {
   };
 }
 
+export interface VoicemeeterVbanTextConfig {
+  host: string;
+  port: number;
+  streamName: string;
+  timeoutMs: number;
+  rawVbanText: {
+    disabled: boolean;
+  };
+}
+
 type Env = Record<string, string | undefined>;
 
 const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_PORT = 6980;
+const DEFAULT_VOICEMEETER_VBAN_PORT = 6982;
 const DEFAULT_STREAM_NAME = 'Command1';
 const DEFAULT_TIMEOUT_MS = 2000;
 
@@ -67,13 +78,27 @@ function readLogLevel(env: Env): LogLevel {
 function readSuidList(env: Env): string[] {
   const raw = env.VBMATRIX_MCP_ALLOWED_SUIDS?.trim();
   if (!raw) return [];
-  return [...new Set(raw.split(',').map((entry) => entry.trim()).filter(Boolean))];
+  return [
+    ...new Set(
+      raw
+        .split(',')
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+    ),
+  ];
 }
 
 function readPathList(env: Env, key: string): string[] {
   const raw = env[key]?.trim();
   if (!raw) return [];
-  return [...new Set(raw.split(';').map((entry) => entry.trim()).filter(Boolean))];
+  return [
+    ...new Set(
+      raw
+        .split(';')
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+    ),
+  ];
 }
 
 export function loadConfig(env: Env = process.env): VbMatrixConfig {
@@ -102,4 +127,16 @@ export function loadConfig(env: Env = process.env): VbMatrixConfig {
 
 export function getConfig(): VbMatrixConfig {
   return loadConfig();
+}
+
+export function loadVoicemeeterVbanTextConfig(env: Env = process.env): VoicemeeterVbanTextConfig {
+  return {
+    host: readString(env, 'VOICEMEETER_VBAN_HOST', DEFAULT_HOST),
+    port: readInteger(env, 'VOICEMEETER_VBAN_PORT', DEFAULT_VOICEMEETER_VBAN_PORT, { min: 1, max: 65535 }),
+    streamName: readString(env, 'VOICEMEETER_VBAN_STREAM', DEFAULT_STREAM_NAME),
+    timeoutMs: readInteger(env, 'VOICEMEETER_VBAN_TIMEOUT_MS', DEFAULT_TIMEOUT_MS, { min: 100, max: 30000 }),
+    rawVbanText: {
+      disabled: readBoolean(env, 'VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT', false),
+    },
+  };
 }

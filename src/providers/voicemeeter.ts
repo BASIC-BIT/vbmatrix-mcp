@@ -6,6 +6,7 @@ import type { ProductProvider } from './types.js';
 import { registerVoicemeeterControlTools } from './voicemeeterControls.js';
 import { getVoicemeeterStatus } from './voicemeeterHelper.js';
 import { voicemeeterCapabilitiesPayload, voicemeeterProviderMetadata } from './voicemeeterMetadata.js';
+import { registerVoicemeeterVbanTextTools } from './voicemeeterVbanText.js';
 
 function registerVoicemeeterTools(server: McpServer): void {
   server.registerTool(
@@ -31,6 +32,7 @@ function registerVoicemeeterTools(server: McpServer): void {
   );
 
   registerVoicemeeterControlTools(server);
+  registerVoicemeeterVbanTextTools(server);
 }
 
 export const voicemeeterProvider: ProductProvider = {

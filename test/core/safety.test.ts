@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { loadConfig } from '../../src/config/index.js';
+import { loadConfig, loadVoicemeeterVbanTextConfig } from '../../src/config/index.js';
 import {
   assertChannelResetAllowed,
   assertChannelWriteAllowed,
@@ -8,6 +8,7 @@ import {
   assertPresetPatchDestructiveAllowed,
   assertPresetPatchWriteAllowed,
   assertRawVbanTextAllowed,
+  assertVoicemeeterRawVbanTextAllowed,
   assertSlotDestructiveAllowed,
   assertSlotWriteAllowed,
   assertZoneResetAllowed,
@@ -114,6 +115,32 @@ describe('safety gates', () => {
     );
   });
 
+  test('configures Voicemeeter raw VBAN-TEXT separately from Matrix', () => {
+    const config = loadVoicemeeterVbanTextConfig({
+      VOICEMEETER_VBAN_HOST: '192.0.2.10',
+      VOICEMEETER_VBAN_PORT: '6982',
+      VOICEMEETER_VBAN_STREAM: 'Command1',
+      VOICEMEETER_VBAN_TIMEOUT_MS: '3000',
+    });
+
+    expect(config).toMatchObject({
+      host: '192.0.2.10',
+      port: 6982,
+      streamName: 'Command1',
+      timeoutMs: 3000,
+      rawVbanText: { disabled: false },
+    });
+    expect(() => assertVoicemeeterRawVbanTextAllowed(config)).not.toThrow();
+    expect(() =>
+      assertVoicemeeterRawVbanTextAllowed(
+        loadVoicemeeterVbanTextConfig({ VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT: 'true' })
+      )
+    ).toThrow(/DISABLE_RAW_VBAN_TEXT/);
+    expect(() => loadVoicemeeterVbanTextConfig({ VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT: 'maybe' })).toThrow(
+      /VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT must be a boolean value/
+    );
+  });
+
   test('applies write and SUID gates to slot writes', () => {
     expect(() => assertSlotWriteAllowed(loadConfig({}), 'VAIO1')).not.toThrow();
     expect(() => assertSlotWriteAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_WRITES: 'false' }), 'VAIO1')).toThrow(
@@ -141,9 +168,9 @@ describe('safety gates', () => {
   test('applies write and destructive gates to channel resets', () => {
     expect(() => assertChannelWriteAllowed(loadConfig({}), channelTarget)).not.toThrow();
     expect(() => assertChannelResetAllowed(loadConfig({}), channelTarget)).not.toThrow();
-    expect(() => assertChannelResetAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_WRITES: 'false' }), channelTarget)).toThrow(
-      /ALLOW_WRITES/
-    );
+    expect(() =>
+      assertChannelResetAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_WRITES: 'false' }), channelTarget)
+    ).toThrow(/ALLOW_WRITES/);
     expect(() =>
       assertChannelResetAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_DESTRUCTIVE: 'false' }), channelTarget)
     ).toThrow(/ALLOW_DESTRUCTIVE/);
@@ -152,9 +179,9 @@ describe('safety gates', () => {
   test('applies write, SUID, and destructive gates to zone operations', () => {
     expect(() => assertZoneWriteAllowed(loadConfig({}), zoneTarget)).not.toThrow();
     expect(() => assertZoneResetAllowed(loadConfig({}), zoneTarget)).not.toThrow();
-    expect(() => assertZoneWriteAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_WRITES: 'false' }), zoneTarget)).toThrow(
-      /ALLOW_WRITES/
-    );
+    expect(() =>
+      assertZoneWriteAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_WRITES: 'false' }), zoneTarget)
+    ).toThrow(/ALLOW_WRITES/);
     expect(() =>
       assertZoneWriteAllowed(
         loadConfig({
@@ -164,17 +191,17 @@ describe('safety gates', () => {
         zoneTarget
       )
     ).toThrow(/not in VBMATRIX_MCP_ALLOWED_SUIDS/);
-    expect(() => assertZoneResetAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_DESTRUCTIVE: 'false' }), zoneTarget)).toThrow(
-      /ALLOW_DESTRUCTIVE/
-    );
+    expect(() =>
+      assertZoneResetAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_DESTRUCTIVE: 'false' }), zoneTarget)
+    ).toThrow(/ALLOW_DESTRUCTIVE/);
   });
 
   test('applies write and destructive gates to preset patch operations', () => {
     expect(() => assertPresetPatchWriteAllowed(loadConfig({}), 1)).not.toThrow();
     expect(() => assertPresetPatchDestructiveAllowed(loadConfig({}), 1)).not.toThrow();
-    expect(() => assertPresetPatchWriteAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_WRITES: 'false' }), 1)).toThrow(
-      /ALLOW_WRITES/
-    );
+    expect(() =>
+      assertPresetPatchWriteAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_WRITES: 'false' }), 1)
+    ).toThrow(/ALLOW_WRITES/);
     expect(() =>
       assertPresetPatchDestructiveAllowed(loadConfig({ VBMATRIX_MCP_ALLOW_DESTRUCTIVE: 'false' }), 1)
     ).toThrow(/ALLOW_DESTRUCTIVE/);

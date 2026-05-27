@@ -1,6 +1,10 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { destructiveToolAnnotations, readOnlyToolAnnotations, writeToolAnnotations } from '../utils/toolAnnotations.js';
+import {
+  destructiveToolAnnotations,
+  readOnlyToolAnnotations,
+  writeToolAnnotations,
+} from '../utils/toolAnnotations.js';
 import { jsonResponse, toolError } from '../utils/toolResponses.js';
 import {
   runVoicemeeterOperation,
@@ -9,7 +13,20 @@ import {
 } from './voicemeeterHelper.js';
 
 const MAX_LEVEL_CHANNELS = 64;
-const STRIP_FLOAT_PROPERTIES = ['gain', 'mute', 'solo', 'mono', 'A1', 'A2', 'A3', 'A4', 'A5', 'B1', 'B2', 'B3'] as const;
+const STRIP_FLOAT_PROPERTIES = [
+  'gain',
+  'mute',
+  'solo',
+  'mono',
+  'A1',
+  'A2',
+  'A3',
+  'A4',
+  'A5',
+  'B1',
+  'B2',
+  'B3',
+] as const;
 const STRIP_STRING_PROPERTIES = ['name', 'label'] as const;
 const BUS_FLOAT_PROPERTIES = ['gain', 'mute', 'mono'] as const;
 const BUS_STRING_PROPERTIES = ['name', 'label'] as const;
@@ -60,7 +77,9 @@ const SetVoicemeeterDeviceSchema = z.object({
   target: z.enum(['strip', 'bus']),
   index: z.number().int().min(0),
   driver: z.enum(DEVICE_DRIVERS),
-  deviceName: z.string().describe('Exact device name from voicemeeter_get_devices, or empty string to remove.'),
+  deviceName: z
+    .string()
+    .describe('Exact device name from voicemeeter_get_devices, or empty string to remove.'),
   confirm: z.literal(true).describe('Required because device changes can disrupt live audio.'),
 });
 
@@ -82,7 +101,11 @@ const RawVoicemeeterRemoteApiSchema = z.object({
   operation: z.enum(['getFloat', 'getString', 'setFloat', 'setString', 'script']),
   parameter: z.string().optional().describe('Exact Voicemeeter Remote API parameter path.'),
   value: z.union([z.number(), z.string()]).optional(),
-  script: z.string().max(48 * 1024).optional().describe('Exact SetParameters script, under 48 KiB.'),
+  script: z
+    .string()
+    .max(48 * 1024)
+    .optional()
+    .describe('Exact SetParameters script, under 48 KiB.'),
 });
 
 function parseBoolean(value: string | undefined, fallback: boolean): boolean {
@@ -109,7 +132,9 @@ function assertWritesAllowed(env: Record<string, string | undefined> = process.e
 
 function assertDestructiveAllowed(env: Record<string, string | undefined> = process.env): void {
   if (parseBoolean(env.VOICEMEETER_MCP_DISABLE_DESTRUCTIVE, false)) {
-    throw new Error('Voicemeeter destructive actions are disabled by VOICEMEETER_MCP_DISABLE_DESTRUCTIVE=true');
+    throw new Error(
+      'Voicemeeter destructive actions are disabled by VOICEMEETER_MCP_DISABLE_DESTRUCTIVE=true'
+    );
   }
 }
 
@@ -121,7 +146,9 @@ function assertRawAllowed(env: Record<string, string | undefined> = process.env)
 
 function requireOk(result: Record<string, unknown>, operation: string): void {
   if (result.ok !== true) {
-    throw new Error(`${operation} failed: ${typeof result.error === 'string' ? result.error : 'helper returned ok=false'}`);
+    throw new Error(
+      `${operation} failed: ${typeof result.error === 'string' ? result.error : 'helper returned ok=false'}`
+    );
   }
 }
 
@@ -156,7 +183,10 @@ function levelTypeNumber(levelType: z.infer<typeof LevelTypeSchema>): number {
   return 3;
 }
 
-function levelChannelLimit(levelType: z.infer<typeof LevelTypeSchema>, edition: VoicemeeterEditionMetadata): number {
+function levelChannelLimit(
+  levelType: z.infer<typeof LevelTypeSchema>,
+  edition: VoicemeeterEditionMetadata
+): number {
   if (levelType === 'output') {
     if (edition.name === 'standard') return 16;
     if (edition.name === 'banana') return 40;
@@ -183,7 +213,9 @@ function busParameter(index: number, property: string): RemoteParameter {
   return { name: `Bus[${index}].${property}`, kind: parameterKind(property) };
 }
 
-async function getEdition(runOperation: RunOperation = runVoicemeeterOperation): Promise<VoicemeeterEditionMetadata> {
+async function getEdition(
+  runOperation: RunOperation = runVoicemeeterOperation
+): Promise<VoicemeeterEditionMetadata> {
   const status = await runOperation('status');
   requireOk(status, 'Voicemeeter status');
   if (typeof status.type !== 'number') throw new Error('Voicemeeter status did not include a numeric type');
@@ -192,22 +224,65 @@ async function getEdition(runOperation: RunOperation = runVoicemeeterOperation):
   return edition;
 }
 
-async function getParameters(parameters: RemoteParameter[], runOperation: RunOperation): Promise<Record<string, unknown>> {
+async function getParameters(
+  parameters: RemoteParameter[],
+  runOperation: RunOperation
+): Promise<Record<string, unknown>> {
   return runOperation('get-parameters', { parameters });
 }
 
-async function setParameters(parameters: ParameterWrite[], runOperation: RunOperation): Promise<Record<string, unknown>> {
+async function setParameters(
+  parameters: ParameterWrite[],
+  runOperation: RunOperation
+): Promise<Record<string, unknown>> {
   return runOperation('set-parameters', { parameters });
 }
 
 function coerceWriteValue(property: string, value: number | boolean | string): number | string {
   if (typeof value === 'boolean') return value ? 1 : 0;
   if (parameterKind(property) === 'string') return String(value);
-  if (typeof value !== 'number' || !Number.isFinite(value)) throw new Error(`${property} requires a finite number or boolean`);
+  if (typeof value !== 'number' || !Number.isFinite(value))
+    throw new Error(`${property} requires a finite number or boolean`);
   return value;
 }
 
-export async function runGetVoicemeeterDevices(runOperation: RunOperation = runVoicemeeterOperation): Promise<Record<string, unknown>> {
+function firstParameterResult(
+  result: Record<string, unknown>,
+  name: string
+): Record<string, unknown> | undefined {
+  const parameters = result.parameters;
+  if (!Array.isArray(parameters)) return undefined;
+  return parameters.find((parameter): parameter is Record<string, unknown> => {
+    if (typeof parameter !== 'object' || parameter === null) return false;
+    return (parameter as Record<string, unknown>).name === name;
+  });
+}
+
+function resultCodeOk(result: unknown): boolean {
+  return typeof result === 'number' ? result === 0 : result === undefined;
+}
+
+function parameterWriteAccepted(write: Record<string, unknown>, name: string): boolean {
+  const parameter = firstParameterResult(write, name);
+  return write.ok === true && parameter !== undefined && resultCodeOk(parameter.result);
+}
+
+function valuesMatch(left: unknown, right: unknown): boolean {
+  if (typeof left === 'number' && typeof right === 'number') return Math.abs(left - right) < 0.0001;
+  return Object.is(left, right);
+}
+
+function macroRequestedValue(value: number | boolean): number {
+  return typeof value === 'boolean' ? (value ? 1 : 0) : value;
+}
+
+function macroWriteAccepted(write: Record<string, unknown>): boolean {
+  return write.ok === true && resultCodeOk(write.result);
+}
+
+export async function runGetVoicemeeterDevices(
+  runOperation: RunOperation = runVoicemeeterOperation
+): Promise<Record<string, unknown>> {
   return runOperation('devices');
 }
 
@@ -217,9 +292,15 @@ export async function runGetVoicemeeterStrip(
 ): Promise<Record<string, unknown>> {
   const edition = await getEdition(runOperation);
   validateIndex(input.index, edition.strips, 'Strip');
-  const properties = input.properties.length > 0 ? input.properties : ['gain', 'mute', 'solo', 'mono', 'name', ...routePropertiesForEdition(edition)];
+  const properties =
+    input.properties.length > 0
+      ? input.properties
+      : ['gain', 'mute', 'solo', 'mono', 'name', ...routePropertiesForEdition(edition)];
   for (const property of properties) validateStripProperty(property, edition);
-  const result = await getParameters(properties.map((property) => stripParameter(input.index, property)), runOperation);
+  const result = await getParameters(
+    properties.map((property) => stripParameter(input.index, property)),
+    runOperation
+  );
   return { ok: result.ok === true, target: { kind: 'strip', index: input.index }, edition, result };
 }
 
@@ -230,7 +311,10 @@ export async function runGetVoicemeeterBus(
   const edition = await getEdition(runOperation);
   validateIndex(input.index, edition.buses, 'Bus');
   const properties = input.properties.length > 0 ? input.properties : ['gain', 'mute', 'mono', 'name'];
-  const result = await getParameters(properties.map((property) => busParameter(input.index, property)), runOperation);
+  const result = await getParameters(
+    properties.map((property) => busParameter(input.index, property)),
+    runOperation
+  );
   return { ok: result.ok === true, target: { kind: 'bus', index: input.index }, edition, result };
 }
 
@@ -241,8 +325,12 @@ export async function runGetVoicemeeterLevels(
   const edition = await getEdition(runOperation);
   const limit = levelChannelLimit(input.levelType, edition);
   const invalid = input.channels.find((channel) => channel >= limit);
-  if (invalid !== undefined) throw new Error(`Level channel ${invalid} is outside ${input.levelType} limit ${limit}`);
-  return runOperation('get-levels', { levelType: levelTypeNumber(input.levelType), channels: input.channels });
+  if (invalid !== undefined)
+    throw new Error(`Level channel ${invalid} is outside ${input.levelType} limit ${limit}`);
+  return runOperation('get-levels', {
+    levelType: levelTypeNumber(input.levelType),
+    channels: input.channels,
+  });
 }
 
 export async function runSetVoicemeeterStripParameter(
@@ -256,9 +344,20 @@ export async function runSetVoicemeeterStripParameter(
   validateStripProperty(input.property, edition);
   const parameter = stripParameter(input.index, input.property);
   const before = await getParameters([parameter], runOperation);
-  const write = await setParameters([{ ...parameter, value: coerceWriteValue(input.property, input.value) }], runOperation);
+  const write = await setParameters(
+    [{ ...parameter, value: coerceWriteValue(input.property, input.value) }],
+    runOperation
+  );
   const after = await getParameters([parameter], runOperation);
-  return { ok: write.ok === true, target: { kind: 'strip', index: input.index }, parameter, before, write, after, safety: safetyPolicy(env) };
+  return {
+    ok: write.ok === true,
+    target: { kind: 'strip', index: input.index },
+    parameter,
+    before,
+    write,
+    after,
+    safety: safetyPolicy(env),
+  };
 }
 
 export async function runSetVoicemeeterBusParameter(
@@ -271,9 +370,20 @@ export async function runSetVoicemeeterBusParameter(
   validateIndex(input.index, edition.buses, 'Bus');
   const parameter = busParameter(input.index, input.property);
   const before = await getParameters([parameter], runOperation);
-  const write = await setParameters([{ ...parameter, value: coerceWriteValue(input.property, input.value) }], runOperation);
+  const write = await setParameters(
+    [{ ...parameter, value: coerceWriteValue(input.property, input.value) }],
+    runOperation
+  );
   const after = await getParameters([parameter], runOperation);
-  return { ok: write.ok === true, target: { kind: 'bus', index: input.index }, parameter, before, write, after, safety: safetyPolicy(env) };
+  return {
+    ok: write.ok === true,
+    target: { kind: 'bus', index: input.index },
+    parameter,
+    before,
+    write,
+    after,
+    safety: safetyPolicy(env),
+  };
 }
 
 export async function runSetVoicemeeterDevice(
@@ -287,10 +397,39 @@ export async function runSetVoicemeeterDevice(
   validateIndex(input.index, input.target === 'strip' ? edition.strips : edition.buses, input.target);
   const prefix = input.target === 'strip' ? 'Strip' : 'Bus';
   const parameter = { name: `${prefix}[${input.index}].device.${input.driver}`, kind: 'string' as const };
-  const before = await getParameters([{ name: `${prefix}[${input.index}].device.name`, kind: 'string' }], runOperation);
+  const stateParameter = { name: `${prefix}[${input.index}].device.name`, kind: 'string' as const };
+  const before = await getParameters([stateParameter], runOperation);
   const write = await setParameters([{ ...parameter, value: input.deviceName }], runOperation);
-  const after = await getParameters([{ name: `${prefix}[${input.index}].device.name`, kind: 'string' }], runOperation);
-  return { ok: write.ok === true, target: input, parameter, before, write, after, safety: safetyPolicy(env) };
+  const after = await getParameters([stateParameter], runOperation);
+  const beforeObservation = firstParameterResult(before, stateParameter.name);
+  const afterObservation = firstParameterResult(after, stateParameter.name);
+  const beforeValue = beforeObservation?.value;
+  const afterValue = afterObservation?.value;
+  return {
+    ok: write.ok === true,
+    target: input,
+    parameter,
+    before,
+    write,
+    after,
+    confirmation: {
+      writeAccepted: parameterWriteAccepted(write, parameter.name),
+      stateQuery: stateParameter.name,
+      stateObserved:
+        before.ok === true &&
+        after.ok === true &&
+        beforeObservation !== undefined &&
+        afterObservation !== undefined &&
+        resultCodeOk(beforeObservation.result) &&
+        resultCodeOk(afterObservation.result),
+      observedBefore: beforeValue,
+      observedAfter: afterValue,
+      stateChanged: !valuesMatch(beforeValue, afterValue),
+      matchesRequestedDeviceName: valuesMatch(afterValue, input.deviceName),
+      note: 'Remote API result=0 confirms accepted device assignment/removal; device.name is the immediately observable post-state and may not prove durable UI mutation on every target.',
+    },
+    safety: safetyPolicy(env),
+  };
 }
 
 export async function runGetVoicemeeterMacroButton(
@@ -307,10 +446,42 @@ export async function runSetVoicemeeterMacroButton(
 ): Promise<Record<string, unknown>> {
   assertWritesAllowed(env);
   assertDestructiveAllowed(env);
-  const before = await runOperation('macro-status', { index: input.index, mode: macroModeNumber(input.mode) });
-  const write = await runOperation('macro-set', { index: input.index, mode: macroModeNumber(input.mode), value: typeof input.value === 'boolean' ? (input.value ? 1 : 0) : input.value });
-  const after = await runOperation('macro-status', { index: input.index, mode: macroModeNumber(input.mode) });
-  return { ok: write.ok === true, target: { index: input.index, mode: input.mode }, before, write, after, safety: safetyPolicy(env) };
+  const modeNumber = macroModeNumber(input.mode);
+  const requestedValue = macroRequestedValue(input.value);
+  const before = await runOperation('macro-status', { index: input.index, mode: modeNumber });
+  const write = await runOperation('macro-set', {
+    index: input.index,
+    mode: modeNumber,
+    value: requestedValue,
+  });
+  const after = await runOperation('macro-status', { index: input.index, mode: modeNumber });
+  const beforeValue = before.value;
+  const afterValue = after.value;
+  const triggerMode = input.mode === 'trigger';
+  return {
+    ok: write.ok === true,
+    target: { index: input.index, mode: input.mode },
+    before,
+    write,
+    after,
+    confirmation: {
+      writeAccepted: macroWriteAccepted(write),
+      mode: input.mode,
+      modeNumber,
+      requestedValue,
+      stateObserved:
+        before.ok === true && after.ok === true && resultCodeOk(before.result) && resultCodeOk(after.result),
+      observedBefore: beforeValue,
+      observedAfter: afterValue,
+      stateChanged: !valuesMatch(beforeValue, afterValue),
+      matchesRequestedValue: triggerMode ? null : valuesMatch(afterValue, requestedValue),
+      statePersistence: triggerMode ? 'trigger_pulse' : 'queryable_status',
+      note: triggerMode
+        ? 'Trigger mode may pulse or run a user-configured action and then immediately read as 0; result=0 confirms Remote API acceptance only.'
+        : 'For non-trigger modes, compare the queried after value with requestedValue to verify observable MacroButtons state.',
+    },
+    safety: safetyPolicy(env),
+  };
 }
 
 export async function runRawVoicemeeterRemoteApi(
@@ -322,11 +493,17 @@ export async function runRawVoicemeeterRemoteApi(
   if (input.operation === 'script') {
     assertWritesAllowed(env);
     if (typeof input.script !== 'string') throw new Error('script is required for script operations');
-    return { ...(await runOperation('raw-script', { script: input.script })), rawPolicy: { disableRawRemoteApi: false, preferTypedTools: true } };
+    return {
+      ...(await runOperation('raw-script', { script: input.script })),
+      rawPolicy: { disableRawRemoteApi: false, preferTypedTools: true },
+    };
   }
-  if (typeof input.parameter !== 'string') throw new Error('parameter is required for raw parameter operations');
-  if (input.operation === 'getFloat') return getParameters([{ name: input.parameter, kind: 'float' }], runOperation);
-  if (input.operation === 'getString') return getParameters([{ name: input.parameter, kind: 'string' }], runOperation);
+  if (typeof input.parameter !== 'string')
+    throw new Error('parameter is required for raw parameter operations');
+  if (input.operation === 'getFloat')
+    return getParameters([{ name: input.parameter, kind: 'float' }], runOperation);
+  if (input.operation === 'getString')
+    return getParameters([{ name: input.parameter, kind: 'string' }], runOperation);
   if (input.operation === 'setFloat') {
     assertWritesAllowed(env);
     if (typeof input.value !== 'number') throw new Error('numeric value is required for setFloat');
@@ -406,9 +583,13 @@ export function registerVoicemeeterControlTools(server: McpServer): void {
     },
     async (args) => {
       try {
-        return jsonResponse(await runSetVoicemeeterStripParameter(SetVoicemeeterStripParameterSchema.parse(args)));
+        return jsonResponse(
+          await runSetVoicemeeterStripParameter(SetVoicemeeterStripParameterSchema.parse(args))
+        );
       } catch (err) {
-        return toolError(err instanceof Error ? err.message : 'Unknown voicemeeter_set_strip_parameter error');
+        return toolError(
+          err instanceof Error ? err.message : 'Unknown voicemeeter_set_strip_parameter error'
+        );
       }
     }
   );
@@ -423,7 +604,9 @@ export function registerVoicemeeterControlTools(server: McpServer): void {
     },
     async (args) => {
       try {
-        return jsonResponse(await runSetVoicemeeterBusParameter(SetVoicemeeterBusParameterSchema.parse(args)));
+        return jsonResponse(
+          await runSetVoicemeeterBusParameter(SetVoicemeeterBusParameterSchema.parse(args))
+        );
       } catch (err) {
         return toolError(err instanceof Error ? err.message : 'Unknown voicemeeter_set_bus_parameter error');
       }

@@ -124,13 +124,13 @@ Port convention when Matrix and Voicemeeter are both running:
 
 Recommendation:
 
-- Reuse `buildVbanTextPacket` only after the target stream, command grammar, and response behavior are verified for Voicemeeter.
-- Do not expose raw Voicemeeter VBAN-TEXT script execution until query/reply behavior is live-proven. The current raw escape hatch uses the local Remote API helper, not Voicemeeter VBAN-TEXT.
+- Reuse `buildVbanTextPacket` for exact raw Voicemeeter VBAN-TEXT packets, but do not build typed Voicemeeter VBAN tools on top of command grammar or reply behavior until those are live-verified.
+- Raw Voicemeeter VBAN-TEXT is now exposed as a default-available local power-user escape hatch, matching the Matrix raw-command policy. It remains exact-command only, is separate from typed tools, reports query/reply behavior as unverified, uses `VOICEMEETER_VBAN_*` connection settings, and can be disabled with `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT=true`.
 
 Operator-approved smoke design for [#22](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/22):
 
 - The current receive filters accept VBAN-TEXT protocol `0x40` on the configured stream or VBAN service protocol `0x60` on stream `Request Reply`; Matrix live behavior observed by this repo uses SERVICE `0x60` on `Request Reply`.
-- Voicemeeter VBAN-TEXT query behavior still needs a live, operator-approved smoke using one fixed read-only query candidate. The existing `smoke:vban` script is Matrix-specific and must not be generalized into raw command execution.
+- Voicemeeter VBAN-TEXT query behavior still needs a live, operator-approved smoke using one fixed read-only query candidate. The existing `smoke:vban` script remains Matrix-specific; `voicemeeter_raw_vban_text` is the power-user path for exact Voicemeeter VBAN-TEXT commands while query behavior is being proven.
 - Capture exact evidence from the smoke: sent stream name, observed reply protocol, observed reply stream, payload bytes/text, timeout duration, and any ignored packet reasons from receive filtering.
 - Existing `vbanText` receive filters can observe TEXT `0x40` replies and SERVICE `0x60` `Request Reply` packets. Add a narrow helper only if Voicemeeter replies on a different protocol or stream.
 
@@ -222,6 +222,7 @@ Design closure for [#23](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/23):
 - Use `voicemeeter_*` tool names for Voicemeeter-specific tools and keep existing `vbmatrix_*` tools stable. Avoid `vbaudio_*` names until both providers ship with compatible behavior.
 - Represent strips and buses as numeric typed targets validated against detected edition metadata. Labels are returned as facts; exact-label selection should remain a later lookup tool that rejects missing or ambiguous matches instead of fuzzy matching.
 - Device changes and MacroButtons writes are destructive-gated because they can disrupt live audio or trigger user-configured actions.
+- Device changes and MacroButtons writes distinguish Remote API acceptance from durable observable state. Device assignment/removal can return result `0` while an immediate `device.name` read does not prove mutation on every target, and MacroButtons trigger mode can pulse or run a user-configured action before status reads settle back to `0`.
 - Voicemeeter write gates are target-class-based: typed writes, destructive/device/MacroButtons actions, and raw Remote API. Do not reuse the Matrix SUID allowlist as the Voicemeeter safety model.
 - Raw Remote API parameter/script access is approved as an advanced escape hatch for local power users. It is default-available, prefer typed tools where possible, and can be disabled with `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API=true`.
 - Feed provider-boundary inputs into [#16](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/16): product-specific adapters, stable Matrix naming, explicit capability reporting, edition-aware validators, and helper-process failure reporting.

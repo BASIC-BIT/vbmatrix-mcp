@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.BASIC-BIT/vbmatrix-mcp",
   "title": "VBMatrix MCP",
-  "description": "MCP server for VB-Audio Matrix over VBAN-TEXT and Voicemeeter via helper process.",
+  "description": "MCP server for VB-Audio Matrix over VBAN-TEXT and Voicemeeter via helper process and VBAN-TEXT.",
   "repository": {
     "url": "https://github.com/BASIC-BIT/vbmatrix-mcp",
     "source": "github"
@@ -114,6 +114,46 @@
         {
           "name": "VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API",
           "description": "Disable the advanced raw Voicemeeter Remote API escape hatch.",
+          "format": "boolean",
+          "default": "false",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VOICEMEETER_VBAN_HOST",
+          "description": "Host or IP address for raw Voicemeeter VBAN-TEXT commands.",
+          "format": "string",
+          "default": "127.0.0.1",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VOICEMEETER_VBAN_PORT",
+          "description": "UDP port for raw Voicemeeter VBAN-TEXT commands. Keep separate from VBMATRIX_PORT.",
+          "format": "number",
+          "default": "6982",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VOICEMEETER_VBAN_STREAM",
+          "description": "Incoming Voicemeeter VBAN-TEXT command stream name.",
+          "format": "string",
+          "default": "Command1",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VOICEMEETER_VBAN_TIMEOUT_MS",
+          "description": "Query response timeout for raw Voicemeeter VBAN-TEXT commands in milliseconds.",
+          "format": "number",
+          "default": "2000",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT",
+          "description": "Disable the advanced raw Voicemeeter VBAN-TEXT escape hatch.",
           "format": "boolean",
           "default": "false",
           "isRequired": false,

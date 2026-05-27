@@ -21,9 +21,10 @@ describe('Voicemeeter product provider metadata', () => {
       id: 'voicemeeter',
       displayName: 'VB-Audio Voicemeeter',
       toolPrefix: 'voicemeeter',
-      transport: 'remote-api-helper-process',
+      transport: 'remote-api-helper-process-and-vban-text',
     });
     expect(voicemeeterProviderMetadata.capabilities).toContain('readOnlyHelperBoundary');
+    expect(voicemeeterProviderMetadata.capabilities).toContain('rawVbanText');
   });
 
   test('documents the out-of-process helper boundary', () => {
@@ -38,6 +39,13 @@ describe('Voicemeeter product provider metadata', () => {
           'VOICEMEETER_HELPER_POWERSHELL_COMMAND',
           'VOICEMEETER_MCP_DISABLE_BUNDLED_HELPER',
           'VOICEMEETER_REMOTE_DLL',
+        ],
+        vbanTextConfiguredBy: [
+          'VOICEMEETER_VBAN_HOST',
+          'VOICEMEETER_VBAN_PORT',
+          'VOICEMEETER_VBAN_STREAM',
+          'VOICEMEETER_VBAN_TIMEOUT_MS',
+          'VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT',
         ],
       },
       compatibility: {
@@ -84,7 +92,9 @@ describe('Voicemeeter helper discovery', () => {
   });
 
   test('reports operation helpers as unsupported off Windows', async () => {
-    await expect(runVoicemeeterOperation('devices', {}, undefined, undefined, 'linux')).resolves.toMatchObject({
+    await expect(
+      runVoicemeeterOperation('devices', {}, undefined, undefined, 'linux')
+    ).resolves.toMatchObject({
       ok: false,
       availability: 'unsupported_platform',
     });

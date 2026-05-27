@@ -2,7 +2,7 @@
   "name": "@basicbit/vbmatrix-mcp",
   "version": "0.1.0",
   "mcpName": "io.github.BASIC-BIT/vbmatrix-mcp",
-  "description": "MCP server for VB-Audio Matrix over VBAN-TEXT and Voicemeeter via helper process.",
+  "description": "MCP server for VB-Audio Matrix over VBAN-TEXT and Voicemeeter via helper process and VBAN-TEXT.",
   "type": "module",
   "main": "dist/src/index.js",
   "publishConfig": {
