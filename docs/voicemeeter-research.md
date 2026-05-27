@@ -134,13 +134,6 @@ Operator-approved smoke design for [#22](https://github.com/BASIC-BIT/vbmatrix-m
 - Capture exact evidence from the smoke: sent stream name, observed reply protocol, observed reply stream, payload bytes/text, timeout duration, and any ignored packet reasons from receive filtering.
 - Existing `vbanText` receive filters can observe TEXT `0x40` replies and SERVICE `0x60` `Request Reply` packets. Add a narrow helper only if Voicemeeter replies on a different protocol or stream.
 
-2026-05-27 blocked local probe:
-
-- Voicemeeter was installed but not running.
-- Matrix was running on UDP `6980`; no process owned UDP `6982`.
-- A read-only `Strip[0].Gain=?;` probe sent to `127.0.0.1:6982` on stream `Command1` timed out with `timedOut: true`, `response: null`, `receivedPackets: 0`, and timeout classification `no_packets_observed`.
-- This proves only the local no-listener/setup state. It does not verify Voicemeeter query/reply behavior; #22 still needs Voicemeeter running with VBAN service and the incoming TEXT stream enabled.
-
 ### MacroButtons
 
 MacroButtons is useful as a separate automation surface, not as the primary mixer-control API.

@@ -8,7 +8,7 @@
 - Added bundled helper-backed `voicemeeter_*` tools for status, devices, strips, buses, levels, typed writes, MacroButtons, and raw Remote API access with inverse disable gates.
 - Clarified `voicemeeter_set_device` and `voicemeeter_set_macro_button` responses so Remote API acceptance is reported separately from immediately observable post-state changes.
 - Added default-available `voicemeeter_raw_vban_text` for advanced exact Voicemeeter VBAN-TEXT commands on separate `VOICEMEETER_VBAN_*` connection settings.
-- Added operator troubleshooting/workflow guidance, live-validation issue templates, and clarified Voicemeeter raw VBAN-TEXT timeout wording.
+- Added operator troubleshooting guidance and clarified Voicemeeter raw VBAN-TEXT timeout wording.
 - Added live Matrix validation evidence for remaining point range, zone, channel reset, preset patch, slot lifecycle/device, and destructive cleanup tool paths.
 - Fixed Matrix slot device parsing when `Slot(...).Device=?;` replies with a device-kind qualified key such as `Slot(ASIO128).Device.ASIO`.
 - Added a manual read-only release dry-run workflow that builds, checks, package-smokes, packs a local tarball, and uploads inspection artifacts without publishing.
