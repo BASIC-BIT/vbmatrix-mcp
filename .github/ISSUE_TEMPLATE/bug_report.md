@@ -34,7 +34,7 @@ If this is a Matrix VBAN timeout or packet issue and you intentionally ran deepe
 npm run diagnostics:vban
 ```
 
-For Voicemeeter issues, paste the structured response from the relevant read-only tool first, usually `voicemeeter_get_status` or `voicemeeter_get_capabilities`.
+For Voicemeeter issues, paste the structured response from the relevant read-only tool first, usually `voicemeeter_get_status` or `voicemeeter_get_capabilities`. For Voicemeeter VBAN-TEXT timeout or packet issues, include `voicemeeter_vban_diagnostics` only if you intentionally ran that read-only UDP probe.
 
 ## Expected Behavior
 

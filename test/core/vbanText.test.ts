@@ -7,6 +7,7 @@ import {
   VBAN_HEADER_SIZE,
   VBAN_REQUEST_REPLY_STREAM,
   VBAN_SERVICE_PROTOCOL,
+  VBAN_TEXT_PROTOCOL,
   VBAN_TEXT_SR_INDEX,
   VBAN_TEXT_UTF8_FORMAT,
   type VbanTextExchangeDiagnostics,
@@ -110,6 +111,66 @@ describe('VBAN-TEXT packet builder', () => {
       accepted: false,
       reason: 'text_non_utf8',
     });
+  });
+
+  test('classifies every sub-header packet length as too short without throwing', () => {
+    for (let length = 0; length < VBAN_HEADER_SIZE; length += 1) {
+      expect(classifyVbanTextPacket(Buffer.alloc(length), 'Command1')).toMatchObject({
+        accepted: false,
+        reason: 'too_short',
+        packet: { length },
+      });
+    }
+  });
+
+  test('classifies protocol byte permutations deterministically', () => {
+    const packet = buildVbanTextPacket('Command.Version = "VB-Audio Matrix";', {
+      streamName: 'Command1',
+      frameCounter: 4,
+    });
+
+    for (let byte = 0; byte <= 0xff; byte += 1) {
+      const candidate = Buffer.from(packet);
+      candidate[4] = byte;
+      const result = classifyVbanTextPacket(candidate, 'Command1');
+      const protocol = byte & 0xe0;
+
+      if (protocol === VBAN_TEXT_PROTOCOL) {
+        expect(result).toMatchObject({ accepted: true, reason: 'accepted_text' });
+      } else if (protocol === VBAN_SERVICE_PROTOCOL) {
+        expect(result).toMatchObject({ accepted: false, reason: 'service_stream_mismatch' });
+      } else {
+        expect(result).toMatchObject({ accepted: false, reason: 'unsupported_protocol' });
+      }
+    }
+  });
+
+  test('classifies uniform-fill packets as bad magic without throwing', () => {
+    for (let byte = 0; byte <= 0xff; byte += 1) {
+      const candidate = Buffer.alloc(VBAN_HEADER_SIZE + 4, byte);
+      const result = classifyVbanTextPacket(candidate, 'Command1');
+
+      expect(result.accepted).toBe(false);
+      expect(result.reason).toBe('bad_magic');
+    }
+  });
+
+  test('classifies valid-magic malformed headers without throwing', () => {
+    for (let byte = 0; byte <= 0xff; byte += 1) {
+      const candidate = Buffer.alloc(VBAN_HEADER_SIZE + 4, byte);
+      Buffer.from('VBAN', 'ascii').copy(candidate, 0);
+      const result = classifyVbanTextPacket(candidate, 'Command1');
+      const protocol = byte & 0xe0;
+
+      expect(result.accepted).toBe(false);
+      if (protocol === VBAN_TEXT_PROTOCOL) {
+        expect(result.reason).toBe('text_non_utf8');
+      } else if (protocol === VBAN_SERVICE_PROTOCOL) {
+        expect(result.reason).toBe('service_stream_mismatch');
+      } else {
+        expect(result.reason).toBe('unsupported_protocol');
+      }
+    }
   });
 
   test('shapes zero-packet timeouts as indeterminate no-packet diagnostics', () => {

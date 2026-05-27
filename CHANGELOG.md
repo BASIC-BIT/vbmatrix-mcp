@@ -10,6 +10,8 @@
 - Added default-available `voicemeeter_raw_vban_text` for advanced exact Voicemeeter VBAN-TEXT commands on separate `VOICEMEETER_VBAN_*` connection settings.
 - Added operator troubleshooting guidance and clarified Voicemeeter raw VBAN-TEXT timeout wording.
 - Added `voicemeeter_vban_diagnostics` for fixed read-only Voicemeeter VBAN-TEXT query/reply evidence.
+- Added a Voicemeeter capability map and deterministic VBAN parser hardening tests to clarify which remaining roadmap work is valuable.
+- Added Dependabot configuration for npm and GitHub Actions update visibility before release polish.
 - Added live Matrix validation evidence for remaining point range, zone, channel reset, preset patch, slot lifecycle/device, and destructive cleanup tool paths.
 - Fixed Matrix slot device parsing when `Slot(...).Device=?;` replies with a device-kind qualified key such as `Slot(ASIO128).Device.ASIO`.
 - Added a manual read-only release dry-run workflow that builds, checks, package-smokes, packs a local tarball, and uploads inspection artifacts without publishing.

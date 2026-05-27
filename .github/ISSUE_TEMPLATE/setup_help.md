@@ -30,6 +30,8 @@ Only include this if you intentionally ran a read-only VBAN probe:
 npm run doctor -- --vban
 ```
 
+For Voicemeeter VBAN-TEXT setup, paste the structured `voicemeeter_vban_diagnostics` response only if you intentionally ran that read-only UDP probe.
+
 ## Client Configuration
 
 Paste the relevant MCP server entry with secrets removed.
