@@ -220,4 +220,15 @@ describe('Voicemeeter VBAN-TEXT diagnostics runner', () => {
     if (!Array.isArray(result.likelyFixes)) throw new Error('expected likelyFixes');
     expect(result.likelyFixes).toContain('Confirm Voicemeeter is running and VBAN service is ON.');
   });
+
+  test('is disabled by inverse raw VBAN-TEXT policy', async () => {
+    const sendCommand = vi
+      .fn<(command: string, options: SendVbanTextOptions) => Promise<SendVbanTextDiagnosticsResult>>()
+      .mockResolvedValue({ response: null, diagnostics: timeoutError().diagnostics });
+
+    await expect(
+      runVoicemeeterVbanDiagnostics({ ...config, rawVbanText: { disabled: true } }, sendCommand)
+    ).rejects.toThrow(/DISABLE_RAW_VBAN_TEXT/);
+    expect(sendCommand).not.toHaveBeenCalled();
+  });
 });

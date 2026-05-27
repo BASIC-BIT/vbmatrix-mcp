@@ -127,7 +127,7 @@ Port convention when Matrix and Voicemeeter are both running:
 Recommendation:
 
 - Reuse `buildVbanTextPacket` for exact raw Voicemeeter VBAN-TEXT packets, but do not build typed Voicemeeter VBAN tools on top of command grammar or reply behavior until those are live-verified.
-- Raw Voicemeeter VBAN-TEXT is now exposed as a default-available local power-user escape hatch, matching the Matrix raw-command policy. It remains exact-command only, is separate from typed tools, reports query/reply behavior as unverified, uses `VOICEMEETER_VBAN_*` connection settings, and can be disabled with `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT=true`.
+- Raw Voicemeeter VBAN-TEXT is now exposed as a default-available local power-user escape hatch, matching the Matrix raw-command policy. It remains exact-command only, is separate from typed tools, reports query/reply behavior as unverified, uses `VOICEMEETER_VBAN_*` connection settings, and can be disabled with `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT=true` along with the fixed VBAN-TEXT diagnostic probe.
 
 Operator-approved smoke design for [#22](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/22):
 

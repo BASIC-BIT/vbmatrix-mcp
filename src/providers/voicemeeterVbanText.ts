@@ -76,6 +76,8 @@ export async function runVoicemeeterVbanDiagnostics(
   config: VoicemeeterVbanTextConfig = loadVoicemeeterVbanTextConfig(),
   sendCommand: SendVbanTextWithDiagnostics = sendVbanTextCommandWithDiagnostics
 ): Promise<Record<string, unknown>> {
+  assertVoicemeeterRawVbanTextAllowed(config);
+
   try {
     const result = await sendCommand(VOICEMEETER_VBAN_DIAGNOSTIC_QUERY, voicemeeterDiagnosticOptions(config));
     return {
@@ -163,7 +165,7 @@ export function registerVoicemeeterVbanTextTools(server: McpServer): void {
     'voicemeeter_vban_diagnostics',
     {
       description:
-        'Read-only Voicemeeter VBAN-TEXT diagnostics using a fixed Strip[0].Gain query. Reports packet classification evidence for #22; does not expose arbitrary command input.',
+        'Read-only Voicemeeter VBAN-TEXT diagnostics using a fixed Strip[0].Gain query. Reports packet classification evidence for query/reply behavior; does not expose arbitrary command input.',
       inputSchema: z.object({}),
       annotations: readOnlyToolAnnotations,
     },

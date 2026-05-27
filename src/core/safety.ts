@@ -142,7 +142,7 @@ export function assertVoicemeeterRawVbanTextAllowed(config: VoicemeeterVbanTextC
   if (config.rawVbanText.disabled) {
     throw new SafetyError(
       'voicemeeter_raw_vban_text_disabled',
-      'Raw Voicemeeter VBAN-TEXT commands are disabled by VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT=true',
+      'Voicemeeter VBAN-TEXT diagnostics and raw commands are disabled by VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT=true',
       { disableRawVbanText: config.rawVbanText.disabled }
     );
   }

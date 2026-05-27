@@ -41,7 +41,7 @@ export type VbanTextTimeoutClassification =
   | 'wrong_stream_observed'
   | 'unsupported_protocol_observed'
   | 'malformed_packet_observed'
-  | 'packets_observed_no_matrix_reply';
+  | 'packets_observed_no_accepted_reply';
 
 export interface VbanPacketSummary {
   length: number;
@@ -216,7 +216,7 @@ export function buildTimeoutDiagnostic(diagnostics: VbanTextExchangeDiagnostics)
   }
 
   return {
-    classification: 'packets_observed_no_matrix_reply',
+    classification: 'packets_observed_no_accepted_reply',
     indeterminate: true,
     observedPacketReasons,
     likelyCauses: [

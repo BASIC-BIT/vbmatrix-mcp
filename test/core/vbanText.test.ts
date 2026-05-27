@@ -169,6 +169,26 @@ describe('VBAN-TEXT packet builder', () => {
     expect(JSON.stringify(timeoutDiagnostic)).not.toContain('Matrix');
   });
 
+  test('uses a product-neutral fallback timeout classification', () => {
+    const diagnostics: VbanTextExchangeDiagnostics = {
+      command: 'Strip[0].Gain=?;',
+      connection: {
+        host: '127.0.0.1',
+        port: 6982,
+        streamName: 'Command1',
+        timeoutMs: 10,
+        responseStreamName: VBAN_REQUEST_REPLY_STREAM,
+      },
+      sent: true,
+      receivedPackets: 1,
+      ignoredPackets: [],
+      likelySetupStages: [],
+      replyProductName: 'Voicemeeter',
+    };
+
+    expect(buildTimeoutDiagnostic(diagnostics).classification).toBe('packets_observed_no_accepted_reply');
+  });
+
   test('shapes observed timeout packets without collapsing wrong stream and unsupported protocol cases', () => {
     const wrongStreamPacket = buildVbanTextPacket('Command.Version = "VB-Audio Matrix";', {
       streamName: 'Command2',

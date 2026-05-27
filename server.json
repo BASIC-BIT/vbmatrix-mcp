@@ -153,7 +153,7 @@
         },
         {
           "name": "VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT",
-          "description": "Disable the advanced raw Voicemeeter VBAN-TEXT escape hatch.",
+          "description": "Disable Voicemeeter VBAN-TEXT diagnostics and the advanced raw escape hatch.",
           "format": "boolean",
           "default": "false",
           "isRequired": false,

@@ -117,7 +117,7 @@ Voicemeeter configuration:
 | `VOICEMEETER_VBAN_PORT`                  | `6982`           | UDP port for raw Voicemeeter VBAN-TEXT commands; keep separate from `VBMATRIX_PORT`.           |
 | `VOICEMEETER_VBAN_STREAM`                | `Command1`       | Incoming Voicemeeter VBAN-TEXT stream name.                                                    |
 | `VOICEMEETER_VBAN_TIMEOUT_MS`            | `2000`           | Query response timeout for raw Voicemeeter VBAN-TEXT commands.                                 |
-| `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT`  | `false`          | Disable the advanced raw Voicemeeter VBAN-TEXT escape hatch.                                   |
+| `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT`  | `false`          | Disable Voicemeeter VBAN-TEXT diagnostics and the advanced raw escape hatch.                   |
 
 Most current `voicemeeter_*` tools use the local Remote API helper. `voicemeeter_vban_diagnostics` and `voicemeeter_raw_vban_text` use UDP VBAN-TEXT for query/reply evidence and exact power-user commands. If Matrix and Voicemeeter are both running, keep product UDP base ports separate: Matrix uses `VBMATRIX_PORT=6980` by default, and Voicemeeter defaults here to `VOICEMEETER_VBAN_PORT=6982`. Do not point both applications at the same VBAN UDP port. Some VB-Audio companion/control ports may be derived by the application from its base port; configure and document the product base ports separately.
 
@@ -188,7 +188,7 @@ Current Voicemeeter tools:
 - `voicemeeter_get_macro_button`
 - `voicemeeter_set_macro_button` (`confirm: true` required; destructive gate; trigger mode is reported as an acceptance-only pulse)
 - `voicemeeter_raw_remote_api` (advanced escape hatch; prefer typed tools where possible; disable with `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API=true`.)
-- `voicemeeter_vban_diagnostics` (fixed read-only `Strip[0].Gain=?;` VBAN-TEXT probe for #22 query/reply evidence.)
+- `voicemeeter_vban_diagnostics` (fixed read-only `Strip[0].Gain=?;` VBAN-TEXT probe for query/reply evidence; disable with `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT=true`.)
 - `voicemeeter_raw_vban_text` (advanced exact VBAN-TEXT escape hatch over `VOICEMEETER_VBAN_*`; prefer typed tools where possible; disable with `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT=true`.)
 
 Write tools and raw escape hatches are available by default so the user's MCP harness can decide what should be called. Set Matrix and Voicemeeter disable environment variables for narrower deployments. Slot reset, device changes, MacroButtons writes, file-state writes, and raw commands should be operator-in-the-loop actions; use typed tools first when they exist and query current state before disruptive changes. For Voicemeeter device and MacroButtons writes, treat `confirmation.writeAccepted` as Remote API acceptance and compare the returned observed state fields separately before claiming durable state changed. Voicemeeter VBAN-TEXT query/reply behavior is still marked as unverified, so start with `voicemeeter_vban_diagnostics` before relying on raw query replies.
