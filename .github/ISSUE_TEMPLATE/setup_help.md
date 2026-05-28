@@ -1,6 +1,6 @@
 ---
 name: Setup help
-about: Get help configuring VBMatrix MCP or an MCP client
+about: Get help configuring VB-Audio MCP or an MCP client
 labels: setup
 ---
 

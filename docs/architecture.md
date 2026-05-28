@@ -1,6 +1,6 @@
 # Architecture Overview
 
-VBMatrix MCP is organized around explicit, testable layers. The MCP layer should not know packet bytes, and the VBAN layer should not know MCP concepts.
+VB-Audio MCP is organized around explicit, testable layers. The MCP layer should not know packet bytes, and the VBAN layer should not know MCP concepts.
 
 ## Entry point
 

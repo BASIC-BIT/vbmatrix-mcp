@@ -4,10 +4,10 @@ Releases require explicit operator approval. Do not publish to npm, create a Git
 
 ## Package Identity
 
-- npm package: `@basicbit/vbmatrix-mcp`
-- MCP discovery name: `io.github.BASIC-BIT/vbmatrix-mcp`
-- CLI: `vbmatrix-mcp`
-- Doctor CLI: `vbmatrix-mcp-doctor`
+- npm package: `@basicbit/vb-audio-mcp`
+- MCP discovery name: `io.github.BASIC-BIT/vb-audio-mcp`
+- CLI: `vb-audio-mcp`
+- Doctor CLI: `vb-audio-mcp-doctor`
 
 Version `0.1.0` is the first packaging/onboarding release line. Use SemVer after that: patch for fixes/docs, minor for new tools or workflow additions, major for breaking tool schemas or safety default changes.
 

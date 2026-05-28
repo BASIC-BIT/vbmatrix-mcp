@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a VBMatrix MCP problem
+about: Report a VB-Audio MCP problem
 labels: bug
 ---
 

@@ -44,7 +44,9 @@ export interface DoctorReport {
 }
 
 const DEFAULT_NODE_RANGE = '>=24.15.0';
-const MCP_SERVER_NAME = 'io.github.BASIC-BIT/vbmatrix-mcp';
+const MCP_SERVER_NAME = 'io.github.BASIC-BIT/vb-audio-mcp';
+const CLI_BIN_NAME = 'vb-audio-mcp';
+const DOCTOR_BIN_NAME = 'vb-audio-mcp-doctor';
 
 function parseVersion(version: string): [number, number, number] | null {
   const match = /^v?(\d+)\.(\d+)\.(\d+)/.exec(version.trim());
@@ -111,8 +113,8 @@ function checkPackageMetadata(
     serverPackage?.version === packageJson.version
       ? undefined
       : 'server.json package version must match package version',
-    packageJson.bin?.['vbmatrix-mcp'] ? undefined : 'package bin must expose vbmatrix-mcp',
-    packageJson.bin?.['vbmatrix-mcp-doctor'] ? undefined : 'package bin must expose vbmatrix-mcp-doctor',
+    packageJson.bin?.[CLI_BIN_NAME] ? undefined : `package bin must expose ${CLI_BIN_NAME}`,
+    packageJson.bin?.[DOCTOR_BIN_NAME] ? undefined : `package bin must expose ${DOCTOR_BIN_NAME}`,
   ].filter((problem): problem is string => Boolean(problem));
 
   if (problems.length === 0) {

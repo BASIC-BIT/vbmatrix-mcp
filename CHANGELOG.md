@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Renamed the package and MCP discovery identity to VB-Audio MCP while keeping product-specific `vbmatrix_*` and `voicemeeter_*` tool prefixes stable.
 - Added live-tested `vbmatrix_inspect_routes` and `vbmatrix_inspect_slots` for bounded route, slot, label, and engine/master inspection before live changes.
 - Added default-available `vbmatrix_raw_vban_text` as an advanced power-user escape hatch, with `VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true` for deployments that want to hide it.
 - Added `vbmatrix_get_file_state` and live-tested `vbmatrix_preset_patch_file` for dry-run-first preset patch `.xml` load/save-as under `VBMATRIX_MCP_PRESET_PATCH_ROOTS`.
@@ -24,11 +25,11 @@
 
 ## 0.1.0
 
-- Set the initial package identity to `@basicbit/vbmatrix-mcp` with MCP discovery name `io.github.BASIC-BIT/vbmatrix-mcp`.
+- Set the initial package identity to `@basicbit/vb-audio-mcp` with MCP discovery name `io.github.BASIC-BIT/vb-audio-mcp`.
 - Added safe `doctor` diagnostics for Node version, build output, discovery metadata, environment parsing, and optional read-only VBAN probing.
 - Added expanded MCP client onboarding examples and release checklist documentation.
-- Added lightweight agentic maintainer and improvement-log workflows for safe VBMatrix MCP changes.
+- Added lightweight agentic maintainer and improvement-log workflows for safe VB-Audio MCP changes.
 
 ## 0.0.0
 
-- Initial design scaffold for VBMatrix MCP.
+- Initial design scaffold for VB-Audio MCP.

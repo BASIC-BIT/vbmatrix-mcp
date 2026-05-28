@@ -1,6 +1,6 @@
 # MCP Client Configuration
 
-VBMatrix MCP is a local stdio server. Keep `stdout` reserved for MCP protocol traffic and send human diagnostics through `npm run doctor`, `npm run smoke:vban`, or MCP tool responses instead of server logs.
+VB-Audio MCP is a local stdio server. Keep `stdout` reserved for MCP protocol traffic and send human diagnostics through `npm run doctor`, `npm run smoke:vban`, or MCP tool responses instead of server logs.
 
 Run these checks before wiring a client:
 
@@ -21,7 +21,7 @@ After npm publication, prefer package execution so clients do not depend on a so
 ```json
 {
   "command": "npx",
-  "args": ["-y", "--package", "@basicbit/vbmatrix-mcp", "vbmatrix-mcp"]
+  "args": ["-y", "--package", "@basicbit/vb-audio-mcp", "vb-audio-mcp"]
 }
 ```
 
@@ -30,7 +30,7 @@ For source checkouts, use the built CLI path:
 ```json
 {
   "command": "node",
-  "args": ["D:/bench/vbmatrix-mcp/dist/bin/cli.js"]
+  "args": ["D:/bench/vb-audio-mcp/dist/bin/cli.js"]
 }
 ```
 
@@ -62,9 +62,9 @@ Matrix and Voicemeeter must not share a VBAN UDP port when both applications are
 ```json
 {
   "mcp": {
-    "vbmatrix": {
+    "vb-audio": {
       "type": "local",
-      "command": ["node", "D:/bench/vbmatrix-mcp/dist/bin/cli.js"],
+      "command": ["node", "D:/bench/vb-audio-mcp/dist/bin/cli.js"],
       "enabled": true,
       "environment": {
         "VBMATRIX_HOST": "127.0.0.1",
@@ -89,9 +89,9 @@ Matrix and Voicemeeter must not share a VBAN UDP port when both applications are
 ```json
 {
   "mcpServers": {
-    "vbmatrix": {
+    "vb-audio": {
       "command": "node",
-      "args": ["D:/bench/vbmatrix-mcp/dist/bin/cli.js"],
+      "args": ["D:/bench/vb-audio-mcp/dist/bin/cli.js"],
       "env": {
         "VBMATRIX_HOST": "127.0.0.1",
         "VBMATRIX_MCP_ALLOW_WRITES": "false",
@@ -109,9 +109,9 @@ Use Cursor's MCP server configuration with the same `mcpServers` shape:
 ```json
 {
   "mcpServers": {
-    "vbmatrix": {
+    "vb-audio": {
       "command": "node",
-      "args": ["D:/bench/vbmatrix-mcp/dist/bin/cli.js"],
+      "args": ["D:/bench/vb-audio-mcp/dist/bin/cli.js"],
       "env": {
         "VBMATRIX_HOST": "127.0.0.1",
         "VBMATRIX_MCP_ALLOW_WRITES": "false"
@@ -128,10 +128,10 @@ For VS Code MCP-capable extensions that accept a local stdio server, use the ext
 ```json
 {
   "servers": {
-    "vbmatrix": {
+    "vb-audio": {
       "type": "stdio",
       "command": "node",
-      "args": ["D:/bench/vbmatrix-mcp/dist/bin/cli.js"],
+      "args": ["D:/bench/vb-audio-mcp/dist/bin/cli.js"],
       "env": {
         "VBMATRIX_HOST": "127.0.0.1",
         "VBMATRIX_MCP_ALLOW_WRITES": "false"
@@ -146,9 +146,9 @@ For VS Code MCP-capable extensions that accept a local stdio server, use the ext
 Use a local stdio MCP entry and keep writes disabled until your Codex session requires them:
 
 ```toml
-[mcp_servers.vbmatrix]
+[mcp_servers."vb-audio"]
 command = "node"
-args = ["D:/bench/vbmatrix-mcp/dist/bin/cli.js"]
+args = ["D:/bench/vb-audio-mcp/dist/bin/cli.js"]
 env = { VBMATRIX_HOST = "127.0.0.1", VBMATRIX_MCP_ALLOW_WRITES = "false", VBMATRIX_MCP_ALLOW_DESTRUCTIVE = "false" }
 ```
 

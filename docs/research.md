@@ -11,7 +11,7 @@
 
 ## Findings
 
-- No ready-made VBMatrix MCP server was found during initial search.
+- No ready-made VB-Audio MCP server was found during initial search.
 - VBMatrix has a LOG / CLI command surface, and the manual states most instructions can also be used as VBAN-TEXT requests.
 - VBMatrix supports point gain, mute, phase, slot status/device queries, preset patch commands, and system commands.
 - Public helper code indicates `Point(...)` commands should avoid spaces after commas when sent over VBAN-TEXT.

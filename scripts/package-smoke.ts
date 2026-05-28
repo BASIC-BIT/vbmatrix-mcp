@@ -38,10 +38,10 @@ function expectPackageFile(paths: Set<string>, path: string): void {
 }
 
 if (packageJson.main !== 'dist/src/index.js') fail('package main must point at dist/src/index.js');
-if (packageJson.bin?.['vbmatrix-mcp'] !== 'dist/bin/cli.js')
-  fail('vbmatrix-mcp bin must point at dist/bin/cli.js');
-if (packageJson.bin?.['vbmatrix-mcp-doctor'] !== 'dist/scripts/doctor.js') {
-  fail('vbmatrix-mcp-doctor bin must point at dist/scripts/doctor.js');
+if (packageJson.bin?.['vb-audio-mcp'] !== 'dist/bin/cli.js')
+  fail('vb-audio-mcp bin must point at dist/bin/cli.js');
+if (packageJson.bin?.['vb-audio-mcp-doctor'] !== 'dist/scripts/doctor.js') {
+  fail('vb-audio-mcp-doctor bin must point at dist/scripts/doctor.js');
 }
 
 expectFile('dist/src/index.js');

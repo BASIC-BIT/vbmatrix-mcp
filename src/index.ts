@@ -4,7 +4,7 @@ import pkg from '../package.json' with { type: 'json' };
 import { logger } from './infra/logger.js';
 import { registerAllTools } from './tools/registerAllTools.js';
 
-const server = new McpServer({ name: 'vbmatrix-mcp', version: pkg.version ?? '0.0.0' });
+const server = new McpServer({ name: 'vb-audio-mcp', version: pkg.version ?? '0.0.0' });
 
 async function main(): Promise<void> {
   registerAllTools(server);

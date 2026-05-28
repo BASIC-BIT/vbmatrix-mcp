@@ -1,6 +1,6 @@
 ---
 name: vbmatrix-troubleshooting
-description: Diagnose VBMatrix MCP, VBAN-TEXT, and routing-state failures with safe escalation.
+description: Diagnose VB-Audio MCP Matrix VBAN-TEXT and routing-state failures with safe escalation.
 compatibility: opencode
 metadata:
   audience: users

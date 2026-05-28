@@ -7,6 +7,12 @@ This repo uses linting, typechecking, and tests to validate changes.
 - If `AGENTS.local.md` exists in this repo, read it before live QA, smoke tests, or destructive/audio-affecting validation.
 - `AGENTS.local.md` is gitignored and may contain private operator approvals, local device assumptions, or machine-specific test policy. Do not commit it.
 
+## OpenCode MCP Testing
+
+- `opencode.json` registers this repo as a local `vb-audio` MCP using `node dist/bin/cli.js`; run `npm run build` before restarting OpenCode after code changes.
+- The committed OpenCode config is intentionally read-only/safe by default: Matrix writes, destructive actions, raw VBAN-TEXT, Voicemeeter writes, destructive actions, raw Remote API, and raw Voicemeeter VBAN-TEXT are disabled.
+- For live write/routing validation, use an explicit operator checkpoint and a local override rather than broadening the committed default config.
+
 Guidance for coding agents:
 
 - After significant code changes, run `npm run check`.
@@ -18,7 +24,7 @@ Guidance for coding agents:
 - Raw VBAN-TEXT is exposed only through `vbmatrix_raw_vban_text` and `voicemeeter_raw_vban_text`; prefer typed tools where possible and document any new raw-command policy change.
 - Read tools may query any configured host, but write tools must pass the write gate and SUID allowlist.
 - Query-before-write is the default pattern for routing changes so tool responses can show pre-state and post-state.
-- Avoid fuzzy language interpretation in code. MCP tools should expose explicit VBMatrix facts and typed operations; the agent decides intent.
+- Avoid fuzzy language interpretation in code. MCP tools should expose explicit provider facts and typed operations; the agent decides intent.
 
 ## Tool ergonomics goals
 

@@ -1,7 +1,7 @@
 {
-  "name": "@basicbit/vbmatrix-mcp",
+  "name": "@basicbit/vb-audio-mcp",
   "version": "0.1.0",
-  "mcpName": "io.github.BASIC-BIT/vbmatrix-mcp",
+  "mcpName": "io.github.BASIC-BIT/vb-audio-mcp",
   "description": "MCP server for VB-Audio Matrix over VBAN-TEXT and Voicemeeter via helper process and VBAN-TEXT.",
   "type": "module",
   "main": "dist/src/index.js",
@@ -9,8 +9,8 @@
     "access": "public"
   },
   "bin": {
-    "vbmatrix-mcp": "dist/bin/cli.js",
-    "vbmatrix-mcp-doctor": "dist/scripts/doctor.js"
+    "vb-audio-mcp": "dist/bin/cli.js",
+    "vb-audio-mcp-doctor": "dist/scripts/doctor.js"
   },
   "files": [
     "dist",
@@ -80,12 +80,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/BASIC-BIT/vbmatrix-mcp.git"
+    "url": "git+https://github.com/BASIC-BIT/vb-audio-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/BASIC-BIT/vbmatrix-mcp/issues"
+    "url": "https://github.com/BASIC-BIT/vb-audio-mcp/issues"
   },
-  "homepage": "https://github.com/BASIC-BIT/vbmatrix-mcp#readme",
+  "homepage": "https://github.com/BASIC-BIT/vb-audio-mcp#readme",
   "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^10.0.1",

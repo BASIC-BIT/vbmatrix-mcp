@@ -1,4 +1,4 @@
-# VBMatrix MCP
+# VB-Audio MCP
 
 Local [Model Context Protocol](https://modelcontextprotocol.io/) tools for controlling and inspecting [VB-Audio Matrix](https://vb-audio.com/Matrix/) through VBAN-TEXT, plus an explicit helper-process and raw VBAN-TEXT provider for [VB-Audio Voicemeeter](https://vb-audio.com/Voicemeeter/).
 
@@ -6,7 +6,7 @@ This project is an early design + scaffold. It is unofficial and is not affiliat
 
 ## Scope
 
-VBMatrix MCP runs locally through stdio and sends VBAN-TEXT packets to a configured VBMatrix host, normally `127.0.0.1:6980` with stream name `Command1`.
+VB-Audio MCP runs locally through stdio. Matrix tools send VBAN-TEXT packets to a configured VBMatrix host, normally `127.0.0.1:6980` with stream name `Command1`; Voicemeeter tools use a helper process and optional VBAN-TEXT diagnostics.
 
 MVP goals:
 

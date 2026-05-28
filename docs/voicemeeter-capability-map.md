@@ -1,6 +1,6 @@
 # Voicemeeter Capability Map
 
-Issue: [#40 Voicemeeter provider v2](https://github.com/BASIC-BIT/vbmatrix-mcp/issues/40)
+Issue: [#40 Voicemeeter provider v2](https://github.com/BASIC-BIT/vb-audio-mcp/issues/40)
 
 ## Summary
 

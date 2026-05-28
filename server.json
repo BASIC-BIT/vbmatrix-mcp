@@ -1,17 +1,17 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.BASIC-BIT/vbmatrix-mcp",
-  "title": "VBMatrix MCP",
+  "name": "io.github.BASIC-BIT/vb-audio-mcp",
+  "title": "VB-Audio MCP",
   "description": "MCP server for VB-Audio Matrix over VBAN-TEXT and Voicemeeter via helper process and VBAN-TEXT.",
   "repository": {
-    "url": "https://github.com/BASIC-BIT/vbmatrix-mcp",
+    "url": "https://github.com/BASIC-BIT/vb-audio-mcp",
     "source": "github"
   },
   "version": "0.1.0",
   "packages": [
     {
       "registryType": "npm",
-      "identifier": "@basicbit/vbmatrix-mcp",
+      "identifier": "@basicbit/vb-audio-mcp",
       "version": "0.1.0",
       "transport": {
         "type": "stdio"
@@ -192,5 +192,5 @@
       ]
     }
   ],
-  "websiteUrl": "https://github.com/BASIC-BIT/vbmatrix-mcp#readme"
+  "websiteUrl": "https://github.com/BASIC-BIT/vb-audio-mcp#readme"
 }

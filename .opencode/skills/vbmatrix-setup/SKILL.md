@@ -1,6 +1,6 @@
 ---
 name: vbmatrix-setup
-description: Set up VB-Audio Matrix and verify VBMatrix MCP over VBAN-TEXT.
+description: Set up VB-Audio MCP for Matrix and verify VBAN-TEXT connectivity.
 compatibility: opencode
 metadata:
   audience: users
@@ -9,7 +9,7 @@ metadata:
 
 ## Goal
 
-Bring a Windows machine from "I want VBMatrix MCP" to a verified `vbmatrix_ping` without hiding the parts that need desktop/admin/operator approval.
+Bring a Windows machine from "I want VB-Audio MCP for Matrix" to a verified `vbmatrix_ping` without hiding the parts that need desktop/admin/operator approval.
 
 ## What Can Be Automated
 
@@ -88,18 +88,18 @@ OpenCode local config example:
 ```jsonc
 {
   "mcp": {
-    "vbmatrix": {
+    "vb-audio": {
       "type": "local",
-      "command": ["node", "D:/bench/vbmatrix-mcp/dist/bin/cli.js"],
+      "command": ["node", "D:/bench/vb-audio-mcp/dist/bin/cli.js"],
       "enabled": true,
       "environment": {
-        "VBMATRIX_HOST": "127.0.0.1"
-      }
-    }
+        "VBMATRIX_HOST": "127.0.0.1",
+      },
+    },
   },
   "permission": {
-    "vbmatrix_*": "ask"
-  }
+    "vbmatrix_*": "ask",
+  },
 }
 ```
 

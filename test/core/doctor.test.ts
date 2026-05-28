@@ -5,19 +5,19 @@ function baseInputs(overrides: Partial<DoctorInputs> = {}): DoctorInputs {
   return {
     nodeVersion: 'v24.15.0',
     packageJson: {
-      name: '@basicbit/vbmatrix-mcp',
+      name: '@basicbit/vb-audio-mcp',
       version: '0.1.0',
-      mcpName: 'io.github.BASIC-BIT/vbmatrix-mcp',
+      mcpName: 'io.github.BASIC-BIT/vb-audio-mcp',
       bin: {
-        'vbmatrix-mcp': 'dist/bin/cli.js',
-        'vbmatrix-mcp-doctor': 'dist/scripts/doctor.js',
+        'vb-audio-mcp': 'dist/bin/cli.js',
+        'vb-audio-mcp-doctor': 'dist/scripts/doctor.js',
       },
       engines: { node: '>=24.15.0' },
     },
     serverJson: {
-      name: 'io.github.BASIC-BIT/vbmatrix-mcp',
+      name: 'io.github.BASIC-BIT/vb-audio-mcp',
       version: '0.1.0',
-      packages: [{ identifier: '@basicbit/vbmatrix-mcp', version: '0.1.0' }],
+      packages: [{ identifier: '@basicbit/vb-audio-mcp', version: '0.1.0' }],
     },
     buildArtifacts: { serverEntry: true, cliEntry: true, doctorEntry: true },
     env: {},

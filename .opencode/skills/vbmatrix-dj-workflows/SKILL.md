@@ -1,6 +1,6 @@
 ---
 name: vbmatrix-dj-workflows
-description: Apply VBMatrix MCP safely to DJ, stream, cue, monitor, and live-production workflows.
+description: Apply VB-Audio MCP Matrix tools safely to DJ, stream, cue, monitor, and live-production workflows.
 compatibility: opencode
 metadata:
   audience: users
