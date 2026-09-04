@@ -24,6 +24,8 @@ Additive changes are preferred and normally compatible:
 - Adding a new enum value only when callers that do not use it keep their existing behavior.
 - Adding stricter validation for values that were never valid Matrix/VBAN inputs.
 
+The Windows Core Audio provider follows the additive-provider rule with the `windows_audio_*` prefix. Its tools remain registered on non-Windows systems and return a structured unsupported-platform result so MCP discovery does not vary by host operating system.
+
 ## Breaking Changes
 
 These require a changelog entry and a deliberate versioning decision:

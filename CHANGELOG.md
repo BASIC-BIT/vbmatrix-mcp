@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added a read-only `windows_audio_*` provider with bounded endpoint inventory and per-role default-device inspection through an isolated, versioned JSON-stdio helper.
 - Renamed the package and MCP discovery identity to VB-Audio MCP while keeping product-specific `vbmatrix_*` and `voicemeeter_*` tool prefixes stable.
 - Added live-tested `vbmatrix_inspect_routes` and `vbmatrix_inspect_slots` for bounded route, slot, label, and engine/master inspection before live changes.
 - Added default-available `vbmatrix_raw_vban_text` as an advanced power-user escape hatch, with `VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true` for deployments that want to hide it.

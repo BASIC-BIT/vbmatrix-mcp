@@ -46,6 +46,7 @@ Common environment values:
   "VBMATRIX_MCP_ALLOW_WRITES": "false",
   "VBMATRIX_MCP_ALLOW_DESTRUCTIVE": "false",
   "VBMATRIX_MCP_DISABLE_RAW_COMMANDS": "true",
+  "WINDOWS_AUDIO_MCP_DISABLE_BUNDLED_HELPER": "false",
   "VOICEMEETER_MCP_DISABLE_WRITES": "true",
   "VOICEMEETER_MCP_DISABLE_DESTRUCTIVE": "true",
   "VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API": "true",
@@ -54,6 +55,8 @@ Common environment values:
 ```
 
 Set writes, destructive tools, or raw escape hatches to enabled only when the client provides approval controls and the operator understands the Matrix routes, Matrix files, or Voicemeeter parameters being changed.
+
+The current `windows_audio_*` tools are read-only. On Windows, the bundled helper uses `powershell.exe` unless `WINDOWS_AUDIO_HELPER_POWERSHELL_COMMAND` overrides it. Set `WINDOWS_AUDIO_MCP_DISABLE_BUNDLED_HELPER=true` only when using `WINDOWS_AUDIO_HELPER_COMMAND` with a custom implementation of the documented JSON-stdio contract.
 
 Matrix and Voicemeeter must not share a VBAN UDP port when both applications are open. Matrix defaults to `VBMATRIX_PORT=6980`. Voicemeeter VBAN-TEXT diagnostics and raw commands use separate `VOICEMEETER_VBAN_*` settings and default to `VOICEMEETER_VBAN_PORT=6982`; helper-backed `voicemeeter_*` tools other than `voicemeeter_vban_diagnostics` and `voicemeeter_raw_vban_text` do not use UDP.
 

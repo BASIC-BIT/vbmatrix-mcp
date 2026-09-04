@@ -2,7 +2,7 @@
   "name": "@basicbit/vb-audio-mcp",
   "version": "0.1.0",
   "mcpName": "io.github.BASIC-BIT/vb-audio-mcp",
-  "description": "MCP server for VB-Audio Matrix over VBAN-TEXT and Voicemeeter via helper process and VBAN-TEXT.",
+  "description": "MCP server for VB-Audio Matrix, Voicemeeter, and read-only Windows Core Audio inspection.",
   "type": "module",
   "main": "dist/src/index.js",
   "publishConfig": {
@@ -15,6 +15,7 @@
   "files": [
     "dist",
     "helpers/voicemeeter-remote-helper.ps1",
+    "helpers/windows-audio-helper.ps1",
     ".opencode/skills/**/*.md",
     "docs/architecture.md",
     "docs/agentic-workflow.md",
@@ -31,6 +32,7 @@
     "docs/research.md",
     "docs/voicemeeter-capability-map.md",
     "docs/voicemeeter-research.md",
+    "docs/windows-audio-provider.md",
     "docs/safety.md",
     "docs/skills.md",
     "docs/troubleshooting.md",

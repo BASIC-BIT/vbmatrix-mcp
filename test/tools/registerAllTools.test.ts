@@ -62,6 +62,9 @@ describe('tool registration', () => {
       'voicemeeter_raw_remote_api',
       'voicemeeter_vban_diagnostics',
       'voicemeeter_raw_vban_text',
+      'windows_audio_get_capabilities',
+      'windows_audio_get_endpoints',
+      'windows_audio_get_defaults',
     ]);
   });
 });

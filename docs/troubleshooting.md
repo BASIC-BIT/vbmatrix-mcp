@@ -50,6 +50,14 @@ Useful facts to include in support requests:
 
 The MCP server does not load Voicemeeter DLLs in-process. Helper stderr is diagnostic-only; stdout is reserved for one helper JSON response.
 
+## Windows Audio Helper Issues
+
+Start with `windows_audio_get_capabilities`, then call `windows_audio_get_defaults` or a one-item `windows_audio_get_endpoints` query. The tools do not change Windows audio state.
+
+The bundled helper requires Windows PowerShell and uses a separate Core Audio COM process. A structured error distinguishes unsupported platform, disabled/missing helper, invalid helper configuration, launch failure, timeout, excessive output, malformed JSON, request-ID mismatch, Core Audio failure, and typed-contract failure.
+
+For support, include the error code and helper kind but redact endpoint IDs, interface paths, policy GUIDs, device names, usernames, and custom-helper filesystem paths. Do not paste full endpoint inventories unless those identifiers are intentionally being shared.
+
 ## Voicemeeter Write Confirmation
 
 Device changes and MacroButtons writes can disrupt live audio or trigger user-configured actions. Verify them only with an operator-approved disposable fixture:

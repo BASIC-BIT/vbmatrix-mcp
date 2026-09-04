@@ -4,7 +4,11 @@ import { matrixCapabilitiesPayload, matrixProviderMetadata } from '../../src/pro
 
 describe('Matrix product provider metadata', () => {
   test('keeps Matrix first in the product provider registry', () => {
-    expect(productProviders.map((provider) => provider.id)).toEqual(['matrix', 'voicemeeter']);
+    expect(productProviders.map((provider) => provider.id)).toEqual([
+      'matrix',
+      'voicemeeter',
+      'windows-audio',
+    ]);
     expect(productProviders[0]).toMatchObject({
       displayName: 'VB-Audio Matrix',
       toolPrefix: 'vbmatrix',

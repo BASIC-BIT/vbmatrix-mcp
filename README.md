@@ -1,12 +1,12 @@
 # VB-Audio MCP
 
-Local [Model Context Protocol](https://modelcontextprotocol.io/) tools for controlling and inspecting [VB-Audio Matrix](https://vb-audio.com/Matrix/) through VBAN-TEXT, plus an explicit helper-process and raw VBAN-TEXT provider for [VB-Audio Voicemeeter](https://vb-audio.com/Voicemeeter/).
+Local [Model Context Protocol](https://modelcontextprotocol.io/) tools for controlling and inspecting [VB-Audio Matrix](https://vb-audio.com/Matrix/) through VBAN-TEXT, an explicit helper-process and raw VBAN-TEXT provider for [VB-Audio Voicemeeter](https://vb-audio.com/Voicemeeter/), and read-only Windows Core Audio inspection.
 
 This project is an early design + scaffold. It is unofficial and is not affiliated with VB-Audio Software.
 
 ## Scope
 
-VB-Audio MCP runs locally through stdio. Matrix tools send VBAN-TEXT packets to a configured VBMatrix host, normally `127.0.0.1:6980` with stream name `Command1`; Voicemeeter tools use a helper process and optional VBAN-TEXT diagnostics.
+VB-Audio MCP runs locally through stdio. Matrix tools send VBAN-TEXT packets to a configured VBMatrix host, normally `127.0.0.1:6980` with stream name `Command1`; Voicemeeter tools use a helper process and optional VBAN-TEXT diagnostics; Windows Audio tools use a separate read-only helper process.
 
 MVP goals:
 
@@ -21,6 +21,7 @@ MVP goals:
 - Capture, diff, and plan/restore targeted Matrix snapshots for explicit slots and points.
 - Run a minimal safe routing workflow for explicit point audition, cleanup, and emergency mute with dry-run and rollback data.
 - Read current Matrix project/grid file state and load/save-as explicit preset patch XML files under configured roots.
+- Inspect bounded Windows render/capture endpoint inventory, mix formats, and role-specific default devices without changing OS audio state.
 
 ## Install From Source
 
@@ -29,6 +30,7 @@ Requirements:
 - Node.js 24.15.0 or newer.
 - VB-Audio Matrix with VBAN service and the TEXT command stream enabled.
 - Windows and a local Voicemeeter install for `voicemeeter_*` tools.
+- Windows PowerShell for the bundled `windows_audio_*` helper; other platforms return a structured unsupported result.
 - An MCP client that can run local stdio servers.
 
 ```bash
@@ -73,6 +75,7 @@ Operator map:
 - `docs/troubleshooting.md`: setup and support checklists.
 - `docs/workflows.md`: safe Matrix operator workflow recipes.
 - `docs/voicemeeter-capability-map.md`: Voicemeeter tool safety, evidence, and useful next work.
+- `docs/windows-audio-provider.md`: Windows helper contract, endpoint/default fields, privacy, and validation evidence.
 - `docs/error-taxonomy.md`: timeout classifications, Matrix `Err` replies, safety errors, and protocol-safe diagnostics.
 - `docs/api-compatibility.md`: tool/schema/response compatibility policy and breaking-change guidance.
 - `docs/matrix-validation-evidence.md`: live-tested, mocked-tested, docs-only, and deferred Matrix validation evidence.
@@ -127,6 +130,18 @@ Voicemeeter configuration:
 | `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT`  | `false`          | Disable Voicemeeter VBAN-TEXT diagnostics and the advanced raw escape hatch.                         |
 
 Most current `voicemeeter_*` tools use the local Remote API helper. `voicemeeter_vban_diagnostics` and `voicemeeter_raw_vban_text` use UDP VBAN-TEXT for query/reply evidence and exact power-user commands. If Matrix and Voicemeeter are both running, keep product UDP base ports separate: Matrix uses `VBMATRIX_PORT=6980` by default, and Voicemeeter defaults here to `VOICEMEETER_VBAN_PORT=6982`. Do not point both applications at the same VBAN UDP port. Some VB-Audio companion/control ports may be derived by the application from its base port; configure and document the product base ports separately.
+
+Windows Audio configuration:
+
+| Variable                                   | Default          | Use                                                                               |
+| ------------------------------------------ | ---------------- | --------------------------------------------------------------------------------- |
+| `WINDOWS_AUDIO_HELPER_COMMAND`             | empty            | Optional custom helper executable implementing the versioned JSON-stdio contract. |
+| `WINDOWS_AUDIO_HELPER_ARGS`                | `[]`             | JSON string array of base arguments for a custom helper command.                  |
+| `WINDOWS_AUDIO_HELPER_TIMEOUT_MS`          | `10000`          | Hard timeout for each helper operation.                                           |
+| `WINDOWS_AUDIO_HELPER_POWERSHELL_COMMAND`  | `powershell.exe` | PowerShell executable used for the bundled helper.                                |
+| `WINDOWS_AUDIO_MCP_DISABLE_BUNDLED_HELPER` | `false`          | Disable the bundled helper and require `WINDOWS_AUDIO_HELPER_COMMAND`.            |
+
+The bundled Windows helper accepts one versioned JSON request on stdin and returns one matching JSON object on stdout. It exposes fixed read-only operations only; it does not accept PowerShell, registry paths, COM method names, or other raw commands.
 
 ## Tools
 
@@ -197,6 +212,14 @@ Current Voicemeeter tools:
 - `voicemeeter_raw_remote_api` (advanced escape hatch; prefer typed tools where possible; disable with `VOICEMEETER_MCP_DISABLE_RAW_REMOTE_API=true`.)
 - `voicemeeter_vban_diagnostics` (fixed read-only `Strip[0].Gain=?;` VBAN-TEXT probe for query/reply evidence; disable with `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT=true`.)
 - `voicemeeter_raw_vban_text` (advanced exact VBAN-TEXT escape hatch over `VOICEMEETER_VBAN_*`; prefer typed tools where possible; disable with `VOICEMEETER_MCP_DISABLE_RAW_VBAN_TEXT=true`.)
+
+Current Windows Audio tools:
+
+- `windows_audio_get_capabilities`
+- `windows_audio_get_endpoints` (bounded render/capture inventory; active endpoints by default)
+- `windows_audio_get_defaults` (render/capture defaults for console, multimedia, and communications roles)
+
+Windows Audio responses identify their source as live Windows Core Audio state. They are separate from both saved Matrix XML topology and targeted live Matrix VBAN queries. The current provider is strictly read-only and cannot set default devices, endpoint state, volume, or routing.
 
 Write tools and raw escape hatches are available by default so the user's MCP harness can decide what should be called. Set Matrix and Voicemeeter disable environment variables for narrower deployments. Slot reset, device changes, MacroButtons writes, file-state writes, and raw commands should be operator-in-the-loop actions; use typed tools first when they exist and query current state before disruptive changes. For Voicemeeter device and MacroButtons writes, treat `confirmation.writeAccepted` as Remote API acceptance and compare the returned observed state fields separately before claiming durable state changed. Voicemeeter VBAN-TEXT query/reply behavior is still marked as unverified, so start with `voicemeeter_vban_diagnostics` before relying on raw query replies.
 

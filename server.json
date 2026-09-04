@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.BASIC-BIT/vb-audio-mcp",
   "title": "VB-Audio MCP",
-  "description": "MCP server for VB-Audio Matrix over VBAN-TEXT and Voicemeeter via helper process and VBAN-TEXT.",
+  "description": "MCP server for VB-Audio Matrix, Voicemeeter, and read-only Windows Core Audio inspection.",
   "repository": {
     "url": "https://github.com/BASIC-BIT/vb-audio-mcp",
     "source": "github"
@@ -177,6 +177,44 @@
           "name": "VOICEMEETER_REMOTE_DLL",
           "description": "Optional explicit path to VoicemeeterRemote64.dll or VoicemeeterRemote.dll for the bundled helper.",
           "format": "string",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "WINDOWS_AUDIO_HELPER_COMMAND",
+          "description": "Optional custom Windows Audio helper executable. If unset, the bundled PowerShell/C# helper is used on Windows.",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "WINDOWS_AUDIO_HELPER_ARGS",
+          "description": "JSON array of base arguments for WINDOWS_AUDIO_HELPER_COMMAND.",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "WINDOWS_AUDIO_HELPER_TIMEOUT_MS",
+          "description": "Hard timeout for each Windows Audio helper operation in milliseconds.",
+          "format": "number",
+          "default": "10000",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "WINDOWS_AUDIO_HELPER_POWERSHELL_COMMAND",
+          "description": "PowerShell executable used for the bundled Windows Audio helper.",
+          "format": "string",
+          "default": "powershell.exe",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "WINDOWS_AUDIO_MCP_DISABLE_BUNDLED_HELPER",
+          "description": "Disable the bundled Windows Audio helper and require WINDOWS_AUDIO_HELPER_COMMAND.",
+          "format": "boolean",
+          "default": "false",
           "isRequired": false,
           "isSecret": false
         },
