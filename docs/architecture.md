@@ -19,6 +19,7 @@ VB-Audio MCP is organized around explicit, testable layers. The MCP layer should
 - `client.ts` exposes `query`, `send`, and `queryPointState` methods.
 - `safety.ts` enforces write gates, destructive gates, SUID allowlists, identifier validation, and channel bounds.
 - `snapshots.ts` defines the targeted snapshot format, pure diff logic, and point-restore planning.
+- `savedSettings.ts` strictly parses saved Matrix XML, enforces configured-root and file-size boundaries, and computes deterministic saved-state diffs without contacting Matrix.
 
 ## Tool registration (`src/tools/`)
 
@@ -30,6 +31,7 @@ VB-Audio MCP is organized around explicit, testable layers. The MCP layer should
 - `snapshots.ts` contains targeted snapshot capture, diff, and guarded restore tools.
 - `system.ts` contains destructive/system operations, currently only engine restart.
 - `matrixFiles.ts` contains read-only Matrix file-state queries and guarded preset patch `.xml` load/save-as tools.
+- `savedSettings.ts` contains bounded read-only inspection and diff tools for saved Matrix project/grid XML. These report file provenance and never claim to be live engine state.
 - `src/providers/voicemeeter*.ts` contains Voicemeeter provider metadata, helper-process orchestration, raw Voicemeeter VBAN-TEXT handling, and `voicemeeter_*` tool runners.
 - New Matrix primitive tools should live beside the VBMatrix concept they expose and should register through the Matrix provider path without changing existing tool names.
 - Future grouped-operation tools should use shared command builders, schemas, and safety helpers from the primitive layer instead of introducing a second command syntax path.

@@ -19,6 +19,8 @@ export interface VbMatrixConfig {
     presetPatchRoots: string[];
     projectRoots: string[];
     gridRoots: string[];
+    savedSettingsRoots?: string[];
+    savedSettingsMaxBytes?: number;
   };
 }
 
@@ -121,6 +123,11 @@ export function loadConfig(env: Env = process.env): VbMatrixConfig {
       presetPatchRoots: readPathList(env, 'VBMATRIX_MCP_PRESET_PATCH_ROOTS'),
       projectRoots: readPathList(env, 'VBMATRIX_MCP_PROJECT_ROOTS'),
       gridRoots: readPathList(env, 'VBMATRIX_MCP_GRID_ROOTS'),
+      savedSettingsRoots: readPathList(env, 'VBMATRIX_MCP_SAVED_SETTINGS_ROOTS'),
+      savedSettingsMaxBytes: readInteger(env, 'VBMATRIX_MCP_SAVED_SETTINGS_MAX_BYTES', 8 * 1024 * 1024, {
+        min: 1_024,
+        max: 64 * 1024 * 1024,
+      }),
     },
   };
 }

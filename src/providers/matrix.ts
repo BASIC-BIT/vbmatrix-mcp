@@ -6,6 +6,7 @@ import { registerPointTools } from '../tools/points.js';
 import { registerPresetPatchTools } from '../tools/presetPatches.js';
 import { registerRawVbanTextTools } from '../tools/rawVbanText.js';
 import { registerSafeRoutingTools } from '../tools/safeRouting.js';
+import { registerSavedSettingsTools } from '../tools/savedSettings.js';
 import { registerSlotTools } from '../tools/slots.js';
 import { registerSnapshotTools } from '../tools/snapshots.js';
 import { registerStatusTools } from '../tools/status.js';
@@ -19,6 +20,7 @@ function registerMatrixTools(server: McpServer): void {
   registerRawVbanTextTools(server);
   registerObservabilityTools(server);
   registerMatrixFileTools(server);
+  registerSavedSettingsTools(server);
   registerPointTools(server);
   registerZoneTools(server);
   registerChannelTools(server);

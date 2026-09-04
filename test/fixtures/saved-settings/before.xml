@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VBAudioMatrixSettings>
+  <VBAudioMatrixDeviceConfiguration>
+    <CLOCKSlot uniq="CLOCK" master="0" name="Internal Clock" />
+    <AMDevice uniq="ASIO64A" master="1" type="256" name="Example ASIO Device" ODelayOn="0" ODelayMs="0.00" />
+    <AMDevice uniq="WIN1.OUT" master="0" type="4" name="Example Windows Output" ODelayOn="0" ODelayMs="0.00" />
+    <VAIOSlot uniq="VAIO1" online="1" name="Example VAIO" ODelayOn="0" ODelayMs="0.00" />
+    <VBANSlot uniq="VBAN1" online="1" name="Example Network Stream" ODelayOn="0" ODelayMs="0.00" />
+  </VBAudioMatrixDeviceConfiguration>
+  <VBAudioMatrixVBANConfiguration>
+    <VBANService active="1" applicationName="Example Matrix" />
+    <VBANAudioStream uniq="VBAN1" streamName="ExampleStream" direction="in" ip="192.0.2.10" port="6980" />
+  </VBAudioMatrixVBANConfiguration>
+  <VBAudioMatrixGridConfiguration>
+    <Point slotin="VAIO1" in="1" slotout="ASIO64A" out="9" dBGain="0.00" mute="0" phase="0" />
+    <Point slotin="VAIO1" in="2" slotout="ASIO64A" out="10" dBGain="-3.00" mute="1" phase="0" />
+    <Point slotin="VBAN1" in="1" slotout="WIN1.OUT" out="1" dBGain="0.00" mute="0" phase="1" />
+  </VBAudioMatrixGridConfiguration>
+</VBAudioMatrixSettings>

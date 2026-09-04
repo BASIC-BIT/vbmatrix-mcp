@@ -96,6 +96,21 @@
           "isSecret": false
         },
         {
+          "name": "VBMATRIX_MCP_SAVED_SETTINGS_ROOTS",
+          "description": "Semicolon-separated absolute local roots allowed for read-only saved Matrix XML inspection and diffing.",
+          "format": "string",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "VBMATRIX_MCP_SAVED_SETTINGS_MAX_BYTES",
+          "description": "Maximum saved Matrix XML file size accepted by the offline inspector.",
+          "format": "number",
+          "default": "8388608",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
           "name": "VOICEMEETER_MCP_DISABLE_WRITES",
           "description": "Disable typed Voicemeeter write tools.",
           "format": "boolean",

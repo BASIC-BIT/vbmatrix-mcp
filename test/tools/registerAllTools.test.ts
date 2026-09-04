@@ -25,6 +25,8 @@ describe('tool registration', () => {
       'vbmatrix_inspect_slots',
       'vbmatrix_get_file_state',
       'vbmatrix_preset_patch_file',
+      'vbmatrix_inspect_saved_settings',
+      'vbmatrix_diff_saved_settings',
       'vbmatrix_get_point',
       'vbmatrix_remove_point',
       'vbmatrix_apply_point_range',

@@ -10,6 +10,7 @@ export const matrixProviderMetadata = {
     'routeInspection',
     'slotInspection',
     'fileState',
+    'savedSettingsInspection',
     'points',
     'pointRanges',
     'zones',

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VBAudioMatrixSettings>
+  <VBAudioMatrixDeviceConfiguration>
+    <CLOCKSlot uniq="CLOCK" master="0" name="Internal Clock" />
+    <AMDevice uniq="ASIO64A" master="1" type="256" name="Example ASIO Device" ODelayOn="1" ODelayMs="2.50" />
+    <AMDevice uniq="WIN1.OUT" master="0" type="4" name="Example Windows Output" ODelayOn="0" ODelayMs="0.00" />
+    <VAIOSlot uniq="VAIO1" online="1" name="Example VAIO" ODelayOn="0" ODelayMs="0.00" />
+    <VASIOSlot uniq="VASIO8" online="1" name="Example Virtual ASIO" ODelayOn="0" ODelayMs="0.00" />
+  </VBAudioMatrixDeviceConfiguration>
+  <VBAudioMatrixGridConfiguration>
+    <Point slotin="VAIO1" in="1" slotout="ASIO64A" out="9" dBGain="0" mute="0" phase="0" />
+    <Point slotin="VAIO1" in="2" slotout="ASIO64A" out="10" dBGain="-6.00" mute="1" phase="0" />
+    <Point slotin="VASIO8" in="1" slotout="WIN1.OUT" out="1" dBGain="0.00" mute="0" phase="0" />
+  </VBAudioMatrixGridConfiguration>
+</VBAudioMatrixSettings>
