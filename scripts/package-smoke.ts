@@ -47,6 +47,7 @@ if (packageJson.bin?.['vb-audio-mcp-doctor'] !== 'dist/scripts/doctor.js') {
 expectFile('dist/src/index.js');
 expectFile('dist/bin/cli.js');
 expectFile('dist/scripts/doctor.js');
+expectFile('helpers/windows-audio-helper.ps1');
 
 const cliEntry = readFileSync(resolve(root, 'dist/bin/cli.js'), 'utf8');
 if (!cliEntry.startsWith('#!/usr/bin/env node')) fail('dist/bin/cli.js must keep its node shebang');
@@ -87,6 +88,8 @@ for (const path of [
   'server.json',
   'docs/release.md',
   'docs/client-config.md',
+  'docs/windows-audio-provider.md',
+  'helpers/windows-audio-helper.ps1',
 ]) {
   expectPackageFile(packedPaths, path);
 }
