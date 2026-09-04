@@ -29,7 +29,7 @@ File tools must require an explicit configured root for each file kind they supp
 
 Root rules:
 
-- Roots must be configured by the operator, not guessed from common Windows folders. The current preset patch root variable is `VBMATRIX_MCP_PRESET_PATCH_ROOTS` with semicolon-separated absolute Windows paths.
+- Roots must be configured by the operator, not guessed from common Windows folders. The preset patch write root variable is `VBMATRIX_MCP_PRESET_PATCH_ROOTS`; the independent read-only saved-settings root variable is `VBMATRIX_MCP_SAVED_SETTINGS_ROOTS`. Both use semicolon-separated absolute paths.
 - Relative paths, drive-relative paths, UNC paths, and paths outside configured roots must be rejected.
 - Path traversal must be rejected by resolving the candidate path before comparison.
 - The tool response should include the matched root and resolved path during dry-run so the operator can verify the target.
@@ -84,5 +84,9 @@ The first implementation slice provides:
 - A pure path-policy helper in `src/core/matrixFilePolicy.ts` with tests in `test/core/matrixFilePolicy.test.ts`.
 - `vbmatrix_get_file_state` for read-only project/grid file-state queries.
 - `vbmatrix_preset_patch_file` for dry-run-first `PresetPatch[n].Load` and `PresetPatch[n].SaveAs` against `.xml` paths under `VBMATRIX_MCP_PRESET_PATCH_ROOTS`.
+- `vbmatrix_inspect_saved_settings` for bounded offline slot/route inspection of an existing saved Matrix `.xml` file.
+- `vbmatrix_diff_saved_settings` for deterministic slot/route differences between two saved Matrix `.xml` files.
+
+The saved-settings tools use a separate strict parser and read policy in `src/core/savedSettings.ts`. They canonicalize roots and files before containment checks, reject symlink/junction escapes, UNC paths, document types, non-regular files, malformed XML, excessive file/element/slot/route counts, and cap response items. They do not send VBAN commands, load files into Matrix, or infer that a saved file matches the live engine. Responses include canonical path, SHA-256, modification time, and an explicit `liveState: false` marker.
 
 Future work may add more typed file tools only after the command syntax, extensions, configured roots, dry-run output, overwrite behavior, and confirmation semantics are documented and tested.

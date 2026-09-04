@@ -80,6 +80,8 @@ Large snapshots are stored under `.vbmatrix-snapshots/`, which is gitignored. Sn
 
 `vbmatrix_preset_patch_file` is the first typed file-affecting slice. It is limited to live-tested `PresetPatch[n].Load` and `PresetPatch[n].SaveAs` with `.xml` paths under operator-configured roots. Project/grid load/save and `PresetPatch[n].Save` remain deferred until source-linked syntax, live behavior, path/extension rules, and confirmation semantics are proven. Raw VBAN-TEXT can still send file-affecting Matrix commands when not disabled; callers are responsible for exact command semantics and path consequences.
 
+`vbmatrix_inspect_saved_settings` and `vbmatrix_diff_saved_settings` are offline read-only tools. They require `VBMATRIX_MCP_SAVED_SETTINGS_ROOTS`, accept only regular `.xml` files whose canonical paths remain inside those roots, reject UNC paths and XML document types, and enforce `VBMATRIX_MCP_SAVED_SETTINGS_MAX_BYTES` plus parser/output caps. A saved file can differ from the running engine, so these tools return explicit saved-file provenance and must not be described as live Matrix inspection.
+
 ## Network trust
 
 The VBMatrix manual says TEXT command streams can receive messages from anywhere. Use this server on trusted local networks only, keep MCP local over stdio, and use OS/firewall controls for VBAN UDP exposure.

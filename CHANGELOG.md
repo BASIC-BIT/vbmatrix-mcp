@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added bounded, read-only `vbmatrix_inspect_saved_settings` and `vbmatrix_diff_saved_settings` tools for saved Matrix XML files under operator-configured roots, with strict XML parsing, file hashes, and explicit saved-versus-live provenance.
 - Renamed the package and MCP discovery identity to VB-Audio MCP while keeping product-specific `vbmatrix_*` and `voicemeeter_*` tool prefixes stable.
 - Added live-tested `vbmatrix_inspect_routes` and `vbmatrix_inspect_slots` for bounded route, slot, label, and engine/master inspection before live changes.
 - Added default-available `vbmatrix_raw_vban_text` as an advanced power-user escape hatch, with `VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true` for deployments that want to hide it.

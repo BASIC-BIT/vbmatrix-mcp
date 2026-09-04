@@ -88,6 +88,8 @@ Read tools are small and direct:
 - `vbmatrix_get_master` queries master clock state.
 - `vbmatrix_get_slot_info` returns slot properties.
 - `vbmatrix_get_point` returns gain, mute, and phase for one point.
+- `vbmatrix_inspect_saved_settings` reads bounded slots and routes from one root-confined saved Matrix XML file and marks the result as non-live.
+- `vbmatrix_diff_saved_settings` compares the bounded slot and route state in two root-confined saved Matrix XML files.
 - `vbmatrix_capture_snapshot` captures explicit selected slot metadata and point state.
 - `vbmatrix_diff_snapshots` compares two explicit Matrix snapshots.
 - `vbmatrix_raw_vban_text` sends an exact power-user VBAN-TEXT command string. Prefer typed tools when one exists; disable with `VBMATRIX_MCP_DISABLE_RAW_COMMANDS=true`.

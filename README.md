@@ -21,6 +21,7 @@ MVP goals:
 - Capture, diff, and plan/restore targeted Matrix snapshots for explicit slots and points.
 - Run a minimal safe routing workflow for explicit point audition, cleanup, and emergency mute with dry-run and rollback data.
 - Read current Matrix project/grid file state and load/save-as explicit preset patch XML files under configured roots.
+- Inspect and diff saved Matrix project/grid XML files offline, with configured-root confinement and bounded output.
 
 ## Install From Source
 
@@ -93,19 +94,21 @@ For setup failures or support reports, start with `docs/troubleshooting.md`. It 
 
 ## Configuration
 
-| Variable                            | Default     | Use                                                                                                                                           |
-| ----------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `VBMATRIX_HOST`                     | `127.0.0.1` | VBMatrix host/IP.                                                                                                                             |
-| `VBMATRIX_PORT`                     | `6980`      | VBAN UDP port.                                                                                                                                |
-| `VBMATRIX_STREAM`                   | `Command1`  | VBAN-TEXT stream name.                                                                                                                        |
-| `VBMATRIX_TIMEOUT_MS`               | `2000`      | Query response timeout.                                                                                                                       |
-| `VBMATRIX_MCP_ALLOW_WRITES`         | `true`      | Enable typed write tools. Set to `false` to block typed writes.                                                                               |
-| `VBMATRIX_MCP_ALLOWED_SUIDS`        | empty       | Comma-separated SUID allowlist for writes when `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, e.g. `VASIO8,VAIO1`.                                     |
-| `VBMATRIX_MCP_ALLOW_ALL_SUIDS`      | `true`      | Allow writes to all SUIDs when writes are enabled.                                                                                            |
-| `VBMATRIX_MCP_ALLOW_DESTRUCTIVE`    | `true`      | Allow destructive/system actions such as engine restart. Set to `false` to block them.                                                        |
-| `VBMATRIX_MCP_DISABLE_RAW_COMMANDS` | `false`     | Disable the advanced raw VBAN-TEXT escape hatch.                                                                                              |
-| `VBMATRIX_MCP_PRESET_PATCH_ROOTS`   | empty       | Semicolon-separated absolute Windows roots allowed for `vbmatrix_preset_patch_file`, e.g. `C:\Users\you\Documents\VBAudioMatrix\PresetPatch`. |
-| `VBMATRIX_MCP_LOG_LEVEL`            | `info`      | `debug`, `info`, `warn`, or `error`.                                                                                                          |
+| Variable                                | Default     | Use                                                                                                                                           |
+| --------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VBMATRIX_HOST`                         | `127.0.0.1` | VBMatrix host/IP.                                                                                                                             |
+| `VBMATRIX_PORT`                         | `6980`      | VBAN UDP port.                                                                                                                                |
+| `VBMATRIX_STREAM`                       | `Command1`  | VBAN-TEXT stream name.                                                                                                                        |
+| `VBMATRIX_TIMEOUT_MS`                   | `2000`      | Query response timeout.                                                                                                                       |
+| `VBMATRIX_MCP_ALLOW_WRITES`             | `true`      | Enable typed write tools. Set to `false` to block typed writes.                                                                               |
+| `VBMATRIX_MCP_ALLOWED_SUIDS`            | empty       | Comma-separated SUID allowlist for writes when `VBMATRIX_MCP_ALLOW_ALL_SUIDS=false`, e.g. `VASIO8,VAIO1`.                                     |
+| `VBMATRIX_MCP_ALLOW_ALL_SUIDS`          | `true`      | Allow writes to all SUIDs when writes are enabled.                                                                                            |
+| `VBMATRIX_MCP_ALLOW_DESTRUCTIVE`        | `true`      | Allow destructive/system actions such as engine restart. Set to `false` to block them.                                                        |
+| `VBMATRIX_MCP_DISABLE_RAW_COMMANDS`     | `false`     | Disable the advanced raw VBAN-TEXT escape hatch.                                                                                              |
+| `VBMATRIX_MCP_PRESET_PATCH_ROOTS`       | empty       | Semicolon-separated absolute Windows roots allowed for `vbmatrix_preset_patch_file`, e.g. `C:\Users\you\Documents\VBAudioMatrix\PresetPatch`. |
+| `VBMATRIX_MCP_SAVED_SETTINGS_ROOTS`     | empty       | Semicolon-separated absolute local roots allowed for offline saved-settings inspection and diffing.                                           |
+| `VBMATRIX_MCP_SAVED_SETTINGS_MAX_BYTES` | `8388608`   | Maximum saved Matrix XML file size accepted by the offline inspector; allowed range is 1024 through 67108864 bytes.                           |
+| `VBMATRIX_MCP_LOG_LEVEL`                | `info`      | `debug`, `info`, `warn`, or `error`.                                                                                                          |
 
 Voicemeeter configuration:
 
@@ -152,8 +155,12 @@ Current primitive read tools:
 - `vbmatrix_get_channel_label`
 - `vbmatrix_get_preset_patch`
 - `vbmatrix_get_file_state`
+- `vbmatrix_inspect_saved_settings`
+- `vbmatrix_diff_saved_settings`
 - `vbmatrix_capture_snapshot`
 - `vbmatrix_diff_snapshots`
+
+The saved-settings tools read `.xml` files from `VBMATRIX_MCP_SAVED_SETTINGS_ROOTS`; they do not query or claim to represent the live Matrix engine. Their responses identify the source file, hash, modification time, and this saved-versus-live caveat.
 
 Current primitive write/destructive tools:
 
